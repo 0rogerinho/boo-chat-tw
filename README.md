@@ -1,6 +1,6 @@
-# electron-app
+# BooChatTW
 
-An Electron application with React and TypeScript
+ captura o chat da Twitch e o exibe de forma transparente na tela. Ideal para streamers que desejam sobrepor o chat nas transmissões sem fundo sólido, permitindo melhor integração com o jogo ou conteúdo exibido.
 
 ## Recommended IDE Setup
 
@@ -32,4 +32,3 @@ $ pnpm build:mac
 # For Linux
 $ pnpm build:linux
 ```
-# boo-chat-tw

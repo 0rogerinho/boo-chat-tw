@@ -1,5 +1,7 @@
 node_modules
 dist
+config
+config.json
 out
 .DS_Store
 *.log*

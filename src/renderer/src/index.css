@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "Open sans";
+  src: url('./shared/fonts/CalSans-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+
+.open-sans {
+  font-family: "Open sans", sans-serif;
+}
+
 /* {
   outline: 1px solid blue;
 }*/
@@ -52,3 +64,20 @@
   -webkit-app-region: drag;
 }
 
+.text-outline {
+  color: #fff;
+  text-shadow:
+    0.6px 0.6px 0.6px #000,
+    -0.6px 0.6px 0.6px #000,
+    -0.6px -0.6px 0 #000,
+    0.6px -0.6px 0 #000;
+}
+
+.text-outline-two {
+  color: #fff;
+  text-shadow:
+    0.8px 0.8px 0.8px #000,
+    -0.8px 0.6px 0.8px #000,
+    -0.8px -0.8px 0 #000,
+    0.8px -0.8px 0 #000;
+}

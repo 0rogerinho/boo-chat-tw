@@ -25,13 +25,13 @@ export const Chat = () => {
           <div className={cn('w-screen flex gap-1 pl-2')} key={index}>
             <h1>
               <span
-                className="text-lg open-sans text-outline font-medium inline pr-1"
+                className="text-lg open-sans text-outline font-normal inline pr-1"
                 style={{ color: data.color ?? 'blue' }}
               >
                 {data.name}:
               </span>
               <div
-                className="text-white text-xl open-sans -tracking-tighter text-outline-two font-medium text inline break-words"
+                className="text-white text-[18px] open-sans -tracking-tighter text-outline-two font-normal text inline break-words"
                 dangerouslySetInnerHTML={{
                   __html: processMessageHTML(data.message)
                 }}

@@ -3,6 +3,7 @@ import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { createHome } from './home'
 import { registerIPC } from './home/ipc'
 import { registerShortcuts } from './shortcuts'
+import { createTray } from './tray'
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -19,6 +20,7 @@ app.whenReady().then(() => {
   })
 
   const win = createHome()
+  createTray(win) // 👈 aqui adiciona a bandeja
   registerIPC(win)
 
   registerShortcuts(win)

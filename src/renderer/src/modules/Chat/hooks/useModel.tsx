@@ -121,7 +121,16 @@ export function useModel() {
           {
             name: 'CONEXÃO',
             color: 'green',
-            message: `Conectado ao chat de "${config.channel}"`,
+            message: `
+            Conectado ao chat de "${config.channel}" 
+            Esconder/aparecer a janela com Ctrl + Alt + A
+             `,
+            emojis: ''
+          },
+          {
+            name: 'AJUDA',
+            color: 'orange',
+            message: `para esconder a janela (Esconder / aparecer) use "Ctrl + Alt + A"`,
             emojis: ''
           }
         ])

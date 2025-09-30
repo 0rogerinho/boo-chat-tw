@@ -114,6 +114,7 @@ export const Chat = () => {
           !showWindow && 'scroll-none'
         )}
       >
+        <p>Atualizando... 1.0.1</p>
         <div className="space-y-2">
           {allChats
             .sort((a, b) => a.timestamp - b.timestamp)

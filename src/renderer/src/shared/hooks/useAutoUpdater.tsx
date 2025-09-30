@@ -38,18 +38,18 @@ export const useAutoUpdater = () => {
 
   // Escutar eventos do auto-updater
   useEffect(() => {
-    const handleUpdateAvailable = (info: UpdateInfo) => {
+    const handleUpdateAvailable = (_event: any, info: UpdateInfo) => {
       setUpdateInfo(info)
       setIsUpdateAvailable(true)
       setIsChecking(false)
     }
 
-    const handleDownloadProgress = (progress: DownloadProgress) => {
+    const handleDownloadProgress = (_event: any, progress: DownloadProgress) => {
       setDownloadProgress(progress)
       setIsDownloading(true)
     }
 
-    const handleUpdateDownloaded = (info: UpdateInfo) => {
+    const handleUpdateDownloaded = (_event: any, _info: UpdateInfo) => {
       setIsUpdateDownloaded(true)
       setIsDownloading(false)
       setDownloadProgress(null)

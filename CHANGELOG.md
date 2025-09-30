@@ -5,7 +5,7 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
-## [1.1.0] - 2024-01-XX
+## [1.1.0] - 2024-01-15
 
 ### Adicionado
 - Sistema de auto-update integrado com GitHub releases
@@ -28,7 +28,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 - APIs expostas no preload para o renderer process
 - Configuração otimizada do NSIS para Windows
 
-## [1.0.0] - 2024-01-XX
+## [1.0.0] - 2024-01-10
 
 ### Adicionado
 - Versão inicial do BooChat
@@ -37,3 +37,5 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 - Sistema de configuração de canais
 - Tray system para Windows
 - Atalhos de teclado personalizáveis
+- Sistema de configuração persistente
+- Interface responsiva e moderna

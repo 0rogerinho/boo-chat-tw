@@ -6,6 +6,7 @@ import { useShowWindowStore } from '../store/useShowWindowStore'
 // Mocks
 import { bots } from '../../../shared/utils'
 import { TConfigDataProps, useConfigStore } from '../../../shared/store/useConfigStore'
+import { DEFAULT_CONFIG_DATA } from '../../../shared/constants/defaultConfig'
 
 interface IEmojis {
   id: string
@@ -34,6 +35,7 @@ export function useModel() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const { config, setConfig } = useConfigStore()
+  console.log('config', config)
 
   const handleConfigUpdate = (_event: any, newConfig: TConfigDataProps) => {
     setConfig(newConfig)
@@ -53,11 +55,25 @@ export function useModel() {
 
   useEffect(() => {
     const fetchConfig = async () => {
-      const data = await window.electron.ipcRenderer.invoke('get-config')
-      console.log('data', data)
+      try {
+        const response = await window.electron.ipcRenderer.invoke('get-config')
+        console.log('data', response)
 
-      if (data) {
-        setConfig(data)
+        if (response && typeof response === 'object') {
+          if (response.success) {
+            setConfig(response.data)
+          } else {
+            console.error('Erro ao carregar configurações no Chat:', response.error)
+            setConfig(response.data || DEFAULT_CONFIG_DATA)
+          }
+        } else {
+          // Se não retornou dados, usa os dados padrão
+          setConfig(DEFAULT_CONFIG_DATA)
+        }
+      } catch (error) {
+        console.error('Erro ao carregar configurações no Chat:', error)
+        // Em caso de erro, usa os dados padrão
+        setConfig(DEFAULT_CONFIG_DATA)
       }
     }
 

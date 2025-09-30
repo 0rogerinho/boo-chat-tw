@@ -1,24 +1,35 @@
 {
   "name": "boochat-tw",
-  "version": "1.1.0",
+  "version": "1.0.0",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
   "author": "devrogerinho.com",
-  "homepage": "https://electron-vite.org",
+  "homepage": "https://github.com/0rogerinho/boo-chat-tw",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
-    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
-    "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
+    "typecheck:node": "tsc --project tsconfig.node.json",
+    "typecheck:web": "tsc --project tsconfig.web.json",
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "build": "npm run typecheck && electron-vite build",
-    "postinstall": "electron-builder install-app-deps",
-    "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
-    "build:mac": "electron-vite build && electron-builder --mac",
-    "build:linux": "electron-vite build && electron-builder --linux"
+    "build:mac": "npm run build && electron-builder --mac",
+    "build:linux": "npm run build && electron-builder --linux",
+    "build:all": "npm run build:win && npm run build:mac && npm run build:linux",
+    "publish:win": "npm run build && electron-builder --win --publish=always",
+    "publish:mac": "npm run build && electron-builder --mac --publish=always",
+    "publish:linux": "npm run build && electron-builder --linux --publish=always",
+    "publish:all": "npm run build && electron-builder --win --mac --linux --publish=always"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0rogerinho/boo-chat-tw.git"
+  },
+  "publish": {
+    "provider": "github",
+    "releaseType": "release"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
@@ -26,7 +37,9 @@
     "@radix-ui/react-avatar": "^1.1.10",
     "axios": "^1.12.2",
     "clsx": "^2.1.1",
+    "electron-log": "^5.4.3",
     "electron-updater": "^6.6.2",
+    "lucide-react": "^0.544.0",
     "pusher-js": "^8.4.0",
     "react-icons": "^5.4.0",
     "react-router-dom": "^7.1.5",

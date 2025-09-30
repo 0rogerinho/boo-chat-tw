@@ -23,9 +23,15 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      electron-log:
+        specifier: ^5.4.3
+        version: 5.4.3
       electron-updater:
         specifier: ^6.6.2
         version: 6.6.2
+      lucide-react:
+        specifier: ^0.544.0
+        version: 0.544.0(react@18.3.1)
       pusher-js:
         specifier: ^8.4.0
         version: 8.4.0
@@ -1249,6 +1255,10 @@ packages:
     engines: {node: '>=14.0.0'}
     hasBin: true
 
+  electron-log@5.4.3:
+    resolution: {integrity: sha512-sOUsM3LjZdugatazSQ/XTyNcw8dfvH1SYhXWiJyfYodAAKOZdHs0txPiLDXFzOZbhXgAgshQkshH2ccq0feyLQ==}
+    engines: {node: '>= 14'}
+
   electron-publish@24.13.1:
     resolution: {integrity: sha512-2ZgdEqJ8e9D17Hwp5LEq5mLQPjqU3lv/IALvgp+4W8VeNhryfGhYEQC/PgDPMrnWUp+l60Ou5SJLsu+k4mhQ8A==}
 
@@ -1925,6 +1935,11 @@ packages:
   lru-cache@6.0.0:
     resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
     engines: {node: '>=10'}
+
+  lucide-react@0.544.0:
+    resolution: {integrity: sha512-t5tS44bqd825zAW45UQxpG2CvcC4urOwn2TrwSH8u+MjeE+1NnWl6QqeQ/6NdjMqdOygyiT9p3Ev0p1NJykxjw==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   magic-string@0.30.17:
     resolution: {integrity: sha512-sNPKHvyjVf7gyjwS4xGTaW/mCnF8wnjtifKBEhxfZ7E/S8tQ0rssrwGNn6q8JH/ohItJfSQp9mBtQYuTlH5QnA==}
@@ -4078,6 +4093,8 @@ snapshots:
       - electron-builder-squirrel-windows
       - supports-color
 
+  electron-log@5.4.3: {}
+
   electron-publish@24.13.1:
     dependencies:
       '@types/fs-extra': 9.0.13
@@ -4937,6 +4954,10 @@ snapshots:
   lru-cache@6.0.0:
     dependencies:
       yallist: 4.0.0
+
+  lucide-react@0.544.0(react@18.3.1):
+    dependencies:
+      react: 18.3.1
 
   magic-string@0.30.17:
     dependencies:

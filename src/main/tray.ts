@@ -1,11 +1,12 @@
 import { Tray, Menu, app, BrowserWindow } from 'electron'
-import trayImage from '../../resources/icon.png?asset'
+import { platform } from './platform'
 
 let tray: Tray | null = null
 
 export function createTray(win: BrowserWindow) {
   if (tray) return // Evita múltiplas bandejas em modo dev
 
+  const trayImage = platform.getTrayIcon()
   tray = new Tray(trayImage)
   win?.webContents.send('toggle-show-window')
   const contextMenu = Menu.buildFromTemplate([

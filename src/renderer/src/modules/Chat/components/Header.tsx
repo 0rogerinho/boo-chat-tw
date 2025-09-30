@@ -18,7 +18,7 @@ export const Header = ({ eyeClick }: IHeader) => {
   return (
     <header
       className={cn(
-        'fixed w-full bg-gray-900/95 backdrop-blur-sm move-page flex justify-between items-center rounded-t-md overflow-hidden transition-all duration-300 opacity-100 visible border-b border-gray-700/50',
+        'fixed w-full bg-gray-900/95 backdrop-blur-sm move-page flex justify-between items-center rounded-t-md overflow-hidden transition-all duration-300 opacity-100 visible border-b border-gray-600',
         !showWindow && 'opacity-0 bg-transparent border-transparent'
       )}
     >

@@ -1,4 +1,4 @@
-export const defaultConfigData = {
+export const DEFAULT_CONFIG_DATA = {
   kick: { slug: '' },
   twitch: { channel: '' },
   youtube: { channelName: '' },

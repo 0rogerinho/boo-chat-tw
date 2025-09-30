@@ -10,6 +10,7 @@ export function createConfigWindow() {
     resizable: false,
     parent: BrowserWindow.getAllWindows()[0], // Define como filha da principal
     modal: true,
+    transparent: true,
     frame: false,
     show: false,
     webPreferences: {

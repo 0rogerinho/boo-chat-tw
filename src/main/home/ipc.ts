@@ -4,8 +4,8 @@ import { ipcMain, BrowserWindow, app } from 'electron'
 import { createConfigWindow } from '../config'
 import { registerConfigIPC } from '../config/ipc'
 import path from 'path'
-import { is } from '@electron-toolkit/utils'
 import { defaultConfigData } from '../shared/mocks'
+import { autoUpdater } from 'electron-updater'
 export type configData = {
   channel: string
 }
@@ -51,38 +51,64 @@ export const registerIPC = (win: BrowserWindow) => {
 
   // Registrar novo handler
   ipcMain.handle('get-config', async () => {
-    // paths
-    const exePath = path.join(app.getPath('exe'), 'config')
-    const dirnamePath = path.join(__dirname, '..', '..', 'config')
+    console.log('Handler get-config chamado')
+
+    // Usa o diretório de dados do usuário para carregar configurações
+    const userDataPath = app.getPath('userData')
+    const configDir = path.join(userDataPath, 'config')
 
     // save config path
-    const saveConfigPath = path.join(is.dev ? dirnamePath : exePath)
+    const saveConfigPath = configDir
+    console.log('Caminho para carregar:', saveConfigPath)
 
     const configPath = path.join(saveConfigPath, 'config.json')
+    console.log('Arquivo de configuração:', configPath)
 
     try {
+      // Garante que o diretório existe
       if (!fs.existsSync(saveConfigPath)) {
+        console.log('Diretório não existe, criando:', saveConfigPath)
         fs.mkdirSync(saveConfigPath, { recursive: true })
       }
 
-      if (fs.existsSync(configPath)) {
-        const json = fs.readFileSync(configPath, 'utf-8')
-        const data = JSON.parse(json)
-
-        const configData = data
-
-        if (!data.kick && !data.twitch && !data.youtube) {
-          fs.writeFileSync(configPath, JSON.stringify(defaultConfigData, null, 2), 'utf8')
-
-          return configData
-        }
-
-        return configData
+      // Se o arquivo não existe, cria com dados padrão
+      if (!fs.existsSync(configPath)) {
+        console.log('Arquivo não existe, criando com dados padrão')
+        fs.writeFileSync(configPath, JSON.stringify(defaultConfigData, null, 2), 'utf8')
+        console.log('Arquivo criado com dados padrão:', defaultConfigData)
+        return { success: true, data: defaultConfigData }
       }
+
+      // Se o arquivo existe, tenta carregar
+      console.log('Arquivo existe, carregando...')
+      const json = fs.readFileSync(configPath, 'utf-8')
+      const data = JSON.parse(json)
+      console.log('Dados carregados do arquivo:', data)
+
+      // Verifica se o arquivo tem as propriedades necessárias
+      if (!data.kick && !data.twitch && !data.youtube) {
+        console.log('Arquivo inválido, recriando com dados padrão')
+        fs.writeFileSync(configPath, JSON.stringify(defaultConfigData, null, 2), 'utf8')
+        return { success: true, data: defaultConfigData }
+      }
+
+      console.log('Retornando dados válidos:', data)
+      return { success: true, data }
     } catch (error) {
-      console.log(error)
+      console.error('Erro ao carregar configurações:', error)
+      // Em caso de erro, retorna dados padrão com indicação de erro
+      console.log('Retornando dados padrão devido ao erro')
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Erro desconhecido ao carregar configurações',
+        data: defaultConfigData
+      }
     }
   })
+
+  // Remover handler anterior se existir
+  ipcMain.removeHandler('fetch-youtube')
 
   // Handler para fazer requisições ao YouTube (sem restrições de CORS)
   ipcMain.handle('fetch-youtube', async (_event, url: string, payload?: string) => {
@@ -113,6 +139,66 @@ export const registerIPC = (win: BrowserWindow) => {
       console.error('Erro ao fazer requisição ao YouTube:', error)
       return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
     }
+  })
+
+  // Handlers para o autoUpdater
+  ipcMain.handle('check-for-updates', async () => {
+    try {
+      const result = await autoUpdater.checkForUpdates()
+      return { success: true, result }
+    } catch (error) {
+      console.error('Erro ao verificar atualizações:', error)
+      return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }
+  })
+
+  ipcMain.handle('download-update', async () => {
+    try {
+      await autoUpdater.downloadUpdate()
+      return { success: true }
+    } catch (error) {
+      console.error('Erro ao baixar atualização:', error)
+      return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }
+  })
+
+  ipcMain.handle('install-update', async () => {
+    try {
+      autoUpdater.quitAndInstall()
+      return { success: true }
+    } catch (error) {
+      console.error('Erro ao instalar atualização:', error)
+      return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }
+  })
+
+  ipcMain.handle('get-app-version', () => {
+    return app.getVersion()
+  })
+
+  // Enviar eventos do updater para o renderer
+  autoUpdater.on('checking-for-update', () => {
+    win?.webContents.send('updater-checking-for-update')
+  })
+
+  autoUpdater.on('update-available', (info) => {
+    win?.webContents.send('updater-update-available', info)
+  })
+
+  autoUpdater.on('update-not-available', (info) => {
+    win?.webContents.send('updater-update-not-available', info)
+  })
+
+  autoUpdater.on('error', (err) => {
+    win?.webContents.send('updater-error', err.message)
+  })
+
+  autoUpdater.on('download-progress', (progressObj) => {
+    win?.webContents.send('updater-download-progress', progressObj)
+  })
+
+  autoUpdater.on('update-downloaded', (info) => {
+    win?.webContents.send('updater-update-downloaded', info)
   })
 
   win.webContents.on('did-finish-load', () => {

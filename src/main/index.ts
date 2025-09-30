@@ -1,9 +1,73 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, dialog } from 'electron'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { createHome } from './home'
 import { registerIPC } from './home/ipc'
 import { registerShortcuts } from './shortcuts'
 import { createTray } from './tray'
+import { autoUpdater } from 'electron-updater'
+
+// Configurações do autoUpdater
+autoUpdater.autoDownload = false
+autoUpdater.autoInstallOnAppQuit = false
+
+// Configurar logging para debug
+const log = require('electron-log')
+autoUpdater.logger = log
+log.transports.file.level = 'info'
+
+// Eventos do autoUpdater
+autoUpdater.on('checking-for-update', () => {
+  console.log('Verificando atualizações...')
+})
+
+autoUpdater.on('update-available', (info) => {
+  console.log('Atualização disponível:', info)
+  dialog
+    .showMessageBox({
+      type: 'info',
+      title: 'Atualização Disponível',
+      message: 'Uma nova versão está disponível. Deseja baixar agora?',
+      buttons: ['Baixar Agora', 'Depois']
+    })
+    .then((result) => {
+      if (result.response === 0) {
+        autoUpdater.downloadUpdate()
+      }
+    })
+})
+
+autoUpdater.on('update-not-available', (info) => {
+  console.log('Nenhuma atualização disponível:', info)
+})
+
+autoUpdater.on('error', (err) => {
+  console.error('Erro ao verificar atualizações:', err)
+  dialog.showErrorBox('Erro de Atualização', 'Erro ao verificar atualizações: ' + err.message)
+})
+
+autoUpdater.on('download-progress', (progressObj) => {
+  let log_message = 'Velocidade de download: ' + progressObj.bytesPerSecond
+  log_message = log_message + ' - Baixado ' + progressObj.percent + '%'
+  log_message = log_message + ' (' + progressObj.transferred + '/' + progressObj.total + ')'
+  console.log(log_message)
+})
+
+autoUpdater.on('update-downloaded', (info) => {
+  console.log('Atualização baixada:', info)
+  dialog
+    .showMessageBox({
+      type: 'info',
+      title: 'Atualização Baixada',
+      message:
+        'A atualização foi baixada. O aplicativo será reiniciado para aplicar a atualização.',
+      buttons: ['Reiniciar Agora', 'Depois']
+    })
+    .then((result) => {
+      if (result.response === 0) {
+        autoUpdater.quitAndInstall()
+      }
+    })
+})
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -24,6 +88,13 @@ app.whenReady().then(() => {
   registerIPC(win)
 
   registerShortcuts(win)
+
+  // Verificar atualizações após 5 segundos (apenas em produção)
+  if (process.env.NODE_ENV === 'production') {
+    setTimeout(() => {
+      autoUpdater.checkForUpdatesAndNotify()
+    }, 5000)
+  }
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the

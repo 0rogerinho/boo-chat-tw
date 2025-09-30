@@ -1,37 +1,82 @@
-# BooChatTW
+# BooChat
 
- captura o chat da Twitch e o exibe de forma transparente na tela. Ideal para streamers que desejam sobrepor o chat nas transmissões sem fundo sólido, permitindo melhor integração com o jogo ou conteúdo exibido.
+BooChat captura o chat da Twitch, YouTube e Kick e o exibe de forma transparente na tela. Ideal para streamers que desejam sobrepor o chat nas transmissões sem fundo sólido, permitindo melhor integração com o jogo ou conteúdo exibido.
 
-## Recommended IDE Setup
+## 🚀 Plataformas Suportadas
 
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+- **Windows** (x64, x86)
+- **macOS** (x64, ARM64)
+- **Linux** (x64)
 
-## Project Setup
+## 🛠️ Tecnologias
 
-### Install
+- **Electron** - Framework multiplataforma
+- **React** - Interface do usuário
+- **TypeScript** - Tipagem estática
+- **Tailwind CSS** - Estilização
+- **Vite** - Build tool
+
+## 📋 Pré-requisitos
+
+- Node.js 18+
+- pnpm (recomendado) ou npm
+- Git
+
+## 🚀 Instalação e Desenvolvimento
+
+### Instalar Dependências
 
 ```bash
-$ pnpm install
+pnpm install
 ```
 
-### Development
+### Modo Desenvolvimento
 
 ```bash
-$ pnpm dev
+pnpm dev
 ```
 
-### Build
+### Build para Produção
 
 ```bash
-# For windows
-$ pnpm build:win
+# Build para todas as plataformas
+pnpm run build:all
 
-# For macOS
-$ pnpm build:mac
-
-# For Linux
-$ pnpm build:linux
+# Build específico por plataforma
+pnpm run build:win    # Windows
+pnpm run build:mac    # macOS
+pnpm run build:linux  # Linux
 ```
+
+### Scripts Disponíveis
+
+```bash
+# Desenvolvimento
+pnpm dev              # Modo desenvolvimento
+pnpm start            # Preview da build
+
+# Build específico
+pnpm build:win        # Windows (NSIS + Portable)
+pnpm build:win:portable # Apenas versão portable
+pnpm build:mac        # macOS (DMG + ZIP)
+pnpm build:mac:arm64  # macOS ARM64
+pnpm build:mac:x64    # macOS x64
+pnpm build:linux      # Linux (AppImage, DEB, SNAP, RPM)
+pnpm build:linux:appimage # Apenas AppImage
+pnpm build:linux:deb  # Apenas DEB
+pnpm build:linux:snap # Apenas SNAP
+pnpm build:linux:rpm  # Apenas RPM
+
+# Utilitários
+pnpm typecheck        # Verificação de tipos
+pnpm lint             # Linting
+pnpm format           # Formatação de código
+```
+
+## 📖 Documentação
+
+- [Guia de Build](docs/BUILD.md) - Instruções detalhadas para build
+- [Configuração da API do YouTube](docs/YOUTUBE_API_SETUP.md) - Setup da API
 
 ## BooChatTW
 

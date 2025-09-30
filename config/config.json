@@ -1,19 +1,19 @@
 {
   "kick": {
-    "slug": "paulinholokobr"
+    "slug": ""
   },
   "twitch": {
     "channel": "devrogerinho"
   },
-  "x": 1027,
-  "y": 135,
-  "width": 460,
-  "height": 365,
   "youtube": {
-    "channelName": "@ONEXXT"
+    "channelName": ""
   },
   "font": {
     "size": 16,
     "weight": 700
-  }
+  },
+  "x": 219,
+  "y": 122,
+  "width": 665,
+  "height": 601
 }

@@ -1,11 +1,14 @@
 import fs from 'fs'
-import { BrowserWindow, shell } from 'electron'
+import { BrowserWindow, shell, app } from 'electron'
 import path, { join } from 'node:path'
 import { is } from '@electron-toolkit/utils'
-import icon from '../../../resources/icon.png?asset'
+import { platform } from '../platform'
 
 export const createHome = (): BrowserWindow => {
-  const configPath = 'config/config.json'
+  // Usa o diretório de dados do usuário para salvar configurações
+  const userDataPath = app.getPath('userData')
+  const configDir = path.join(userDataPath, 'config')
+  const configPath = path.join(configDir, 'config.json')
 
   // Função para carregar a configuração salva
   function loadConfig() {
@@ -18,9 +21,8 @@ export const createHome = (): BrowserWindow => {
 
   // Função para salvar a configuração
   function saveConfig(data: object) {
-    const dir = path.dirname(configPath)
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true })
+    if (!fs.existsSync(configDir)) {
+      fs.mkdirSync(configDir, { recursive: true })
     }
     fs.writeFileSync(configPath, JSON.stringify(data))
   }
@@ -33,17 +35,21 @@ export const createHome = (): BrowserWindow => {
     height: 400
   }
 
+  const platformConfig = platform.getPlatformSpecificConfig()
+  const currentPlatformConfig = platform.isWindows
+    ? platformConfig.windows
+    : platform.isMacOS
+      ? platformConfig.macos
+      : platformConfig.linux
+
   const win = new BrowserWindow({
     width: lastBounds.width,
     height: lastBounds.height,
     x: lastBounds.x,
     y: lastBounds.y,
-    frame: false,
     fullscreen: false,
-    transparent: true,
     show: false,
-    autoHideMenuBar: false,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    ...currentPlatformConfig,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,

@@ -1,7 +1,9 @@
-appId: com.devrogerinho.app
-productName: BooChat-app
+appId: com.devrogerinho.boochat
+productName: BooChat
+buildVersion: 1.0.0.0
 directories:
   buildResources: build
+  output: dist
 files:
   - '!**/.vscode/*'
   - '!src/*'
@@ -9,38 +11,149 @@ files:
   - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - '!build/**'
 asarUnpack:
   - resources/**
+  - build/**
+
+# Configurações para Windows
 win:
-  icon: booChatTW.ico
-  executableName: BooChat-app
+  icon: icon.ico
+  executableName: BooChat
+  requestedExecutionLevel: asInvoker
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
 nsis:
   artifactName: BooChat-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+  createStartMenuShortcut: true
+  allowToChangeInstallationDirectory: true
+  oneClick: false
+  perMachine: false
+  allowElevation: true
+  runAfterFinish: true
+
+# Configurações para macOS
 mac:
-  icon: booChatTW.png
+  icon: build/icon.icns
+  entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
   extendInfo:
-    - NSCameraUsageDescription: No application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: No application requests access to the device's microphone.
-    - NSDocumentsFolderUsageDescription: No application requests access to the user's Documents folder.
-    - NSDownloadsFolderUsageDescription: no application requests access to the user's Downloads folder.
+    NSCameraUsageDescription: Este aplicativo não solicita acesso à câmera do dispositivo.
+    NSMicrophoneUsageDescription: Este aplicativo não solicita acesso ao microfone do dispositivo.
+    NSDocumentsFolderUsageDescription: Este aplicativo não solicita acesso à pasta de Documentos do usuário.
+    NSDownloadsFolderUsageDescription: Este aplicativo não solicita acesso à pasta de Downloads do usuário.
   notarize: false
+  hardenedRuntime: true
+  gatekeeperAssess: false
 dmg:
   artifactName: BooChat-${version}.${ext}
+  title: BooChat ${version}
+  background: build/background.png
+  icon: build/icon.icns
+  iconSize: 80
+  contents:
+    - x: 410
+      y: 150
+      type: link
+      path: /Applications
+    - x: 130
+      y: 150
+      type: file
+
+# Configurações para Linux
 linux:
-  icon: booChatTW.png
+  icon: build/icon.png
   target:
-    - AppImage
-    - snap
-    - deb
-  maintainer: electronjs.org
-  category: Utility
+    - target: AppImage
+      arch:
+        - x64
+    - target: snap
+      arch:
+        - x64
+    - target: deb
+      arch:
+        - x64
+    - target: rpm
+      arch:
+        - x64
+  maintainer: devrogerinho.com
+  category: Network
+  description: Aplicativo de chat para Twitch, YouTube e Kick
+  synopsis: Chat multiplataforma para streamers
+  desktop:
+    Name: BooChat
+    Comment: Chat multiplataforma para streamers
+    Keywords: chat;twitch;youtube;kick;streaming;
+    Categories: Network;Chat;
+    StartupWMClass: BooChat
 appImage:
   artifactName: BooChat-${version}.${ext}
+snap:
+  artifactName: BooChat-${version}.${ext}
+  grade: stable
+  confinement: strict
+  environment:
+    DISABLE_WAYLAND: 1
+deb:
+  artifactName: BooChat-${version}.${ext}
+  depends:
+    - libgtk-3-0
+    - libnotify4
+    - libnss3
+    - libxss1
+    - libxtst6
+    - xdg-utils
+    - libatspi2.0-0
+    - libdrm2
+    - libxcomposite1
+    - libxdamage1
+    - libxrandr2
+    - libgbm1
+    - libxss1
+    - libasound2
+rpm:
+  artifactName: BooChat-${version}.${ext}
+  depends:
+    - gtk3
+    - libnotify
+    - nss
+    - libXScrnSaver
+    - libXtst
+    - xdg-utils
+    - at-spi2-atk
+    - libdrm
+    - libXcomposite
+    - libXdamage
+    - libXrandr
+    - mesa-libgbm
+    - alsa-lib
+
+# Configurações gerais
 npmRebuild: false
+buildDependenciesFromSource: false
+nodeGypRebuild: false
+compression: maximum
+removePackageScripts: true
 publish:
-  provider: generic
-  url: https://example.com/auto-updates
+  provider: github
+  releaseType: release
+  owner: 0rogerinho
+  repo: boo-chat-tw
+

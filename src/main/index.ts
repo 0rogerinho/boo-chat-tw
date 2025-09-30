@@ -15,6 +15,13 @@ const log = require('electron-log')
 autoUpdater.logger = log
 log.transports.file.level = 'info'
 
+// Configurar URL base para atualizações (GitHub)
+autoUpdater.setFeedURL({
+  provider: 'github',
+  owner: '0rogerinho',
+  repo: 'boo-chat-tw'
+})
+
 // Eventos do autoUpdater
 autoUpdater.on('checking-for-update', () => {
   console.log('Verificando atualizações...')
@@ -92,8 +99,11 @@ app.whenReady().then(() => {
   // Verificar atualizações após 5 segundos (apenas em produção)
   if (process.env.NODE_ENV === 'production') {
     setTimeout(() => {
+      console.log('Iniciando verificação de atualizações...')
       autoUpdater.checkForUpdatesAndNotify()
     }, 5000)
+  } else {
+    console.log('Modo desenvolvimento - verificação de atualizações desabilitada')
   }
 
   app.on('activate', function () {

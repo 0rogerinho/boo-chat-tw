@@ -168,6 +168,7 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onClose 
           </button>
         </div>
         <p className="mt-2 text-sm">Nova versão {updateInfo.version} está disponível!</p>
+        <p className="mt-1 text-xs opacity-75">✨ Teste de atualização automática - v1.0.1</p>
         {isDownloading && (
           <div className="mt-3">
             <div className="flex justify-between text-sm mb-1">

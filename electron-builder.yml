@@ -16,18 +16,6 @@ asarUnpack:
   - resources/**
   - build/**
 
-# Configurações para Windows
-win:
-  icon: icon.ico
-  executableName: BooChat
-  requestedExecutionLevel: asInvoker
-  target:
-    - target: nsis
-      arch:
-        - x64
-    - target: portable
-      arch:
-        - x64
 nsis:
   artifactName: BooChat-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -39,6 +27,9 @@ nsis:
   perMachine: false
   allowElevation: true
   runAfterFinish: true
+  # Configurações para auto-update
+  include: build/installer.nsh
+  script: build/installer.nsh
 
 # Configurações para macOS
 mac:
@@ -151,9 +142,25 @@ buildDependenciesFromSource: false
 nodeGypRebuild: false
 compression: maximum
 removePackageScripts: true
+
+# Configurações para auto-update
 publish:
   provider: github
   releaseType: release
   owner: 0rogerinho
   repo: boo-chat-tw
+
+# Configurações específicas para Windows auto-update
+win:
+  icon: icon.ico
+  executableName: BooChat
+  requestedExecutionLevel: asInvoker
+  publisherName: devrogerinho.com
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
 

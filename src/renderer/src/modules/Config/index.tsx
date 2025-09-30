@@ -23,7 +23,7 @@ export const Config = () => {
             id="channel"
             type="text"
             value={config?.twitch.channel ?? ''}
-            placeholder="Digite o nome do canal"
+            placeholder="Digite o nome do canal ex: devrogerinho"
             onChange={({ target }) => updateConfig('twitch', { channel: target.value })}
           />
         </div>
@@ -38,7 +38,7 @@ export const Config = () => {
             id="kick-channel"
             type="text"
             value={config?.kick.slug ?? ''}
-            placeholder="Digite o nome do canal"
+            placeholder="Digite o nome do canal ex: devrogerinho"
             onChange={({ target }) => updateConfig('kick', { slug: target.value })}
           />
         </div>
@@ -53,7 +53,7 @@ export const Config = () => {
             id="youtube-channel"
             type="text"
             value={config?.youtube?.channelName ?? ''}
-            placeholder="Ex: @MBLiveTV ou pewdiepie"
+            placeholder="Ex: @OCódigodoRogerinho"
             onChange={({ target }) =>
               updateConfig('youtube', {
                 channelName: target.value

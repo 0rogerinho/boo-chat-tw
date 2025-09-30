@@ -19,6 +19,10 @@ nsis:
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  allowElevation: true
+  runAfterFinish: true
 mac:
   icon: booChatTW.png
   entitlementsInherit: build/entitlements.mac.plist
@@ -42,5 +46,9 @@ appImage:
   artifactName: BooChat-${version}.${ext}
 npmRebuild: false
 publish:
-  provider: generic
-  url: https://example.com/auto-updates
+  provider: github
+  owner: devrogerinho
+  repo: boo-chat-tw
+  releaseType: release
+  private: false
+  releaseNotesFile: CHANGELOG.md

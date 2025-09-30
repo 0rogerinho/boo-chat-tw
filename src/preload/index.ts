@@ -3,7 +3,12 @@ import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
 const api = {
-  fetchYouTube: (url: string, payload?: string) => ipcRenderer.invoke('fetch-youtube', url, payload)
+  fetchYouTube: (url: string, payload?: string) =>
+    ipcRenderer.invoke('fetch-youtube', url, payload),
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  downloadUpdate: () => ipcRenderer.invoke('download-update'),
+  installUpdate: () => ipcRenderer.invoke('install-update'),
+  getAppVersion: () => ipcRenderer.invoke('get-app-version')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

@@ -1,6 +1,7 @@
 // src/electron/ipc.ts
 import fs from 'fs'
 import { ipcMain, BrowserWindow, app } from 'electron'
+import { autoUpdater } from 'electron-updater'
 import { createConfigWindow } from '../config'
 import { registerConfigIPC } from '../config/ipc'
 import path from 'path'
@@ -113,6 +114,38 @@ export const registerIPC = (win: BrowserWindow) => {
       console.error('Erro ao fazer requisição ao YouTube:', error)
       return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
     }
+  })
+
+  // Handlers para auto-updater
+  ipcMain.handle('check-for-updates', async () => {
+    try {
+      const result = await autoUpdater.checkForUpdates()
+      return { success: true, result }
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }
+  })
+
+  ipcMain.handle('download-update', async () => {
+    try {
+      await autoUpdater.downloadUpdate()
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }
+  })
+
+  ipcMain.handle('install-update', () => {
+    try {
+      autoUpdater.quitAndInstall()
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }
+  })
+
+  ipcMain.handle('get-app-version', () => {
+    return app.getVersion()
   })
 
   win.webContents.on('did-finish-load', () => {

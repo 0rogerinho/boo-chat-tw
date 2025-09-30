@@ -14,7 +14,7 @@ interface ChatMessage {
   timestamp: number
 }
 
-const bots = ['StreamElements', 'Usuário']
+// const bots = ['StreamElements', 'Usuário']
 
 export default function useYouTubeChat() {
   const [youtubeChat, setYoutubeChat] = useState<ChatMessage[]>([])

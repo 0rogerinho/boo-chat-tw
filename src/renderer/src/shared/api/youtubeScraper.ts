@@ -21,8 +21,6 @@ export interface ScrapedChatMessage {
 }
 
 class YouTubeScraperService {
-  private readonly baseUrl = 'https://www.youtube.com'
-
   // Buscar canal por nome ou handle
   async searchChannel(query: string): Promise<ScrapedChannel | null> {
     try {
@@ -488,7 +486,7 @@ class YouTubeScraperService {
   }
 
   // Parsear um renderer de mensagem específico
-  private parseMessageRenderer(renderer: any, action: any): ScrapedChatMessage | null {
+  private parseMessageRenderer(renderer: any, _action: any): ScrapedChatMessage | null {
     try {
       // Extrair nome do autor
       let authorName = 'Usuário'

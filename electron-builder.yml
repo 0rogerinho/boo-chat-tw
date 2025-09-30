@@ -29,7 +29,6 @@ nsis:
   runAfterFinish: true
   # Configurações para auto-update
   include: build/installer.nsh
-  script: build/installer.nsh
 
 # Configurações para macOS
 mac:

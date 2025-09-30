@@ -1,67 +1,148 @@
-import { useEffect, useState } from 'react'
 import Header from './components/Header'
 import Button from '../../shared/components/Button'
-
-export interface configDataProps {
-  channel: string
-}
+import useModel from './hooks/useModel'
 
 export const Config = () => {
-  const [config, setConfig] = useState<configDataProps>({ channel: '' })
-  const [saved, setSaved] = useState(false)
-
-  let timeoutID = setTimeout(() => setSaved(false), 2000)
-
-  useEffect(() => {
-    const fetchConfig = async () => {
-      const data = await window.electron.ipcRenderer.invoke('get-config')
-      console.log(data)
-      if (!data || !data.channel) {
-        console.log('Config inválida no build:', data)
-        setConfig({ channel: '' }) // Define um valor padrão
-      } else {
-        setConfig(data)
-      }
-    }
-
-    fetchConfig()
-  }, [])
-
-  function handleUpdateConfig(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    clearTimeout(timeoutID)
-    window.electron.ipcRenderer.send('save-config', config)
-    setSaved(true)
-    timeoutID
-  }
+  const { config, isLoading, updateConfig, handleUpdateConfig } = useModel()
 
   return (
-    <div className="size-full w-screen h-screen bg-slate-800">
+    <div className="flex flex-col w-screen h-screen bg-gray-900/95 backdrop-blur-sm">
       <Header />
-      <form action="" className="flex flex-col gap-4 px-4 py-2" onSubmit={handleUpdateConfig}>
-        <div className="flex flex-col gap-1">
-          <label className="text-white font-semibold" htmlFor="channel">
-            Nome do canal
+      <form
+        action=""
+        className="flex flex-col overflow-y-auto gap-6 px-6 py-6 scroll"
+        onSubmit={handleUpdateConfig}
+      >
+        {/* Twitch Channel */}
+        <div className="space-y-2">
+          <label className="text-white font-medium text-sm" htmlFor="channel">
+            Nome do canal da Twitch
           </label>
           <input
-            className="px-2 h-[28px] rounded-sm w-[250px] focus:outline-blue-950"
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
             id="channel"
             type="text"
-            value={config?.channel ?? ''}
-            placeholder="Nome do canal"
-            onChange={({ target }) => setConfig({ channel: target.value })}
+            value={config?.twitch.channel ?? ''}
+            placeholder="Digite o nome do canal"
+            onChange={({ target }) => updateConfig('twitch', { channel: target.value })}
           />
         </div>
-        <div className="w-full flex gap-2 justify-end">
-          {saved && <p className="text-green-400 mt-2 w-full text-end">Salvo!</p>}
+
+        {/* Kick Channel */}
+        <div className="space-y-2">
+          <label className="text-white font-medium text-sm" htmlFor="kick-channel">
+            Nome do canal da Kick
+          </label>
+          <input
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+            id="kick-channel"
+            type="text"
+            value={config?.kick.slug ?? ''}
+            placeholder="Digite o nome do canal"
+            onChange={({ target }) => updateConfig('kick', { slug: target.value })}
+          />
+        </div>
+
+        {/* YouTube Channel */}
+        <div className="space-y-2">
+          <label className="text-white font-medium text-sm" htmlFor="youtube-channel">
+            Nome do canal do YouTube
+          </label>
+          <input
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+            id="youtube-channel"
+            type="text"
+            value={config?.youtube?.channelName ?? ''}
+            placeholder="Ex: @MBLiveTV ou pewdiepie"
+            onChange={({ target }) =>
+              updateConfig('youtube', {
+                channelName: target.value
+              })
+            }
+          />
+        </div>
+
+        {/* Font Settings */}
+        <div className="space-y-4">
+          <h3 className="text-white font-medium text-lg">Configurações de Fonte</h3>
+
+          {/* Font Size */}
+          <div className="flex flex-col space-y-2">
+            <label className="text-white font-medium text-sm" htmlFor="font-size">
+              Tamanho da fonte: {config?.font?.size ?? 14}px
+            </label>
+            <input
+              className=" h-2 bg-red-700 rounded-lg appearance-none cursor-pointer slider"
+              id="font-size"
+              type="range"
+              min="10"
+              max="24"
+              value={config?.font?.size ?? 14}
+              onChange={({ target }) =>
+                updateConfig('font', {
+                  ...config?.font,
+                  size: parseInt(target.value)
+                })
+              }
+            />
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>10px</span>
+              <span>24px</span>
+            </div>
+          </div>
+
+          {/* Font Weight */}
+          <div className="space-y-2">
+            <label className="text-white font-medium text-sm" htmlFor="font-weight">
+              Espessura da fonte:{' '}
+              {config?.font?.weight === 300
+                ? 'Leve'
+                : config?.font?.weight === 400
+                  ? 'Normal'
+                  : config?.font?.weight === 500
+                    ? 'Médio'
+                    : config?.font?.weight === 600
+                      ? 'Semi-negrito'
+                      : config?.font?.weight === 700
+                        ? 'Negrito'
+                        : 'Normal'}
+            </label>
+            <select
+              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+              id="font-weight"
+              value={config?.font?.weight ?? 400}
+              onChange={({ target }) =>
+                updateConfig('font', {
+                  ...config?.font,
+                  weight: parseInt(target.value)
+                })
+              }
+            >
+              <option value={300}>Leve (300)</option>
+              <option value={400}>Normal (400)</option>
+              <option value={500}>Médio (500)</option>
+              <option value={600}>Semi-negrito (600)</option>
+              <option value={700}>Negrito (700)</option>
+            </select>
+          </div>
+        </div>
+
+        {/* <hr className="border-gray-700" /> */}
+
+        {/* Actions */}
+
+        <div className="flex gap-2 items-center justify-end">
           <Button
-            className="bg-slate-600"
+            className="w-fit"
+            variant="secondary"
             type="button"
             onClick={() => window.electron.ipcRenderer.send('close-config')}
           >
-            Ok
+            Cancelar
           </Button>
-          <Button type="submit">Salvar</Button>
+          <Button className="w-fit" type="submit" disabled={isLoading}>
+            {isLoading ? 'Salvando...' : 'Salvar'}
+          </Button>
         </div>
       </form>
     </div>

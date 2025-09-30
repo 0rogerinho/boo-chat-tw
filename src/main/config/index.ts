@@ -4,8 +4,8 @@ import { join } from 'node:path'
 
 export function createConfigWindow() {
   let win = new BrowserWindow({
-    width: 280,
-    height: 150,
+    width: 400,
+    height: 500,
     title: 'Configurações',
     resizable: false,
     parent: BrowserWindow.getAllWindows()[0], // Define como filha da principal

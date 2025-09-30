@@ -5,7 +5,7 @@ import tmi from 'tmi.js'
 import { useShowWindowStore } from '../store/useShowWindowStore'
 // Mocks
 import { bots } from '../../../shared/utils'
-import { configDataProps } from '../../Config'
+import { TConfigDataProps, useConfigStore } from '../../../shared/store/useConfigStore'
 
 interface IEmojis {
   id: string
@@ -18,6 +18,7 @@ interface IChat {
   message: string
   color?: string
   emojis?: IEmojis[] | string
+  timestamp?: number
 }
 
 interface IFormatMessage {
@@ -32,11 +33,15 @@ export function useModel() {
   const { showWindow } = useShowWindowStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const [config, setConfig] = useState<configDataProps>({ channel: '' })
+  const { config, setConfig } = useConfigStore()
 
-  const handleConfigUpdate = (_event: any, newConfig: configDataProps) => {
+  const handleConfigUpdate = (_event: any, newConfig: TConfigDataProps) => {
     setConfig(newConfig)
   }
+
+  // function updateConfig(type: 'kick' | 'twitch', channel: string) {
+  //   setConfig((prev) => ({ ...prev, [type]: { channel: channel } }))
+  // }
 
   useEffect(() => {
     window.electron.ipcRenderer.on('config-updated', handleConfigUpdate)
@@ -49,10 +54,9 @@ export function useModel() {
   useEffect(() => {
     const fetchConfig = async () => {
       const data = await window.electron.ipcRenderer.invoke('get-config')
-      if (!data || !data.channel) {
-        console.log('Config inválida no build:', data)
-        setConfig({ channel: '' }) // Define um valor padrão
-      } else {
+      console.log('data', data)
+
+      if (data) {
         setConfig(data)
       }
     }
@@ -97,7 +101,7 @@ export function useModel() {
   }
 
   useEffect(() => {
-    if (!config.channel) return
+    if (!config?.twitch.channel) return
 
     setChat((data) => [
       ...data,
@@ -105,12 +109,13 @@ export function useModel() {
         name: 'CONEXÃO',
         color: 'green',
         message: `...CONECTANDO`,
-        emojis: ''
+        emojis: '',
+        timestamp: Date.now()
       }
     ])
 
     const client = new tmi.Client({
-      channels: [config.channel]
+      channels: [config.twitch.channel]
     })
 
     client
@@ -122,16 +127,18 @@ export function useModel() {
             name: 'CONEXÃO',
             color: 'green',
             message: `
-            Conectado ao chat de "${config.channel}" 
+            Conectado ao chat de "${config.twitch.channel}" 
             Esconder/aparecer a janela com Ctrl + Alt + A
              `,
-            emojis: ''
+            emojis: '',
+            timestamp: Date.now()
           },
           {
             name: 'AJUDA',
             color: 'orange',
             message: `para esconder a janela (Esconder / aparecer) use "Ctrl + Alt + A"`,
-            emojis: ''
+            emojis: '',
+            timestamp: Date.now()
           }
         ])
       })
@@ -141,8 +148,9 @@ export function useModel() {
           {
             name: 'CONEXÃO',
             color: 'red',
-            message: `O canal ${config.channel} não foi encontrado`,
-            emojis: ''
+            message: `O canal ${config.twitch.channel} não foi encontrado`,
+            emojis: '',
+            timestamp: Date.now()
           }
         ])
         console.log('Erro ao conectar:', err)
@@ -162,7 +170,8 @@ export function useModel() {
             name: tags['display-name'],
             color: tags.color,
             message: replaceMessage,
-            emojis: emojis
+            emojis: emojis,
+            timestamp: Date.now()
           }
         ])
       }
@@ -171,13 +180,7 @@ export function useModel() {
     return () => {
       client.disconnect()
     }
-  }, [config.channel])
-
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [chat])
+  }, [config?.twitch.channel])
 
   function processMessageHTML(html: string): string {
     return html.replace(/<([^\s>]+)([^>]*)>/g, (match, tagName, attributes) => {
@@ -186,7 +189,9 @@ export function useModel() {
         if (srcMatch) {
           try {
             const url = new URL(srcMatch[1])
-            return url.hostname === 'static-cdn.jtvnw.net' ? match : '<img />'
+            // Permitir imagens do Twitch, Kick e YouTube
+            const allowedHostnames = ['static-cdn.jtvnw.net', 'files.kick.com', 'yt3.ggpht.com']
+            return allowedHostnames.includes(url.hostname) ? match : '<img />'
           } catch {
             return '<img />'
           }
@@ -197,5 +202,12 @@ export function useModel() {
     })
   }
 
-  return { chat, messagesEndRef, showWindow, processMessageHTML }
+  // Scroll automático para novas mensagens
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [chat])
+
+  return { chat, messagesEndRef, showWindow, processMessageHTML, config }
 }

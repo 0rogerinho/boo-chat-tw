@@ -4,6 +4,8 @@ import { ipcMain, BrowserWindow, app } from 'electron'
 import { createConfigWindow } from '../config'
 import { registerConfigIPC } from '../config/ipc'
 import path from 'path'
+import { is } from '@electron-toolkit/utils'
+import { defaultConfigData } from '../shared/mocks'
 export type configData = {
   channel: string
 }
@@ -32,15 +34,12 @@ export const registerIPC = (win: BrowserWindow) => {
   })
 
   ipcMain.on('open-config', () => {
-    if (!configWin) {
+    if (!configWin || configWin.isDestroyed()) {
       configWin = createConfigWindow()
       registerConfigIPC(configWin)
 
       configWin.on('closed', () => {
         configWin = null
-        ipcMain.removeAllListeners('close-config')
-        ipcMain.removeAllListeners('save-config')
-        ipcMain.removeAllListeners('close-file-preview-config')
       })
     } else {
       configWin.focus()
@@ -52,30 +51,68 @@ export const registerIPC = (win: BrowserWindow) => {
 
   // Registrar novo handler
   ipcMain.handle('get-config', async () => {
-    console.log('get-config chamado')
-    const configDir = path.join(app.getPath('userData'), 'config')
-    const configPath = path.join(configDir, 'config.json')
+    // paths
+    const exePath = path.join(app.getPath('exe'), 'config')
+    const dirnamePath = path.join(__dirname, '..', '..', 'config')
+
+    // save config path
+    const saveConfigPath = path.join(is.dev ? dirnamePath : exePath)
+
+    const configPath = path.join(saveConfigPath, 'config.json')
 
     try {
-      if (!fs.existsSync(configDir)) {
-        fs.mkdirSync(configDir, { recursive: true })
+      if (!fs.existsSync(saveConfigPath)) {
+        fs.mkdirSync(saveConfigPath, { recursive: true })
       }
 
       if (fs.existsSync(configPath)) {
         const json = fs.readFileSync(configPath, 'utf-8')
-        return JSON.parse(json)
-      } else {
-        console.warn('Arquivo config.json não encontrado')
-        return null
+        const data = JSON.parse(json)
+
+        const configData = data
+
+        if (!data.kick && !data.twitch && !data.youtube) {
+          fs.writeFileSync(configPath, JSON.stringify(defaultConfigData, null, 2), 'utf8')
+
+          return configData
+        }
+
+        return configData
       }
     } catch (error) {
-      console.error('Erro ao acessar config.json:', error)
-      return null
+      console.log(error)
     }
   })
 
-  win.webContents.on('did-finish-load', () => {
-    win?.webContents.send('main-process-message', new Date().toLocaleString())
+  // Handler para fazer requisições ao YouTube (sem restrições de CORS)
+  ipcMain.handle('fetch-youtube', async (_event, url: string, payload?: string) => {
+    try {
+      const options: RequestInit = {
+        method: payload ? 'POST' : 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      }
+
+      if (payload) {
+        options.body = payload
+      }
+
+      const response = await fetch(url, options)
+
+      if (response.headers.get('content-type')?.includes('application/json')) {
+        const data = await response.json()
+        return { success: true, data }
+      } else {
+        const html = await response.text()
+        return { success: true, data: html }
+      }
+    } catch (error) {
+      console.error('Erro ao fazer requisição ao YouTube:', error)
+      return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }
   })
 
   win.webContents.on('did-finish-load', () => {

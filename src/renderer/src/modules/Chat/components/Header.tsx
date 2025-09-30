@@ -18,31 +18,31 @@ export const Header = ({ eyeClick }: IHeader) => {
   return (
     <header
       className={cn(
-        'fixed w-full bg-gray-900 move-page flex justify-between items-center rounded-t-md overflow-hidden transition-opacity duration-200 opacity-100 visible',
-        !showWindow && 'opacity-0 bg-[rgba(0,0,0,0))] visible'
+        'fixed w-full bg-gray-900/95 backdrop-blur-sm move-page flex justify-between items-center rounded-t-md overflow-hidden transition-all duration-300 opacity-100 visible border-b border-gray-700/50',
+        !showWindow && 'opacity-0 bg-transparent border-transparent'
       )}
     >
-      <div className="flex">
+      <div className="flex items-center">
         {/* Settings */}
         <button
-          className="flex size-6 min-w-[30px] items-center justify-center group no-move hover:bg-slate-800"
+          className="flex size-8 min-w-[32px] items-center justify-center group no-move hover:bg-gray-800/80 transition-all duration-200 rounded-sm"
           onClick={() => openConfigWindow()}
         >
           <IoMdSettings
-            className="m-auto text-white group-hover:opacity-100 transition-all duration-200"
+            className="m-auto text-gray-300 group-hover:text-white transition-all duration-200"
             size={16}
           />
         </button>
 
-        {/* transparent background */}
+        {/* Hide/Show */}
         <button
-          className="flex size-6 min-w-[30px] items-center justify-center group no-move hover:bg-slate-800"
+          className="flex size-8 min-w-[32px] items-center justify-center group no-move hover:bg-gray-800/80 transition-all duration-200 rounded-sm"
           onClick={() => {
             eyeClick(), handleShowWindow()
           }}
         >
           <FaEyeSlash
-            className="m-auto text-white group-hover:opacity-100 transition-all duration-200"
+            className="m-auto text-gray-300 group-hover:text-white transition-all duration-200"
             size={16}
           />
         </button>
@@ -50,27 +50,27 @@ export const Header = ({ eyeClick }: IHeader) => {
 
       <div className="flex h-full">
         <button
-          className="flex w-[30px] max-w-[30px] min-h-[20px] h-full justify-center items-center hover:bg-slate-800 no-move text-gray-700 px-0.5 cursor-default group transition-all duration-200"
+          className="flex w-8 max-w-[32px] min-h-[32px] h-full justify-center items-center hover:bg-gray-800/80 no-move px-0.5 cursor-default group transition-all duration-200 "
           onClick={() => window.electron.ipcRenderer.send('closeFilePreview')}
         >
-          <CgBorderStyleSolid className=" m-auto text-slate-100" size={14} />
+          <CgBorderStyleSolid className="m-auto text-gray-300 group-hover:text-white" size={14} />
         </button>
 
         <button
-          className="flex w-[30px] max-w-[30px] min-h-[20px] h-full justify-center items-center no-move text-gray-700 px-0.5 cursor-default group transition-all duration-200 hover:bg-green-600"
+          className="flex w-8 max-w-[32px] min-h-[32px] h-full justify-center items-center no-move px-0.5 cursor-default group transition-all duration-200 hover:bg-primary-600/80"
           onClick={() => {
             window.electron.ipcRenderer.send('setFullScreen', !fullScreen),
               setFullScreen(!fullScreen)
           }}
         >
-          <VscExpandAll className="m-auto text-slate-100" size={14} />
+          <VscExpandAll className="m-auto text-gray-300 group-hover:text-white" size={14} />
         </button>
 
         <button
-          className="flex w-[30px] max-w-[30px] min-h-[20px] h-full justify-center items-center no-move text-gray-700 px-0.5 cursor-default group transition-all duration-200 hover:bg-red-600"
+          className="flex w-8 max-w-[32px] min-h-[32px] h-full justify-center items-center no-move px-0.5 cursor-default group transition-all duration-200 hover:bg-red-600/80 "
           onClick={() => window.electron.ipcRenderer.send('close')}
         >
-          <IoClose className=" m-auto text-slate-100" size={18} />
+          <IoClose className="m-auto text-gray-300 group-hover:text-white" size={18} />
         </button>
       </div>
     </header>

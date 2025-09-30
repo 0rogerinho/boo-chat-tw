@@ -1,5 +1,5 @@
 appId: com.devrogerinho.app
-productName: BooChatTW-app
+productName: BooChat-app
 directories:
   buildResources: build
 files:
@@ -13,9 +13,9 @@ asarUnpack:
   - resources/**
 win:
   icon: booChatTW.ico
-  executableName: BooChatTW-app
+  executableName: BooChat-app
 nsis:
-  artifactName: BooChatTW-${version}-setup.${ext}
+  artifactName: BooChat-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
@@ -23,13 +23,13 @@ mac:
   icon: booChatTW.png
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
-    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
-    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+    - NSCameraUsageDescription: No application requests access to the device's camera.
+    - NSMicrophoneUsageDescription: No application requests access to the device's microphone.
+    - NSDocumentsFolderUsageDescription: No application requests access to the user's Documents folder.
+    - NSDownloadsFolderUsageDescription: no application requests access to the user's Downloads folder.
   notarize: false
 dmg:
-  artifactName: BooChatTW-${version}.${ext}
+  artifactName: BooChat-${version}.${ext}
 linux:
   icon: booChatTW.png
   target:
@@ -39,7 +39,7 @@ linux:
   maintainer: electronjs.org
   category: Utility
 appImage:
-  artifactName: BooChatTW-${version}.${ext}
+  artifactName: BooChat-${version}.${ext}
 npmRebuild: false
 publish:
   provider: generic

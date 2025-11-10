@@ -1,0 +1,183 @@
+import { useEffect, useRef, useState } from 'react';
+// TMI js
+import tmi from 'tmi.js';
+// Hooks
+import { useShowWindowStore } from '../store/useShowWindowStore';
+// Mocks
+import { bots } from '../../../shared/utils';
+import { useConfigStore } from '../../../shared/store/useConfigStore';
+import { DEFAULT_CONFIG_DATA } from '../../../shared/constants/defaultConfig';
+const img = 'https://static-cdn.jtvnw.net/emoticons/v2/';
+export function useModel() {
+    const [chat, setChat] = useState([]);
+    const { showWindow } = useShowWindowStore();
+    const messagesEndRef = useRef(null);
+    const { config, setConfig } = useConfigStore();
+    const handleConfigUpdate = async (_event, newConfig) => {
+        const platform = await window.electron.ipcRenderer.invoke('get-system');
+        setConfig({ ...newConfig, platform: platform });
+    };
+    // function updateConfig(type: 'kick' | 'twitch', channel: string) {
+    //   setConfig((prev) => ({ ...prev, [type]: { channel: channel } }))
+    // }
+    useEffect(() => {
+        window.electron.ipcRenderer.on('config-updated', handleConfigUpdate);
+        return () => {
+            window.electron.ipcRenderer.removeListener('config-updated', handleConfigUpdate);
+        };
+    }, []);
+    useEffect(() => {
+        const fetchConfig = async () => {
+            try {
+                const response = await window.electron.ipcRenderer.invoke('get-config');
+                console.log('data', response);
+                if (response && typeof response === 'object') {
+                    if (response.success) {
+                        setConfig(response.data);
+                    }
+                    else {
+                        console.error('Erro ao carregar configurações no Chat:', response.error);
+                        setConfig(response.data || DEFAULT_CONFIG_DATA);
+                    }
+                }
+                else {
+                    // Se não retornou dados, usa os dados padrão
+                    setConfig(DEFAULT_CONFIG_DATA);
+                }
+            }
+            catch (error) {
+                console.error('Erro ao carregar configurações no Chat:', error);
+                // Em caso de erro, usa os dados padrão
+                setConfig(DEFAULT_CONFIG_DATA);
+            }
+        };
+        fetchConfig();
+    }, []);
+    function getEmojis(string) {
+        const emojis = string?.split('/');
+        const arrEmojis = emojis?.map((emoji) => {
+            const objEmoji = emoji.split(':');
+            return {
+                id: objEmoji[0],
+                posInit: Number(objEmoji[1].split(',')[0].split('-')[0]),
+                posEnd: Number(objEmoji[1].split(',')[0].split('-')[1])
+            };
+        });
+        return arrEmojis;
+    }
+    function formatMessage({ message, emojis }) {
+        let replacedMessage = message;
+        for (const emoji of emojis) {
+            const url1 = `${img}/${emoji.id}/animated/light/3.0`;
+            const url2 = `${img}/${emoji.id}/static/light/3.0`;
+            const emojiImg = ` <img style='display:inline; width:30px; height:30px;' src=${url1} onerror="this.onerror=null; this.src='${url2}'" alt=${emoji.id}/> `;
+            const emojiName = message.substring(emoji.posInit, emoji.posEnd + 1).split(' ')[0];
+            // Escapa caracteres especiais da palavra para evitar erros na regex
+            const escapedWord = emojiName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            // Cria uma regex sem \b para permitir encontrar caracteres especiais
+            const regex = new RegExp(`${escapedWord}`, 'g');
+            replacedMessage = replacedMessage.replace(regex, emojiImg);
+        }
+        return replacedMessage;
+    }
+    useEffect(() => {
+        if (!config?.twitch.channel)
+            return;
+        setChat((data) => [
+            ...data,
+            {
+                name: 'CONEXÃO',
+                color: 'green',
+                message: `...CONECTANDO`,
+                emojis: '',
+                timestamp: Date.now()
+            }
+        ]);
+        const client = new tmi.Client({
+            channels: [config.twitch.channel]
+        });
+        client
+            .connect()
+            .then(() => {
+            setChat((data) => [
+                ...data,
+                {
+                    name: 'CONEXÃO',
+                    color: 'green',
+                    message: `
+            Conectado ao chat de "${config.twitch.channel}"
+             `,
+                    emojis: '',
+                    timestamp: Date.now()
+                },
+                {
+                    name: 'AJUDA',
+                    color: 'orange',
+                    message: `para esconder a janela (Esconder / aparecer) use no Windows "Ctrl + Alt + A", Mac "Command + Option + A"`,
+                    emojis: '',
+                    timestamp: Date.now()
+                }
+            ]);
+        })
+            .catch((err) => {
+            setChat((data) => [
+                ...data,
+                {
+                    name: 'CONEXÃO',
+                    color: 'red',
+                    message: `O canal ${config.twitch.channel} não foi encontrado`,
+                    emojis: '',
+                    timestamp: Date.now()
+                }
+            ]);
+            console.log('Erro ao conectar:', err);
+        });
+        client.on('message', (_, tags, message) => {
+            const emojis = tags['emotes-raw'] && getEmojis(tags['emotes-raw']);
+            const replaceMessage = emojis ? formatMessage({ message, emojis }) : message;
+            const validator = !bots.includes(tags['display-name']?.toLocaleLowerCase() ?? '') && !message.startsWith('!');
+            if (validator) {
+                setChat((data) => [
+                    ...data,
+                    {
+                        name: tags['display-name'],
+                        color: tags.color,
+                        message: replaceMessage,
+                        emojis: emojis,
+                        timestamp: Date.now()
+                    }
+                ]);
+            }
+        });
+        return () => {
+            client.disconnect();
+        };
+    }, [config?.twitch.channel]);
+    function processMessageHTML(html) {
+        return html.replace(/<([^\s>]+)([^>]*)>/g, (match, tagName, attributes) => {
+            if (tagName.toLowerCase() === 'img') {
+                const srcMatch = attributes.match(/src=["']([^"']+)["']/);
+                if (srcMatch) {
+                    try {
+                        const url = new URL(srcMatch[1]);
+                        // Permitir imagens do Twitch, Kick e YouTube
+                        const allowedHostnames = ['static-cdn.jtvnw.net', 'files.kick.com', 'yt3.ggpht.com'];
+                        return allowedHostnames.includes(url.hostname) ? match : '<img />';
+                    }
+                    catch {
+                        return '<img />';
+                    }
+                }
+                return '<img />';
+            }
+            return `&lt;${tagName}${attributes}&gt;`;
+        });
+    }
+    // Scroll automático para novas mensagens
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [chat]);
+    return { chat, messagesEndRef, showWindow, processMessageHTML, config };
+}

@@ -1,2 +1,2 @@
-import { BrowserWindow } from 'electron';
-export declare function createTray(win: BrowserWindow): void;
+import { Tray, BrowserWindow } from 'electron';
+export declare function createTray(win: BrowserWindow): Tray;

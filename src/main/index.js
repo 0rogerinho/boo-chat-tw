@@ -78,7 +78,8 @@ app.whenReady().then(() => {
         optimizer.watchWindowShortcuts(window);
     });
     const win = createHome();
-    createTray(win); // 👈 aqui adiciona a bandeja
+    // Criar o tray ANTES de registrar IPC para garantir que sempre apareça
+    createTray(win);
     registerIPC(win);
     registerShortcuts(win);
     // Verificar atualizações após 5 segundos (apenas em produção)
@@ -94,8 +95,20 @@ app.whenReady().then(() => {
     app.on('activate', function () {
         // On macOS it's common to re-create a window in the app when the
         // dock icon is clicked and there are no other windows open.
-        if (BrowserWindow.getAllWindows().length === 0)
-            createHome();
+        if (BrowserWindow.getAllWindows().length === 0) {
+            const newWin = createHome();
+            createTray(newWin);
+            registerIPC(newWin);
+            registerShortcuts(newWin);
+        }
+        else {
+            // Se a janela existe mas está escondida, mostra ela
+            const existingWin = BrowserWindow.getAllWindows()[0];
+            if (existingWin && !existingWin.isVisible()) {
+                existingWin.show();
+                app.dock?.show();
+            }
+        }
     });
 });
 // Quit when all windows are closed, except on macOS. There, it's common

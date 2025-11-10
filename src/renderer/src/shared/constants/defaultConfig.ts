@@ -1,4 +1,5 @@
 export const DEFAULT_CONFIG_DATA = {
+  platform: '',
   kick: { slug: '' },
   twitch: { channel: '' },
   youtube: { channelName: '' },

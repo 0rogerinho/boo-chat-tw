@@ -53,9 +53,8 @@ mac:
   hardenedRuntime: true
   gatekeeperAssess: false
 dmg:
-  artifactName: BooChat-${version}.${ext}
+  artifactName: BooChat-${version}-${arch}.${ext}
   title: BooChat ${version}
-  background: build/background.png
   icon: build/icon.icns
   iconSize: 80
   contents:

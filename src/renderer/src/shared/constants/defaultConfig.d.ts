@@ -1,4 +1,5 @@
 export declare const DEFAULT_CONFIG_DATA: {
+    platform: string;
     kick: {
         slug: string;
     };

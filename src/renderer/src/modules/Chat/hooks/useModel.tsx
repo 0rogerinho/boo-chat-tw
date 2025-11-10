@@ -35,10 +35,10 @@ export function useModel() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const { config, setConfig } = useConfigStore()
-  console.log('config', config)
 
-  const handleConfigUpdate = (_event: any, newConfig: TConfigDataProps) => {
-    setConfig(newConfig)
+  const handleConfigUpdate = async (_event: any, newConfig: TConfigDataProps) => {
+    const platform = await window.electron.ipcRenderer.invoke('get-system')
+    setConfig({ ...newConfig, platform: platform })
   }
 
   // function updateConfig(type: 'kick' | 'twitch', channel: string) {
@@ -143,8 +143,7 @@ export function useModel() {
             name: 'CONEXÃO',
             color: 'green',
             message: `
-            Conectado ao chat de "${config.twitch.channel}" 
-            Esconder/aparecer a janela com Ctrl + Alt + A
+            Conectado ao chat de "${config.twitch.channel}"
              `,
             emojis: '',
             timestamp: Date.now()
@@ -152,7 +151,7 @@ export function useModel() {
           {
             name: 'AJUDA',
             color: 'orange',
-            message: `para esconder a janela (Esconder / aparecer) use "Ctrl + Alt + A"`,
+            message: `para esconder a janela (Esconder / aparecer) use no Windows "Ctrl + Alt + A", Mac "Command + Option + A"`,
             emojis: '',
             timestamp: Date.now()
           }

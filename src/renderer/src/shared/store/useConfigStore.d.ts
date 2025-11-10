@@ -11,6 +11,7 @@ export type TConfigDataProps = {
         channelName: string;
         channelId?: string;
     };
+    platform: string;
     x: number;
     y: number;
     width: number;

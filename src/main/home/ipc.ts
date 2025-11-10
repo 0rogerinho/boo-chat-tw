@@ -6,6 +6,7 @@ import { registerConfigIPC } from '../config/ipc'
 import path from 'path'
 import { defaultConfigData } from '../shared/mocks'
 import { autoUpdater } from 'electron-updater'
+import { platform } from '../platform'
 export type configData = {
   channel: string
 }
@@ -13,6 +14,11 @@ export type configData = {
 let configWin: BrowserWindow | null = null
 
 export const registerIPC = (win: BrowserWindow) => {
+  ipcMain.handle('get-system', () => {
+    console.log('process.platform', process.platform)
+    return process.platform
+  })
+
   ipcMain.on('setFullScreen', (_event, showFullscreen: boolean) => {
     showFullscreen ? win.maximize() : win.unmaximize()
   })
@@ -22,7 +28,16 @@ export const registerIPC = (win: BrowserWindow) => {
   })
 
   ipcMain.on('closeFilePreview', () => {
-    win?.minimize()
+    if (platform.isMacOS) {
+      // No Mac, esconde a janela e vai para o tray
+      win?.hide()
+      // Aguardar um pouco antes de esconder a dock para garantir que o tray apareça
+      setTimeout(() => {
+        app.dock?.hide()
+      }, 100)
+    } else {
+      win?.minimize()
+    }
   })
 
   ipcMain.on('close', () => {

@@ -13,7 +13,8 @@ interface IHeader {
 }
 
 export const Header = ({ eyeClick }: IHeader) => {
-  const { showWindow, fullScreen, setFullScreen, handleShowWindow, openConfigWindow } = useHeader()
+  const { platform, showWindow, fullScreen, setFullScreen, handleShowWindow, openConfigWindow } =
+    useHeader()
 
   return (
     <header
@@ -22,7 +23,7 @@ export const Header = ({ eyeClick }: IHeader) => {
         !showWindow && 'opacity-0 bg-transparent border-transparent'
       )}
     >
-      <div className="flex items-center">
+      <div className={cn('flex items-center', platform === 'darwin' && 'ml-auto')}>
         {/* Settings */}
         <button
           className="flex size-8 min-w-[32px] items-center justify-center group no-move hover:bg-gray-800/80 transition-all duration-200 rounded-sm"
@@ -48,31 +49,33 @@ export const Header = ({ eyeClick }: IHeader) => {
         </button>
       </div>
 
-      <div className="flex h-full">
-        <button
-          className="flex w-8 max-w-[32px] min-h-[32px] h-full justify-center items-center hover:bg-gray-800/80 no-move px-0.5 cursor-default group transition-all duration-200 "
-          onClick={() => window.electron.ipcRenderer.send('closeFilePreview')}
-        >
-          <CgBorderStyleSolid className="m-auto text-gray-300 group-hover:text-white" size={14} />
-        </button>
+      {platform !== 'darwin' && (
+        <div className="flex h-full">
+          <button
+            className="flex w-8 max-w-[32px] min-h-[32px] h-full justify-center items-center hover:bg-gray-800/80 no-move px-0.5 cursor-default group transition-all duration-200 "
+            onClick={() => window.electron.ipcRenderer.send('closeFilePreview')}
+          >
+            <CgBorderStyleSolid className="m-auto text-gray-300 group-hover:text-white" size={14} />
+          </button>
 
-        <button
-          className="flex w-8 max-w-[32px] min-h-[32px] h-full justify-center items-center no-move px-0.5 cursor-default group transition-all duration-200 hover:bg-primary-600/80"
-          onClick={() => {
-            window.electron.ipcRenderer.send('setFullScreen', !fullScreen),
-              setFullScreen(!fullScreen)
-          }}
-        >
-          <VscExpandAll className="m-auto text-gray-300 group-hover:text-white" size={14} />
-        </button>
+          <button
+            className="flex w-8 max-w-[32px] min-h-[32px] h-full justify-center items-center no-move px-0.5 cursor-default group transition-all duration-200 hover:bg-primary-600/80"
+            onClick={() => {
+              window.electron.ipcRenderer.send('setFullScreen', !fullScreen),
+                setFullScreen(!fullScreen)
+            }}
+          >
+            <VscExpandAll className="m-auto text-gray-300 group-hover:text-white" size={14} />
+          </button>
 
-        <button
-          className="flex w-8 max-w-[32px] min-h-[32px] h-full justify-center items-center no-move px-0.5 cursor-default group transition-all duration-200 hover:bg-red-600/80 "
-          onClick={() => window.electron.ipcRenderer.send('close')}
-        >
-          <IoClose className="m-auto text-gray-300 group-hover:text-white" size={18} />
-        </button>
-      </div>
+          <button
+            className="flex w-8 max-w-[32px] min-h-[32px] h-full justify-center items-center no-move px-0.5 cursor-default group transition-all duration-200 hover:bg-red-600/80 "
+            onClick={() => window.electron.ipcRenderer.send('close')}
+          >
+            <IoClose className="m-auto text-gray-300 group-hover:text-white" size={18} />
+          </button>
+        </div>
+      )}
     </header>
   )
 }

@@ -1,7 +1,7 @@
 import Header from './components/Header'
 import Button from '../../shared/components/Button'
 import { ErrorNotification, SuccessNotification } from '../../shared/components/ErrorNotification'
-import useModel from './hooks/useModel'
+import { useModel } from './hooks/useModel'
 
 export const Config = () => {
   const {
@@ -14,8 +14,6 @@ export const Config = () => {
     setError,
     setSuccessMessage
   } = useModel()
-
-  console.log('Config na página de configuração:', config)
 
   return (
     <div className="flex flex-col w-screen h-screen rounded-[8px] overflow-hidden bg-gray-900 backdrop-blur-sm border border-gray-600 ">

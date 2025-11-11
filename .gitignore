@@ -5,3 +5,4 @@ config.json
 out
 .DS_Store
 *.log*
+*.tsbuildinfo

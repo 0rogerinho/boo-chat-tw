@@ -102,7 +102,7 @@ export const Chat = () => {
   return (
     <main
       className={cn(
-        'relative w-screen h-screen flex flex-col overflow-hidden rounded-[8px] bg-gray-900/95 backdrop-blur-sm border border-gray-600/80',
+        'relative w-screen h-screen flex flex-col overflow-hidden rounded-[8px] bg-gray-900/95 backdrop-blur-sm border border-gray-600',
         !showWindow && 'bg-transparent backdrop-blur-none border-transparent'
       )}
     >

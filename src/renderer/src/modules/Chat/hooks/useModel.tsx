@@ -151,7 +151,7 @@ export function useModel() {
           {
             name: 'AJUDA',
             color: 'orange',
-            message: `para esconder a janela (Esconder / aparecer) use no Windows "Ctrl + Alt + A", Mac "Command + Option + A"`,
+            message: `para esconder a janela (Esconder / aparecer) use no Windows "Ctrl + Alt + A", Mac "CTRL + OPTION + A"`,
             emojis: '',
             timestamp: Date.now()
           }

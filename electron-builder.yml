@@ -1,6 +1,6 @@
 appId: com.devrogerinho.boochat
 productName: BooChat
-buildVersion: 1.0.1.0
+buildVersion: 1.0.0.0
 directories:
   buildResources: build
   output: dist
@@ -32,15 +32,12 @@ nsis:
 
 # Configurações para macOS
 mac:
-  icon: build/icon.icns
+  icon: icon.icns
+  category: public.app-category.social-networking
   entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
   target:
     - target: dmg
-      arch:
-        - x64
-        - arm64
-    - target: zip
       arch:
         - x64
         - arm64
@@ -55,7 +52,7 @@ mac:
 dmg:
   artifactName: BooChat-${version}-${arch}.${ext}
   title: BooChat ${version}
-  icon: build/icon.icns
+  icon: icon.icns
   iconSize: 80
   contents:
     - x: 410

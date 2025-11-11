@@ -6,46 +6,62 @@ import { registerConfigIPC } from '../config/ipc'
 import path from 'path'
 import { defaultConfigData } from '../shared/mocks'
 import { autoUpdater } from 'electron-updater'
-import { platform } from '../platform'
 export type configData = {
   channel: string
 }
 
 let configWin: BrowserWindow | null = null
+let mainWin: BrowserWindow | null = null
 
 export const registerIPC = (win: BrowserWindow) => {
+  // Atualizar referência da janela principal
+  mainWin = win
+
+  // Remover listeners antigos antes de criar novos
+  ipcMain.removeAllListeners('setFullScreen')
+  ipcMain.removeAllListeners('alwaysOnTop')
+  ipcMain.removeAllListeners('closeFilePreview')
+  ipcMain.removeAllListeners('close')
+  ipcMain.removeAllListeners('setIgnoreMouseEvents')
+  ipcMain.removeAllListeners('open-config')
+
+  // Remover handler anterior se existir
+  ipcMain.removeHandler('get-system')
+
   ipcMain.handle('get-system', () => {
     console.log('process.platform', process.platform)
     return process.platform
   })
 
   ipcMain.on('setFullScreen', (_event, showFullscreen: boolean) => {
-    showFullscreen ? win.maximize() : win.unmaximize()
+    if (mainWin && !mainWin.isDestroyed()) {
+      showFullscreen ? mainWin.maximize() : mainWin.unmaximize()
+    }
   })
 
   ipcMain.on('alwaysOnTop', (_event, boolean: boolean) => {
-    win?.setAlwaysOnTop(boolean)
+    if (mainWin && !mainWin.isDestroyed()) {
+      mainWin.setAlwaysOnTop(boolean)
+    }
   })
 
   ipcMain.on('closeFilePreview', () => {
-    if (platform.isMacOS) {
-      // No Mac, esconde a janela e vai para o tray
-      win?.hide()
-      // Aguardar um pouco antes de esconder a dock para garantir que o tray apareça
-      setTimeout(() => {
-        app.dock?.hide()
-      }, 100)
-    } else {
-      win?.minimize()
+    // Comportamento padrão: minimizar a janela
+    if (mainWin && !mainWin.isDestroyed()) {
+      mainWin.minimize()
     }
   })
 
   ipcMain.on('close', () => {
-    win?.close()
+    if (mainWin && !mainWin.isDestroyed()) {
+      mainWin.close()
+    }
   })
 
   ipcMain.on('setIgnoreMouseEvents', (_event, value: boolean) => {
-    win?.setIgnoreMouseEvents(value)
+    if (mainWin && !mainWin.isDestroyed()) {
+      mainWin.setIgnoreMouseEvents(value)
+    }
   })
 
   ipcMain.on('open-config', () => {
@@ -157,6 +173,12 @@ export const registerIPC = (win: BrowserWindow) => {
   })
 
   // Handlers para o autoUpdater
+  // Remover handlers anteriores se existirem
+  ipcMain.removeHandler('check-for-updates')
+  ipcMain.removeHandler('download-update')
+  ipcMain.removeHandler('install-update')
+  ipcMain.removeHandler('get-app-version')
+
   ipcMain.handle('check-for-updates', async () => {
     try {
       const result = await autoUpdater.checkForUpdates()
@@ -191,32 +213,70 @@ export const registerIPC = (win: BrowserWindow) => {
     return app.getVersion()
   })
 
+  // Remover listeners antigos do autoUpdater antes de criar novos
+  autoUpdater.removeAllListeners('checking-for-update')
+  autoUpdater.removeAllListeners('update-available')
+  autoUpdater.removeAllListeners('update-not-available')
+  autoUpdater.removeAllListeners('error')
+  autoUpdater.removeAllListeners('download-progress')
+  autoUpdater.removeAllListeners('update-downloaded')
+
   // Enviar eventos do updater para o renderer
   autoUpdater.on('checking-for-update', () => {
-    win?.webContents.send('updater-checking-for-update')
+    if (mainWin && !mainWin.isDestroyed()) {
+      mainWin.webContents.send('updater-checking-for-update')
+    }
   })
 
   autoUpdater.on('update-available', (info) => {
-    win?.webContents.send('updater-update-available', info)
+    if (mainWin && !mainWin.isDestroyed()) {
+      mainWin.webContents.send('updater-update-available', info)
+    }
   })
 
   autoUpdater.on('update-not-available', (info) => {
-    win?.webContents.send('updater-update-not-available', info)
+    if (mainWin && !mainWin.isDestroyed()) {
+      mainWin.webContents.send('updater-update-not-available', info)
+    }
   })
 
   autoUpdater.on('error', (err) => {
-    win?.webContents.send('updater-error', err.message)
+    if (mainWin && !mainWin.isDestroyed()) {
+      mainWin.webContents.send('updater-error', err.message)
+    }
   })
 
   autoUpdater.on('download-progress', (progressObj) => {
-    win?.webContents.send('updater-download-progress', progressObj)
+    if (mainWin && !mainWin.isDestroyed()) {
+      mainWin.webContents.send('updater-download-progress', progressObj)
+    }
   })
 
   autoUpdater.on('update-downloaded', (info) => {
-    win?.webContents.send('updater-update-downloaded', info)
+    if (mainWin && !mainWin.isDestroyed()) {
+      mainWin.webContents.send('updater-update-downloaded', info)
+    }
   })
 
-  win.webContents.on('did-finish-load', () => {
-    win?.webContents.send('main-process-message', new Date().toLocaleString())
-  })
+  // Remover listener antigo antes de criar novo
+  if (win && !win.isDestroyed()) {
+    win.webContents.removeAllListeners('did-finish-load')
+    win.webContents.on('did-finish-load', () => {
+      if (mainWin && !mainWin.isDestroyed()) {
+        mainWin.webContents.send('main-process-message', new Date().toLocaleString())
+      }
+    })
+
+    // Limpar referência quando a janela for fechada
+    win.on('closed', () => {
+      if (mainWin === win) {
+        mainWin = null
+      }
+    })
+  }
+}
+
+// Função para obter a janela principal atual
+export const getMainWindow = (): BrowserWindow | null => {
+  return mainWin && !mainWin.isDestroyed() ? mainWin : null
 }

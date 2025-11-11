@@ -79,22 +79,7 @@ export const createHome = (): BrowserWindow => {
     win.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
-  // No Mac, quando minimizar, esconder a janela e ir para o tray
-  if (platform.isMacOS) {
-    win.on('minimize', () => {
-      // Esconde a janela primeiro
-      win.hide()
-      // Aguardar um pouco antes de esconder a dock para garantir que o tray apareça
-      setTimeout(() => {
-        app.dock?.hide()
-      }, 100)
-    })
-
-    // Quando a janela for mostrada novamente, mostra o app na dock
-    win.on('show', () => {
-      app.dock?.show()
-    })
-  }
+  // Comportamento padrão do macOS para minimizar e fechar
 
   win.on('close', () => {
     const bounds = win.getBounds()

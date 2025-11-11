@@ -5,6 +5,7 @@ import { registerIPC } from './home/ipc'
 import { registerShortcuts } from './shortcuts'
 import { createTray } from './tray'
 import { autoUpdater } from 'electron-updater'
+import { platform } from './platform'
 
 // Configurações do autoUpdater
 autoUpdater.autoDownload = false
@@ -83,6 +84,17 @@ app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
+  // Configurar ícone do Dock no Mac (deve ser feito antes de criar a janela)
+  if (platform.isMacOS) {
+    const dockIcon = platform.getDockIcon()
+    if (dockIcon) {
+      app.dock.setIcon(dockIcon)
+      console.log('[Index] Ícone do Dock configurado com sucesso')
+    } else {
+      console.warn('[Index] Não foi possível configurar o ícone do Dock')
+    }
+  }
+
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
@@ -92,7 +104,13 @@ app.whenReady().then(() => {
 
   const win = createHome()
   // Criar o tray ANTES de registrar IPC para garantir que sempre apareça
-  createTray(win)
+  try {
+    console.log('[Index] Tentando criar tray...')
+    createTray(win)
+    console.log('[Index] Tray criado com sucesso')
+  } catch (error) {
+    console.error('[Index] ❌ Erro ao criar tray:', error)
+  }
   registerIPC(win)
 
   registerShortcuts(win)

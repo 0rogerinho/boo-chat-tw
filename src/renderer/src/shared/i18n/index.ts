@@ -34,6 +34,7 @@ type ConfigI18nText = {
   bgTitle: string
   bgDescription: string
   bgPlaceholder: string
+  bgOpacityLabel: string
   soundTitle: string
   soundDescription: string
   soundVolumeLabel: string
@@ -69,6 +70,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     bgTitle: 'Configuracoes de Fundo',
     bgDescription: 'Adicione uma cor para o fundo do texto para deixar mais visivel.',
     bgPlaceholder: 'Codigo hexadecimal ou deixe vazio',
+    bgOpacityLabel: 'Opacidade do fundo',
     soundTitle: 'Som ao receber mensagem',
     soundDescription:
       'Toca um alerta quando chegar mensagem nova do chat (Twitch, Kick ou YouTube).',
@@ -110,6 +112,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     bgTitle: 'Background settings',
     bgDescription: 'Add a background color behind messages to improve contrast.',
     bgPlaceholder: 'Hex color code or leave empty',
+    bgOpacityLabel: 'Background opacity',
     soundTitle: 'Message notification sound',
     soundDescription: 'Play a notification for new chat messages (Twitch, Kick, or YouTube).',
     soundVolumeLabel: 'Volume / intensity',
@@ -149,6 +152,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     bgTitle: 'Configuracion de fondo',
     bgDescription: 'Agrega un color de fondo para mejorar el contraste del texto.',
     bgPlaceholder: 'Codigo hexadecimal o dejalo vacio',
+    bgOpacityLabel: 'Opacidad del fondo',
     soundTitle: 'Sonido al recibir mensaje',
     soundDescription:
       'Reproduce una alerta cuando llega un mensaje nuevo del chat (Twitch, Kick o YouTube).',
@@ -190,6 +194,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     bgTitle: 'Parametres de fond',
     bgDescription: 'Ajoutez une couleur de fond pour ameliorer le contraste du texte.',
     bgPlaceholder: 'Code hexadecimal ou laissez vide',
+    bgOpacityLabel: 'Opacite du fond',
     soundTitle: 'Son a la reception de message',
     soundDescription: 'Joue une alerte quand un nouveau message arrive (Twitch, Kick ou YouTube).',
     soundVolumeLabel: 'Volume / intensite',
@@ -230,6 +235,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     bgTitle: 'Hintergrund-Einstellungen',
     bgDescription: 'Fuege eine Hintergrundfarbe hinzu, um den Kontrast zu verbessern.',
     bgPlaceholder: 'Hex-Farbcode oder leer lassen',
+    bgOpacityLabel: 'Hintergrund-Deckkraft',
     soundTitle: 'Ton bei neuer Nachricht',
     soundDescription: 'Spielt einen Alarm bei neuen Chat-Nachrichten (Twitch, Kick oder YouTube).',
     soundVolumeLabel: 'Lautstaerke / Intensitaet',
@@ -270,6 +276,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     bgTitle: 'Impostazioni sfondo',
     bgDescription: 'Aggiungi un colore di sfondo per migliorare il contrasto del testo.',
     bgPlaceholder: 'Codice esadecimale o lascia vuoto',
+    bgOpacityLabel: 'Opacita sfondo',
     soundTitle: 'Suono alla ricezione messaggi',
     soundDescription:
       'Riproduce un avviso quando arriva un nuovo messaggio (Twitch, Kick o YouTube).',

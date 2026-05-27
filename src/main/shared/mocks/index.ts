@@ -11,6 +11,11 @@ export const defaultConfigData = {
     size: 16,
     weight: 700
   },
+  background: {
+    text: '#000000',
+    background: '#ffffff',
+    opacity: 30
+  },
   x: 219,
   y: 122,
   width: 665,

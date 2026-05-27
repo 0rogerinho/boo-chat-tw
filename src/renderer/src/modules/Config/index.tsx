@@ -246,6 +246,30 @@ export const Config = () => {
               onChange={({ target }) => updateConfig('background', { background: target.value })}
             />
           </div>
+
+          <div className="flex flex-col space-y-2">
+            <label className="text-white font-medium text-sm" htmlFor="bg-opacity">
+              {i18n.bgOpacityLabel}: {config?.background?.opacity ?? 30}%
+            </label>
+            <input
+              className="h-2 bg-red-700 rounded-lg appearance-none cursor-pointer slider"
+              id="bg-opacity"
+              type="range"
+              min={0}
+              max={100}
+              value={config?.background?.opacity ?? 30}
+              onChange={({ target }) =>
+                updateConfig('background', {
+                  ...config?.background,
+                  opacity: parseInt(target.value, 10)
+                })
+              }
+            />
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>{i18n.mutedLabel}</span>
+              <span>{i18n.maxLabel}</span>
+            </div>
+          </div>
         </div>
 
         <hr className="border-gray-700" />

@@ -19,6 +19,7 @@ export type TConfigDataProps = {
   background: {
     text: string
     background: string
+    opacity: number
   }
   bots: {
     userBots: string[]

@@ -9,6 +9,12 @@ function clampMessageSoundVolume(value: unknown, fallback: number): number {
   return Math.min(100, Math.max(0, Math.round(n)))
 }
 
+function clampBackgroundOpacity(value: unknown, fallback: number): number {
+  const n = typeof value === 'number' ? value : typeof value === 'string' ? parseFloat(value) : NaN
+  if (!Number.isFinite(n)) return fallback
+  return Math.min(100, Math.max(0, Math.round(n)))
+}
+
 /** Garante defaults (incl. notificações) ao carregar JSON antigo ou incompleto */
 export function normalizeStoredConfig(
   partial: Partial<TConfigDataProps> | undefined | null
@@ -24,6 +30,14 @@ export function normalizeStoredConfig(
       messageSoundVolume: clampMessageSoundVolume(
         merged.notifications?.messageSoundVolume,
         DEFAULT_CONFIG_DATA.notifications.messageSoundVolume
+      )
+    },
+    background: {
+      ...DEFAULT_CONFIG_DATA.background,
+      ...merged.background,
+      opacity: clampBackgroundOpacity(
+        merged.background?.opacity,
+        DEFAULT_CONFIG_DATA.background.opacity
       )
     }
   }

@@ -16,7 +16,8 @@ export const DEFAULT_CONFIG_DATA = {
   height: 601,
   background: {
     text: '#000000',
-    background: '#ffffff'
+    background: '#ffffff',
+    opacity: 30
   },
   bots: {
     userBots: [],

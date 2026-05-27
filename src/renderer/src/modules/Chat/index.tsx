@@ -10,12 +10,17 @@ import { useModel } from './hooks/useModel'
 import twitchLogo from '../../shared/assets/twitch-logo.png'
 import kickLogo from '../../shared/assets/kick-logo.webp'
 import youtubeLogo from '../../shared/assets/youtube-logo.png'
+import tiktokLogo from '../../shared/assets/tiktok-logo.png'
 import { MAX_CHAT_MESSAGES } from '../../shared/utils/limitMessage'
-import { isChatSystemNoticeMessage, playIncomingMessageNotification } from '../../shared/utils/messageNotification'
+import {
+  isChatSystemNoticeMessage,
+  playIncomingMessageNotification
+} from '../../shared/utils/messageNotification'
+import useTiktokChat from './hooks/useTiktokChat'
 
 type AllChats = {
   id: string
-  platform: 'twitch' | 'kick' | 'youtube'
+  platform: 'twitch' | 'kick' | 'youtube' | 'tiktok'
   author: {
     name: string
     color: string
@@ -33,8 +38,10 @@ export const Chat = () => {
   const newestMessageFingerprintRef = useRef<string | null>(null)
   const { chat, channelAvatars, config, messagesEndRef, showWindow, processMessageHTML } =
     useModel()
+
   const { kickChat } = useKickChat()
   const { youtubeChat } = useYouTubeChat()
+  const { tiktokChat } = useTiktokChat()
 
   // Função para obter o logo da plataforma
   const getPlatformLogo = (platform: string) => {
@@ -45,6 +52,8 @@ export const Chat = () => {
         return kickLogo
       case 'youtube':
         return youtubeLogo
+      case 'tiktok':
+        return tiktokLogo
       default:
         return twitchLogo
     }
@@ -56,6 +65,20 @@ export const Chat = () => {
         ...data,
         id: `twitch-${index}`,
         platform: 'twitch' as const,
+        author: {
+          name: data.name,
+          color: data.color ?? 'blue'
+        },
+        message: {
+          text: data.message
+        },
+        timestamp: data.timestamp || Date.now(),
+        channelId: data.channelId
+      })),
+      ...tiktokChat.map((data: any, index: number) => ({
+        ...data,
+        id: `tiktok-${index}`,
+        platform: 'tiktok' as const,
         author: {
           name: data.name,
           color: data.color ?? 'blue'
@@ -99,7 +122,7 @@ export const Chat = () => {
       .slice(-MAX_CHAT_MESSAGES)
 
     setAllChats(sortedMessages)
-  }, [chat, kickChat, youtubeChat])
+  }, [chat, tiktokChat, kickChat, youtubeChat])
 
   useEffect(() => {
     if (!config) return

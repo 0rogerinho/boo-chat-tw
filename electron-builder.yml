@@ -1,6 +1,6 @@
 appId: com.devrogerinho.boochat
 productName: BooChat
-buildVersion: 1.0.0.0
+buildVersion: 1.1.0
 directories:
   buildResources: build
   output: dist
@@ -17,7 +17,7 @@ asarUnpack:
   - build/**
 
 nsis:
-  artifactName: BooChat-${version}-setup.${ext}
+  artifactName: BooChat-${version}-windows-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
@@ -50,7 +50,7 @@ mac:
   hardenedRuntime: true
   gatekeeperAssess: false
 dmg:
-  artifactName: BooChat-${version}-${arch}.${ext}
+  artifactName: BooChat-${version}-${arch}-mac.${ext}
   title: BooChat ${version}
   icon: icon.icns
   iconSize: 80
@@ -90,15 +90,15 @@ linux:
     Categories: Network;Chat;
     StartupWMClass: BooChat
 appImage:
-  artifactName: BooChat-${version}.${ext}
+  artifactName: BooChat-${version}-linux.${ext}
 snap:
-  artifactName: BooChat-${version}.${ext}
+  artifactName: BooChat-${version}-linux.${ext}
   grade: stable
   confinement: strict
   environment:
     DISABLE_WAYLAND: 1
 deb:
-  artifactName: BooChat-${version}.${ext}
+  artifactName: BooChat-${version}-linux.${ext}
   depends:
     - libgtk-3-0
     - libnotify4
@@ -115,7 +115,7 @@ deb:
     - libxss1
     - libasound2
 rpm:
-  artifactName: BooChat-${version}.${ext}
+  artifactName: BooChat-${version}-linux.${ext}
   depends:
     - gtk3
     - libnotify
@@ -158,4 +158,3 @@ win:
     - target: portable
       arch:
         - x64
-

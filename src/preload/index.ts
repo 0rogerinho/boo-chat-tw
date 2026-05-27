@@ -6,6 +6,22 @@ const api = {
   fetchYouTube: (url: string, payload?: string) =>
     ipcRenderer.invoke('fetch-youtube', url, payload),
   fetchTwitchApi: (url: string) => ipcRenderer.invoke('fetch-twitch-api', url),
+  connectTikTok: (channel: string) => ipcRenderer.invoke('tiktok-connect', channel),
+  disconnectTikTok: () => ipcRenderer.invoke('tiktok-disconnect'),
+  onTikTokStatus: (
+    callback: (payload: { status: 'connected' | 'disconnected' | 'error'; message?: string; roomId?: string }) => void
+  ) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: any) => callback(payload)
+    ipcRenderer.on('tiktok-status', listener)
+    return () => ipcRenderer.removeListener('tiktok-status', listener)
+  },
+  onTikTokChat: (
+    callback: (payload: { username: string; message: string; channel: string; timestamp: number }) => void
+  ) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: any) => callback(payload)
+    ipcRenderer.on('tiktok-chat', listener)
+    return () => ipcRenderer.removeListener('tiktok-chat', listener)
+  },
 
   // Updater APIs
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),

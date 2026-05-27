@@ -24,8 +24,10 @@ type ConfigI18nText = {
   twitchChannelLabel: string
   kickChannelLabel: string
   youtubeChannelLabel: string
+  tiktokChannelLabel: string
   channelPlaceholder: string
   youtubePlaceholder: string
+  tiktokPlaceholder: string
   fontTitle: string
   fontSizeLabel: string
   fontWeightLabel: string
@@ -52,6 +54,7 @@ type ConfigI18nText = {
 
 const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
   'pt-BR': {
+    tiktokChannelLabel: 'Nome do canal do TikTok',
     languageLabel: 'Idioma do aplicativo',
     languageHelp: 'Escolha o idioma da interface.',
     twitchChannelLabel: 'Nome do canal da Twitch',
@@ -59,6 +62,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     youtubeChannelLabel: 'Nome do canal do YouTube',
     channelPlaceholder: 'Digite o nome do canal ex: devrogerinho',
     youtubePlaceholder: 'Ex: @OCodigodoRogerinho ou https://youtube.com/watch?v=...',
+    tiktokPlaceholder: 'Ex: @devrogerinho ou devrogerinho',
     fontTitle: 'Configuracoes de Fonte',
     fontSizeLabel: 'Tamanho da fonte',
     fontWeightLabel: 'Espessura da fonte',
@@ -91,6 +95,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     }
   },
   'en-US': {
+    tiktokChannelLabel: 'TikTok channel name',
     languageLabel: 'App language',
     languageHelp: 'Choose the interface language.',
     twitchChannelLabel: 'Twitch channel name',
@@ -98,6 +103,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     youtubeChannelLabel: 'YouTube channel name',
     channelPlaceholder: 'Enter the channel name, e.g. devrogerinho',
     youtubePlaceholder: 'E.g. @YourChannel or https://youtube.com/watch?v=...',
+    tiktokPlaceholder: 'E.g. @devrogerinho or @devrogerinho',
     fontTitle: 'Font settings',
     fontSizeLabel: 'Font size',
     fontWeightLabel: 'Font weight',
@@ -128,6 +134,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     }
   },
   'es-ES': {
+    tiktokChannelLabel: 'Nombre del canal de TikTok',
     languageLabel: 'Idioma de la aplicacion',
     languageHelp: 'Elige el idioma de la interfaz.',
     twitchChannelLabel: 'Nombre del canal de Twitch',
@@ -135,6 +142,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     youtubeChannelLabel: 'Nombre del canal de YouTube',
     channelPlaceholder: 'Escribe el nombre del canal, ej: devrogerinho',
     youtubePlaceholder: 'Ej: @TuCanal o https://youtube.com/watch?v=...',
+    tiktokPlaceholder: 'Ej: @devrogerinho o devrogerinho',
     fontTitle: 'Configuracion de fuente',
     fontSizeLabel: 'Tamano de fuente',
     fontWeightLabel: 'Grosor de fuente',
@@ -167,6 +175,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     }
   },
   'fr-FR': {
+    tiktokChannelLabel: 'Nom du canal TikTok',
     languageLabel: "Langue de l'application",
     languageHelp: "Choisissez la langue de l'interface.",
     twitchChannelLabel: 'Nom de la chaine Twitch',
@@ -174,6 +183,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     youtubeChannelLabel: 'Nom de la chaine YouTube',
     channelPlaceholder: 'Entrez le nom de la chaine, ex: devrogerinho',
     youtubePlaceholder: 'Ex: @VotreChaine ou https://youtube.com/watch?v=...',
+    tiktokPlaceholder: 'Ex: @devrogerinho ou devrogerinho',
     fontTitle: 'Parametres de police',
     fontSizeLabel: 'Taille de police',
     fontWeightLabel: 'Epaisseur de police',
@@ -205,6 +215,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     }
   },
   'de-DE': {
+    tiktokChannelLabel: 'TikTok-Kanalname',
     languageLabel: 'App-Sprache',
     languageHelp: 'Waehle die Sprache der Benutzeroberflaeche.',
     twitchChannelLabel: 'Twitch-Kanalname',
@@ -212,6 +223,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     youtubeChannelLabel: 'YouTube-Kanalname',
     channelPlaceholder: 'Kanalnamen eingeben, z. B. devrogerinho',
     youtubePlaceholder: 'Z. B. @DeinKanal oder https://youtube.com/watch?v=...',
+    tiktokPlaceholder: 'Z. B. @devrogerinho oder devrogerinho',
     fontTitle: 'Schrift-Einstellungen',
     fontSizeLabel: 'Schriftgroesse',
     fontWeightLabel: 'Schriftstaerke',
@@ -243,6 +255,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     }
   },
   'it-IT': {
+    tiktokChannelLabel: 'Nome canale TikTok',
     languageLabel: "Lingua dell'app",
     languageHelp: "Scegli la lingua dell'interfaccia.",
     twitchChannelLabel: 'Nome canale Twitch',
@@ -250,6 +263,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     youtubeChannelLabel: 'Nome canale YouTube',
     channelPlaceholder: 'Inserisci il nome canale, es: devrogerinho',
     youtubePlaceholder: 'Es: @IlTuoCanale o https://youtube.com/watch?v=...',
+    tiktokPlaceholder: 'Es: @devrogerinho o devrogerinho',
     fontTitle: 'Impostazioni carattere',
     fontSizeLabel: 'Dimensione carattere',
     fontWeightLabel: 'Spessore carattere',

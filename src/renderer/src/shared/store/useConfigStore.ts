@@ -6,6 +6,7 @@ export type TConfigDataProps = {
   kick: { slug: string; id?: number; user_id?: number }
   twitch: { channel: string }
   youtube: { channelName: string; channelId?: string }
+  tiktok: { channel: string }
   platform: string
   x: number
   y: number

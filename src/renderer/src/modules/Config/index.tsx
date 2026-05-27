@@ -136,6 +136,25 @@ export const Config = () => {
           />
         </div>
 
+        {/* TikTok Channel */}
+        <div className="space-y-2">
+          <label className="text-white font-medium text-sm" htmlFor="youtube-channel">
+            {i18n.tiktokChannelLabel}
+          </label>
+          <input
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+            id="tiktok-channel"
+            type="text"
+            value={config?.tiktok?.channel ?? ''}
+            placeholder={i18n.tiktokPlaceholder}
+            onChange={({ target }) =>
+              updateConfig('tiktok', {
+                channel: target.value
+              })
+            }
+          />
+        </div>
+
         {/* Font Settings */}
         <div className="space-y-4">
           <h3 className="text-white font-medium text-lg">{i18n.fontTitle}</h3>

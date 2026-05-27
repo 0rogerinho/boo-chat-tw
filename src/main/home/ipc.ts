@@ -7,12 +7,115 @@ import path from 'path'
 import { defaultConfigData } from '../shared/mocks'
 import { autoUpdater } from 'electron-updater'
 import { platform } from '../platform'
+import { TikTokLiveConnection, WebcastEvent } from 'tiktok-live-connector'
 export type configData = {
   channel: string
 }
 
 let configWin: BrowserWindow | null = null
 let mainWin: BrowserWindow | null = null
+let tiktokClient: TikTokLiveConnection | null = null
+let tiktokChannel: string | null = null
+let tiktokConnectToken = 0
+
+type TikTokStatusPayload = {
+  status: 'connected' | 'disconnected' | 'error'
+  message?: string
+  roomId?: string
+}
+
+type TikTokChatPayload = {
+  username: string
+  message: string
+  channel: string
+  timestamp: number
+}
+
+function formatRetryAfter(ms: number): string {
+  const totalSeconds = Math.max(1, Math.ceil(ms / 1000))
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${seconds}s`
+  }
+
+  if (minutes > 0) {
+    return `${minutes}m ${seconds}s`
+  }
+
+  return `${seconds}s`
+}
+
+function getTikTokFriendlyErrorMessage(error: unknown): string {
+  const err = error as {
+    name?: string
+    message?: string
+    reason?: string
+    retryAfter?: number
+  }
+
+  const rawMessage = err?.message ?? ''
+  const isRateLimit =
+    err?.name === 'SignatureRateLimitError' ||
+    rawMessage.includes('rate_limit_account_hour') ||
+    err?.reason?.toLowerCase() === 'rate limited'
+
+  if (isRateLimit) {
+    const retryAfterMs = typeof err?.retryAfter === 'number' ? err.retryAfter : null
+    if (retryAfterMs && retryAfterMs > 0) {
+      return `Foram feitas muitas tentativas de conexão com o canal. Por isso, só será possível tentar de novo em ${formatRetryAfter(retryAfterMs)}.`
+    }
+
+    return 'Foram feitas muitas tentativas de conexão com o canal. Por isso, tente novamente em alguns minutos.'
+  }
+
+  return rawMessage || 'Erro desconhecido ao conectar TikTok'
+}
+
+function sendTikTokStatus(payload: TikTokStatusPayload) {
+  if (mainWin && !mainWin.isDestroyed()) {
+    mainWin.webContents.send('tiktok-status', payload)
+  }
+}
+
+function sendTikTokChat(payload: TikTokChatPayload) {
+  if (mainWin && !mainWin.isDestroyed()) {
+    mainWin.webContents.send('tiktok-chat', payload)
+  }
+}
+
+async function disconnectTikTok() {
+  if (!tiktokClient) return
+
+  try {
+    await tiktokClient.disconnect()
+  } catch (error) {
+    console.error('Erro ao desconectar TikTok:', error)
+  } finally {
+    tiktokClient.removeAllListeners()
+    tiktokClient = null
+    tiktokChannel = null
+    sendTikTokStatus({ status: 'disconnected' })
+  }
+}
+
+function createTikTokClient(channel: string, fallback = false): TikTokLiveConnection {
+  if (!fallback) {
+    return new TikTokLiveConnection(channel)
+  }
+
+  // Fallback para casos em que o endpoint WS retorna HTTP 200
+  return new TikTokLiveConnection(channel, {
+    connectWithUniqueId: true,
+    fetchRoomInfoOnConnect: false,
+    wsClientHeaders: {
+      Origin: 'https://www.tiktok.com',
+      Referer: 'https://www.tiktok.com/'
+    }
+  })
+}
 
 function applyOverlayMode(enabled: boolean) {
   if (!mainWin || mainWin.isDestroyed()) {
@@ -51,9 +154,110 @@ export const registerIPC = (win: BrowserWindow) => {
 
   // Remover handler anterior se existir
   ipcMain.removeHandler('get-system')
+  ipcMain.removeHandler('tiktok-connect')
+  ipcMain.removeHandler('tiktok-disconnect')
 
   ipcMain.handle('get-system', () => {
     return process.platform
+  })
+
+  ipcMain.handle('tiktok-connect', async (_event, rawChannel: string) => {
+    const channel = rawChannel?.trim().replace(/^@/, '')
+    const currentToken = ++tiktokConnectToken
+
+    if (!channel) {
+      return { success: false, error: 'Canal do TikTok inválido.' }
+    }
+
+    try {
+      if (tiktokClient && tiktokChannel === channel) {
+        return { success: true, alreadyConnected: true }
+      }
+
+      await disconnectTikTok()
+
+      const bindChatListener = (client: TikTokLiveConnection) => {
+        client.on(WebcastEvent.CHAT, (data: any) => {
+          if (currentToken !== tiktokConnectToken || tiktokChannel !== channel) return
+
+          sendTikTokChat({
+            username: data?.nickname || data?.user?.nickname || 'TikTok',
+            message: data?.comment || '',
+            channel,
+            timestamp: Date.now()
+          })
+        })
+      }
+
+      let client = createTikTokClient(channel, false)
+      bindChatListener(client)
+      tiktokClient = client
+      tiktokChannel = channel
+
+      let state
+      try {
+        state = await client.connect()
+      } catch (firstError) {
+        const message = firstError instanceof Error ? firstError.message : String(firstError)
+        const shouldFallback = message.includes('Unexpected server response: 200')
+
+        if (!shouldFallback) {
+          throw firstError
+        }
+
+        console.warn(
+          'TikTok WS retornou HTTP 200 na tentativa padrão, tentando fallback de conexão...'
+        )
+
+        try {
+          await client.disconnect()
+        } catch {
+          // ignora erros de cleanup da tentativa inicial
+        }
+        client.removeAllListeners()
+
+        client = createTikTokClient(channel, true)
+        bindChatListener(client)
+        tiktokClient = client
+        tiktokChannel = channel
+        state = await client.connect()
+      }
+
+      if (currentToken !== tiktokConnectToken || tiktokChannel !== channel) {
+        try {
+          await client.disconnect()
+        } catch {
+          // ignora erros ao encerrar conexão obsoleta
+        }
+        client.removeAllListeners()
+        return { success: false, cancelled: true }
+      }
+
+      sendTikTokStatus({ status: 'connected', roomId: String(state.roomId ?? '') })
+
+      return { success: true, roomId: state.roomId }
+    } catch (error) {
+      const friendlyMessage = getTikTokFriendlyErrorMessage(error)
+
+      console.error('Erro ao conectar TikTok:', error)
+      sendTikTokStatus({
+        status: 'error',
+        message: friendlyMessage
+      })
+
+      await disconnectTikTok()
+
+      return {
+        success: false,
+        error: friendlyMessage
+      }
+    }
+  })
+
+  ipcMain.handle('tiktok-disconnect', async () => {
+    tiktokConnectToken++
+    await disconnectTikTok()
+    return { success: true }
   })
 
   ipcMain.on('setFullScreen', (_event, showFullscreen: boolean) => {
@@ -312,6 +516,8 @@ export const registerIPC = (win: BrowserWindow) => {
       if (mainWin === win) {
         mainWin = null
       }
+
+      void disconnectTikTok()
     })
   }
 }

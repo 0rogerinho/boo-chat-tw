@@ -13,6 +13,14 @@ interface Window {
   api: {
     fetchYouTube: (url: string, payload?: string) => Promise<any>
     fetchTwitchApi: (url: string) => Promise<{ success: boolean; data?: any; error?: string; status?: number }>
+    connectTikTok: (channel: string) => Promise<{ success: boolean; error?: string; roomId?: string }>
+    disconnectTikTok: () => Promise<{ success: boolean }>
+    onTikTokStatus: (
+      callback: (payload: { status: 'connected' | 'disconnected' | 'error'; message?: string; roomId?: string }) => void
+    ) => () => void
+    onTikTokChat: (
+      callback: (payload: { username: string; message: string; channel: string; timestamp: number }) => void
+    ) => () => void
     checkForUpdates: () => Promise<any>
     downloadUpdate: () => Promise<any>
     installUpdate: () => Promise<void>

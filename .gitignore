@@ -6,3 +6,5 @@ out
 .DS_Store
 *.log*
 *.tsbuildinfo
+*.tsconfig.node.tsbuildinfo
+*.tsconfig.web.tsbuildinfo

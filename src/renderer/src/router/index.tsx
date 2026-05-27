@@ -1,5 +1,5 @@
-import { Config } from '../../modules/Config'
-import { Chat } from '../../modules/Chat'
+import { Config } from '../modules/Config'
+import { Chat } from '../modules/Chat'
 import { Routes, Route, HashRouter } from 'react-router-dom'
 
 export default function Routers() {

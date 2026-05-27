@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useShowWindowStore } from '../store/useShowWindowStore'
 import { useConfigStore } from '../../../shared/store/useConfigStore'
 
@@ -23,15 +23,21 @@ export default function useHeader() {
     fetchPlatform()
   }, [config?.platform])
 
-  function handleShowWindow() {
+  const handleShowWindow = useCallback(() => {
+    const overlayMode = showWindow
     setShowWindow(!showWindow)
-    window.electron.ipcRenderer.send('alwaysOnTop', showWindow)
-    window.electron.ipcRenderer.send('setIgnoreMouseEvents', showWindow)
-  }
+    window.electron.ipcRenderer.send('set-overlay-mode', overlayMode)
+  }, [showWindow, setShowWindow])
 
-  window.electron.ipcRenderer.on('toggle-show-window', () => {
-    handleShowWindow()
-  })
+  useEffect(() => {
+    const onToggle = () => handleShowWindow()
+
+    window.electron.ipcRenderer.on('toggle-show-window', onToggle)
+
+    return () => {
+      window.electron.ipcRenderer.removeListener('toggle-show-window', onToggle)
+    }
+  }, [handleShowWindow])
 
   const openConfigWindow = () => {
     window.electron.ipcRenderer.send('open-config')

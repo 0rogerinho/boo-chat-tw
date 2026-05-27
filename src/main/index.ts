@@ -24,12 +24,7 @@ autoUpdater.setFeedURL({
 })
 
 // Eventos do autoUpdater
-autoUpdater.on('checking-for-update', () => {
-  console.log('Verificando atualizações...')
-})
-
-autoUpdater.on('update-available', (info) => {
-  console.log('Atualização disponível:', info)
+autoUpdater.on('update-available', () => {
   dialog
     .showMessageBox({
       type: 'info',
@@ -44,24 +39,12 @@ autoUpdater.on('update-available', (info) => {
     })
 })
 
-autoUpdater.on('update-not-available', (info) => {
-  console.log('Nenhuma atualização disponível:', info)
-})
-
 autoUpdater.on('error', (err) => {
   console.error('Erro ao verificar atualizações:', err)
   dialog.showErrorBox('Erro de Atualização', 'Erro ao verificar atualizações: ' + err.message)
 })
 
-autoUpdater.on('download-progress', (progressObj) => {
-  let log_message = 'Velocidade de download: ' + progressObj.bytesPerSecond
-  log_message = log_message + ' - Baixado ' + progressObj.percent + '%'
-  log_message = log_message + ' (' + progressObj.transferred + '/' + progressObj.total + ')'
-  console.log(log_message)
-})
-
-autoUpdater.on('update-downloaded', (info) => {
-  console.log('Atualização baixada:', info)
+autoUpdater.on('update-downloaded', () => {
   dialog
     .showMessageBox({
       type: 'info',
@@ -89,7 +72,6 @@ app.whenReady().then(() => {
     const dockIcon = platform.getDockIcon()
     if (dockIcon) {
       app.dock.setIcon(dockIcon)
-      console.log('[Index] Ícone do Dock configurado com sucesso')
     } else {
       console.warn('[Index] Não foi possível configurar o ícone do Dock')
     }
@@ -105,9 +87,7 @@ app.whenReady().then(() => {
   const win = createHome()
   // Criar o tray ANTES de registrar IPC para garantir que sempre apareça
   try {
-    console.log('[Index] Tentando criar tray...')
     createTray(win)
-    console.log('[Index] Tray criado com sucesso')
   } catch (error) {
     console.error('[Index] ❌ Erro ao criar tray:', error)
   }
@@ -118,11 +98,8 @@ app.whenReady().then(() => {
   // Verificar atualizações após 5 segundos (apenas em produção)
   if (process.env.NODE_ENV === 'production') {
     setTimeout(() => {
-      console.log('Iniciando verificação de atualizações...')
       autoUpdater.checkForUpdatesAndNotify()
     }, 5000)
-  } else {
-    console.log('Modo desenvolvimento - verificação de atualizações desabilitada')
   }
 
   app.on('activate', function () {

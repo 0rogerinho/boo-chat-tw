@@ -1,4 +1,5 @@
 {
+  "language": "pt-BR",
   "kick": {
     "slug": ""
   },
@@ -15,5 +16,40 @@
   "x": 219,
   "y": 122,
   "width": 665,
-  "height": 601
+  "height": 601,
+  "bots": {
+    "userBots": [],
+    "defaultTrue": false,
+    "default": [
+      "9kmmrbot",
+      "blerp",
+      "buttsbot",
+      "creatisbot",
+      "dr3ddbot",
+      "kikettebot",
+      "kofistreambot",
+      "logiceftbot",
+      "lolrankbot",
+      "mikuia",
+      "moobot",
+      "mtgbot",
+      "nightbot",
+      "playwithviewersbot",
+      "pokemoncommunitygame",
+      "pretzelrocks",
+      "restreambot",
+      "sery_bot",
+      "songlistbot",
+      "soundalerts",
+      "sport_scores_bot",
+      "ssakdook",
+      "streamelements",
+      "streamholics",
+      "streamlabs",
+      "streamstickers",
+      "vtuberplus",
+      "wizebot",
+      "wzbot"
+    ]
+  }
 }

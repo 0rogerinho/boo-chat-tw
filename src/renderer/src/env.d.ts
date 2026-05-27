@@ -12,6 +12,7 @@ interface Window {
   }
   api: {
     fetchYouTube: (url: string, payload?: string) => Promise<any>
+    fetchTwitchApi: (url: string) => Promise<{ success: boolean; data?: any; error?: string; status?: number }>
     checkForUpdates: () => Promise<any>
     downloadUpdate: () => Promise<any>
     installUpdate: () => Promise<void>

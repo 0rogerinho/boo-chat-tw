@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import Routers from './shared/router'
+import Routers from './router'
 import { UpdateNotification } from './shared/components/UpdateNotification'
 
 function App() {

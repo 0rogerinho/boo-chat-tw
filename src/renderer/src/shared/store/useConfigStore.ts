@@ -1,4 +1,6 @@
 import { create } from 'zustand'
+import type { MessageSoundId } from '../constants/messageSounds'
+import type { AppLanguageCode } from '../i18n'
 
 export type TConfigDataProps = {
   kick: { slug: string; id?: number; user_id?: number }
@@ -13,6 +15,21 @@ export type TConfigDataProps = {
     size: number
     weight: number
   }
+  background: {
+    text: string
+    background: string
+  }
+  bots: {
+    userBots: string[]
+    defaultTrue: boolean
+    default: string[]
+  }
+  notifications: {
+    messageSound: MessageSoundId
+    /** Intensidade 0–100 (volume) */
+    messageSoundVolume: number
+  }
+  language: AppLanguageCode
 }
 
 type HideWindowProps = {

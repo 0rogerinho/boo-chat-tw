@@ -43,7 +43,6 @@ export function createTray(win: BrowserWindow) {
       // IMPORTANTE: Template images funcionam melhor com imagens em preto/transparente
       try {
         trayImage.setTemplateImage(true)
-        console.log('[Tray] Template image definido como true')
       } catch (error) {
         console.warn('[Tray] Erro ao definir template image, continuando sem template:', error)
         // Continuar sem template se houver erro

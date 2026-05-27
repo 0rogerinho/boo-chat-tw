@@ -100,15 +100,12 @@ export const platform = {
       if (app.isPackaged) {
         // Em produção, usar process.resourcesPath que aponta para Contents/Resources
         const resourcesPath = (process as any).resourcesPath || path.join(app.getAppPath(), '..')
-        console.log('[Platform] resourcesPath:', resourcesPath)
-        console.log('[Platform] app.getAppPath():', app.getAppPath())
         const prodPaths = [
           path.join(resourcesPath, 'app.asar.unpacked', 'resources', 'icon-mac.png'),
           path.join(resourcesPath, 'resources', 'icon-mac.png'),
           path.join(app.getAppPath(), '..', 'app.asar.unpacked', 'resources', 'icon-mac.png'),
           path.join(app.getAppPath(), '..', 'resources', 'icon-mac.png')
         ]
-        console.log('[Platform] Tentando encontrar ícone do tray nos caminhos:', prodPaths)
         return findFile(prodPaths)
       }
 

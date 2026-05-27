@@ -1,4 +1,9 @@
 export const defaultConfigData = {
+  language: 'pt-BR',
+  notifications: {
+    messageSound: 'none' as const,
+    messageSoundVolume: 85
+  },
   kick: { slug: '' },
   twitch: { channel: '' },
   youtube: { channelName: '' },

@@ -1,6 +1,7 @@
 import { useConfigStore } from '../../../shared/store/useConfigStore'
 import { useEffect, useState, useRef } from 'react'
 import YouTubeScraperService from '../../../shared/api/youtubeScraper'
+import { getChatSystemTextWithParams } from '../../../shared/i18n'
 
 interface ChatMessage {
   id: string
@@ -18,17 +19,12 @@ interface ChatMessage {
 
 export default function useYouTubeChat() {
   const [youtubeChat, setYoutubeChat] = useState<ChatMessage[]>([])
-  console.log('youtubeChat', youtubeChat)
   const [isConnected, setIsConnected] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   const { config } = useConfigStore()
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
-  const processedMessageIds = useRef<Set<string>>(new Set())
-  const liveChatIdRef = useRef<string | null>(null)
-  const nextPageTokenRef = useRef<string | null>(null)
-
   // Configuração do intervalo de polling (em ms)
   const POLLING_INTERVAL = 1500 // 1.5 segundos para melhor responsividade
 
@@ -46,30 +42,15 @@ export default function useYouTubeChat() {
   // Função para conectar via scraping (método gratuito)
   const connectViaScraping = async (channelName: string): Promise<boolean> => {
     try {
-      console.log('🔗 Conectando via scraping (gratuito):', channelName)
       setIsLoading(true)
       setError(null)
 
       const scraper = new YouTubeScraperService()
-
-      // Buscar canal
-      const channel = await scraper.searchChannel(channelName)
-      if (!channel) {
-        throw new Error(`Canal "${channelName}" não encontrado.`)
-      }
-
-      console.log('✅ Canal encontrado via scraping:', channel.title)
-
-      // Verificar se está ao vivo usando método mais robusto
-      console.log('🔍 Verificando se canal está ao vivo...')
-      const liveInfo = await scraper.getLiveChatInfo(channel.id)
+      const liveInfo = await scraper.resolveLiveChatInfo(channelName)
 
       if (!liveInfo) {
-        console.log('❌ Canal não está ao vivo ou não foi possível detectar')
-        throw new Error('Canal não está transmitindo ao vivo no momento.')
+        throw new Error('Canal/URL não encontrado ou sem live ativa no momento.')
       }
-
-      console.log('✅ Chat ao vivo ativo encontrado via scraping:', liveInfo.chatId)
 
       // Iniciar polling das mensagens via scraping
       startScrapingPolling(scraper, liveInfo.chatId)
@@ -84,14 +65,24 @@ export default function useYouTubeChat() {
   }
 
   // Função para iniciar o polling via scraping
-  const startScrapingPolling = (scraper: YouTubeScraperService, chatId: string) => {
+  const startScrapingPolling = (scraper: YouTubeScraperService, initialChatId: string) => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current)
     }
+    let currentChatId = initialChatId
 
     const pollMessages = async () => {
       try {
-        const messages = await scraper.getLiveChatMessages(chatId)
+        const { messages, continuation, error: pollingError } =
+          await scraper.getLiveChatMessages(currentChatId)
+
+        if (pollingError) {
+          setError(pollingError)
+        }
+
+        if (continuation) {
+          currentChatId = continuation
+        }
 
         if (messages.length > 0) {
           setYoutubeChat((prevChat) => {
@@ -115,9 +106,11 @@ export default function useYouTubeChat() {
 
         setIsLoading(false)
         setIsConnected(true)
+        setError(null)
       } catch (error) {
         console.error('Erro ao obter mensagens via scraping:', error)
         setError('Erro ao obter mensagens do chat')
+        setIsConnected(false)
       }
     }
 
@@ -134,9 +127,6 @@ export default function useYouTubeChat() {
       clearInterval(intervalRef.current)
       intervalRef.current = null
     }
-    processedMessageIds.current.clear()
-    liveChatIdRef.current = null
-    nextPageTokenRef.current = null
     setIsConnected(false)
     setIsLoading(false)
   }
@@ -163,7 +153,9 @@ export default function useYouTubeChat() {
               color: '#ff0000'
             },
             message: {
-              text: `Conectando ao canal "${config.youtube.channelName}" ...`
+              text: getChatSystemTextWithParams(config.language, 'connecting', {
+                channel: config.youtube.channelName
+              })
             },
             timestamp: Date.now()
           }
@@ -172,22 +164,40 @@ export default function useYouTubeChat() {
         // Usar apenas scraping (método gratuito)
         const scrapingSuccess = await connectViaScraping(config.youtube.channelName)
 
-        setYoutubeChat((prev) => [
-          ...prev,
-          {
-            id: `Conexão-YouTube-${Date.now()}`,
-            author: {
-              name: 'YouTube-connect',
-              color: '#ff0000'
-            },
-            message: {
-              text: `Conectado ao "${config.youtube.channelName}"`
-            },
-            timestamp: Date.now()
-          }
-        ])
-
-        if (!scrapingSuccess) {
+        if (scrapingSuccess) {
+          setYoutubeChat((prev) => [
+            ...prev,
+            {
+              id: `Conexão-YouTube-${Date.now()}`,
+              author: {
+                name: 'YouTube-connect',
+                color: '#ff0000'
+              },
+              message: {
+                text: getChatSystemTextWithParams(config.language, 'connected', {
+                  channel: config.youtube.channelName
+                })
+              },
+              timestamp: Date.now()
+            }
+          ])
+        } else {
+          setYoutubeChat((prev) => [
+            ...prev,
+            {
+              id: `Conexão-YouTube-${Date.now()}`,
+              author: {
+                name: 'YouTube-connect',
+                color: '#ff0000'
+              },
+              message: {
+                text: getChatSystemTextWithParams(config.language, 'channelNotFound', {
+                  channel: config.youtube.channelName
+                })
+              },
+              timestamp: Date.now()
+            }
+          ])
           setIsConnected(false)
         }
       } catch (error) {
@@ -200,7 +210,9 @@ export default function useYouTubeChat() {
               color: '#ff0000'
             },
             message: {
-              text: `Falha ao conectar ao canal "${config.youtube.channelName}"`
+              text: getChatSystemTextWithParams(config.language, 'channelNotFound', {
+                channel: config.youtube.channelName
+              })
             },
             timestamp: Date.now()
           }

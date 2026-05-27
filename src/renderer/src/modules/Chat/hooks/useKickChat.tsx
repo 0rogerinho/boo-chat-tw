@@ -1,6 +1,7 @@
 import { useConfigStore } from '../../../shared/store/useConfigStore'
 import { useEffect, useState } from 'react'
 import Pusher from 'pusher-js'
+import { getChatSystemTextWithParams } from '../../../shared/i18n'
 
 type TKickChat = {
   id: string
@@ -24,36 +25,18 @@ type TKickChat = {
 
 export default function useKickChat() {
   const [kickChat, setKickChat] = useState<TKickChat[]>([])
-  console.log('kickChat', kickChat)
   const [isConnected, setIsConnected] = useState(false)
 
   const { config } = useConfigStore()
 
   // Função para processar emojis da Kick
   const processKickEmojis = (message: string): string => {
-    console.log('🔍 Processando mensagem:', message)
-
-    // Regex para encontrar emojis no formato [emote:ID:nome]
     const emojiRegex = /\[emote:(\d+):([^\]]+)\]/g
 
-    const result = message.replace(emojiRegex, (_, emoteId, emoteName) => {
-      console.log('🎯 Encontrou emoji:', { emoteId, emoteName })
-
-      // URL base para emojis da Kick
+    return message.replace(emojiRegex, (_, emoteId, emoteName) => {
       const emojiUrl = `https://files.kick.com/emotes/${emoteId}/fullsize`
-
-      console.log('🔗 URL do emoji:', emojiUrl)
-
-      // Retorna a tag img com o emoji
-      const imgTag = `<img style="display:inline; width:24px; height:24px; vertical-align:middle; margin:0 2px;" src="${emojiUrl}" alt="${emoteName}" title="${emoteName}" />`
-
-      console.log('🖼️ Tag img gerada:', imgTag)
-
-      return imgTag
+      return `<img style="display:inline; width:24px; height:24px; vertical-align:middle; margin:0 2px;" src="${emojiUrl}" alt="${emoteName}" title="${emoteName}" />`
     })
-
-    console.log('✅ Resultado final:', result)
-    return result
   }
 
   useEffect(() => {
@@ -67,7 +50,9 @@ export default function useKickChat() {
           ...prev,
           {
             id: 'Conexão-Kick',
-            content: `Conectando com o canal "${config.kick.slug}"...`,
+            content: getChatSystemTextWithParams(config.language, 'connecting', {
+              channel: config.kick.slug
+            }),
             type: 'message',
             created_at: '',
             sender: {
@@ -106,7 +91,9 @@ export default function useKickChat() {
             ...prev,
             {
               id: 'Conexão-Kick',
-              content: `Conectado ao chat do canal "${config.kick.slug}"`,
+              content: getChatSystemTextWithParams(config.language, 'connected', {
+                channel: config.kick.slug
+              }),
               type: 'message',
               created_at: '',
               sender: {
@@ -140,14 +127,8 @@ export default function useKickChat() {
         const channel = pusher.subscribe(`chatrooms.${channelData.chatroom.id}.v2`)
 
         channel.bind('App\\Events\\ChatMessageEvent', (data) => {
-          console.log('📨 Dados brutos da Kick:', data)
-
-          // Processar emojis da Kick
           const originalContent = data.content || data.message || ''
           const processedContent = processKickEmojis(originalContent)
-
-          console.log('📝 Conteúdo original:', originalContent)
-          console.log('🎨 Conteúdo processado:', processedContent)
 
           const processedData = {
             ...data,

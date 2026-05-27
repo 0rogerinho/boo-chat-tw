@@ -49,6 +49,7 @@ export const createHome = (): BrowserWindow => {
     y: lastBounds.y,
     fullscreen: false,
     show: false,
+
     ...currentPlatformConfig,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

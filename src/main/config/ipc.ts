@@ -6,6 +6,7 @@ import path from 'path'
 import { defaultConfigData } from '../shared/mocks'
 
 export interface configDataProps {
+  language?: string
   kick: { slug: string; id?: number; user_id?: number }
   twitch: { channel: string }
   youtube: { channelName: string; channelId?: string }

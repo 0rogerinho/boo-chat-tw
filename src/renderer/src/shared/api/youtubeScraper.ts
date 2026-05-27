@@ -20,7 +20,92 @@ export interface ScrapedChatMessage {
   timestamp: number
 }
 
+export interface ScrapedChatResponse {
+  messages: ScrapedChatMessage[]
+  continuation?: string | null
+  error?: string
+}
+
 class YouTubeScraperService {
+  async resolveLiveChatInfo(query: string): Promise<{ videoId: string; chatId: string } | null> {
+    const continuation = this.extractContinuationFromInput(query)
+    if (continuation) {
+      return { videoId: '', chatId: continuation }
+    }
+
+    const videoId = this.extractVideoIdFromInput(query)
+    if (videoId) {
+      const chatId = await this.getChatIdFromVideo(videoId)
+      if (chatId) {
+        return { videoId, chatId }
+      }
+    }
+
+    const channel = await this.searchChannel(query)
+    if (!channel) {
+      return null
+    }
+
+    return this.getLiveChatInfo(channel.id)
+  }
+
+  private extractContinuationFromInput(input: string): string | null {
+    const value = input.trim()
+    if (!value) return null
+
+    try {
+      const url = new URL(value)
+      if (!url.pathname.includes('/live_chat')) {
+        return null
+      }
+      return url.searchParams.get('continuation')
+    } catch {
+      return null
+    }
+  }
+
+  private extractVideoIdFromInput(input: string): string | null {
+    const value = input.trim()
+    if (!value) {
+      return null
+    }
+
+    // Caso o usuário já informe somente o ID
+    if (/^[A-Za-z0-9_-]{11}$/.test(value)) {
+      return value
+    }
+
+    try {
+      const url = new URL(value)
+      const hostname = url.hostname.replace(/^www\./, '')
+
+      if (hostname === 'youtu.be') {
+        const id = url.pathname.split('/').filter(Boolean)[0]
+        return id && /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null
+      }
+
+      if (hostname !== 'youtube.com' && hostname !== 'm.youtube.com') {
+        return null
+      }
+
+      const fromQuery = url.searchParams.get('v')
+      if (fromQuery && /^[A-Za-z0-9_-]{11}$/.test(fromQuery)) {
+        return fromQuery
+      }
+
+      const segments = url.pathname.split('/').filter(Boolean)
+      const directPatterns = ['live', 'embed', 'shorts']
+      if (segments.length >= 2 && directPatterns.includes(segments[0])) {
+        const id = segments[1]
+        return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null
+      }
+    } catch {
+      return null
+    }
+
+    return null
+  }
+
   // Buscar canal por nome ou handle
   async searchChannel(query: string): Promise<ScrapedChannel | null> {
     try {
@@ -47,7 +132,6 @@ class YouTubeScraperService {
 
       for (const url of urlsToTry) {
         try {
-          console.log('🌐 Tentando URL:', url)
           const result = await this.fetchPage(url)
 
           if (result.success && result.data) {
@@ -67,8 +151,7 @@ class YouTubeScraperService {
               return channel
             }
           }
-        } catch (error) {
-          console.log('❌ Erro na URL:', url, error)
+        } catch {
           continue
         }
       }
@@ -93,7 +176,6 @@ class YouTubeScraperService {
 
       for (const url of liveUrls) {
         try {
-          console.log('🌐 Tentando live URL:', url)
           const result = await this.fetchPage(url)
 
           if (result.success && result.data) {
@@ -102,8 +184,7 @@ class YouTubeScraperService {
               return channel
             }
           }
-        } catch (error) {
-          console.log('❌ Erro na live URL:', url, error)
+        } catch {
           continue
         }
       }
@@ -118,8 +199,6 @@ class YouTubeScraperService {
   // Verificar se canal está ao vivo e obter chat ID
   async getLiveChatInfo(channelId: string): Promise<{ videoId: string; chatId: string } | null> {
     try {
-      console.log('🔍 Verificando live do canal:', channelId)
-
       // Tentar múltiplas URLs para encontrar a live
       const urlsToTry = [
         `https://www.youtube.com/channel/${channelId}/live`,
@@ -130,7 +209,6 @@ class YouTubeScraperService {
 
       for (const url of urlsToTry) {
         try {
-          console.log('🌐 Tentando URL:', url)
           const result = await this.fetchPage(url)
 
           if (!result.success || !result.data) {
@@ -151,7 +229,6 @@ class YouTubeScraperService {
           const isLive = isLivePatterns.some((pattern) => pattern.test(html))
 
           if (!isLive) {
-            console.log('❌ Não está ao vivo nesta URL:', url)
             continue
           }
 
@@ -173,7 +250,6 @@ class YouTubeScraperService {
           }
 
           if (!videoId) {
-            console.log('❌ Video ID não encontrado em:', url)
             continue
           }
 
@@ -196,13 +272,11 @@ class YouTubeScraperService {
               return { videoId, chatId: match[1] }
             }
           }
-        } catch (error) {
-          console.log('❌ Erro na URL:', url, error)
+        } catch {
           continue
         }
       }
 
-      console.log('❌ Nenhuma live encontrada em nenhuma URL')
       return null
     } catch (error) {
       console.error('Erro ao verificar live:', error)
@@ -244,7 +318,7 @@ class YouTubeScraperService {
   }
 
   // Capturar mensagens do chat via scraping
-  async getLiveChatMessages(chatId: string): Promise<ScrapedChatMessage[]> {
+  async getLiveChatMessages(chatId: string): Promise<ScrapedChatResponse> {
     try {
       // Usar a API interna do YouTube (mesmo método que o navegador usa)
       const apiUrl = 'https://www.youtube.com/youtubei/v1/live_chat/get_live_chat'
@@ -272,26 +346,65 @@ class YouTubeScraperService {
       })
 
       if (!result.success || !result.data) {
-        console.log('❌ Falha ao obter dados da API')
-        return []
+        return {
+          messages: [],
+          error: result.error ?? 'Falha ao obter resposta do YouTube'
+        }
       }
 
       const data = typeof result.data === 'string' ? JSON.parse(result.data) : result.data
 
       const messages = this.parseChatMessages(data)
+      const continuation = this.extractContinuation(data)
 
-      // Se não encontrou mensagens, tentar método alternativo
       if (messages.length === 0) {
-        console.log('🔄 Nenhuma mensagem encontrada, tentando método alternativo...')
-        return await this.getLiveChatMessagesAlternative(chatId)
+        const fallbackMessages = await this.getLiveChatMessagesAlternative(chatId)
+        return {
+          messages: fallbackMessages,
+          continuation
+        }
       }
 
-      return messages
+      return {
+        messages,
+        continuation
+      }
     } catch (error) {
       console.error('Erro ao capturar mensagens:', error)
       // Tentar método alternativo em caso de erro
-      return await this.getLiveChatMessagesAlternative(chatId)
+      const fallbackMessages = await this.getLiveChatMessagesAlternative(chatId)
+      return {
+        messages: fallbackMessages,
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      }
     }
+  }
+
+  private extractContinuation(data: any): string | null {
+    const continuations = [
+      data?.continuationContents?.liveChatContinuation?.continuations,
+      data?.contents?.liveChatContinuation?.continuations,
+      data?.liveChatContinuation?.continuations
+    ]
+
+    for (const continuationList of continuations) {
+      if (!Array.isArray(continuationList)) {
+        continue
+      }
+
+      for (const continuation of continuationList) {
+        const token =
+          continuation?.invalidationContinuationData?.continuation ??
+          continuation?.timedContinuationData?.continuation ??
+          continuation?.reloadContinuationData?.continuation ??
+          continuation?.liveChatReplayContinuationData?.continuation
+        if (token && typeof token === 'string') {
+          return token
+        }
+      }
+    }
+
+    return null
   }
 
   // Método alternativo para capturar mensagens

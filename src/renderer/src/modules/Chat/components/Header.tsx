@@ -8,11 +8,7 @@ import { IoMdSettings } from 'react-icons/io'
 import useHeader from '../hooks/useHeader'
 import { VscExpandAll } from 'react-icons/vsc'
 
-interface IHeader {
-  eyeClick: () => void
-}
-
-export const Header = ({ eyeClick }: IHeader) => {
+export const Header = () => {
   const { showWindow, fullScreen, setFullScreen, handleShowWindow, openConfigWindow } = useHeader()
 
   return (
@@ -37,9 +33,7 @@ export const Header = ({ eyeClick }: IHeader) => {
         {/* Hide/Show */}
         <button
           className="flex size-8 min-w-[32px] items-center justify-center group no-move hover:bg-gray-800/80 transition-all duration-200 rounded-sm"
-          onClick={() => {
-            eyeClick(), handleShowWindow()
-          }}
+          onClick={handleShowWindow}
         >
           <FaEyeSlash
             className="m-auto text-gray-300 group-hover:text-white transition-all duration-200"

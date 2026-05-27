@@ -3,10 +3,11 @@ import { useEffect, useRef, useState } from 'react'
 import tmi from 'tmi.js'
 // Hooks
 import { useShowWindowStore } from '../store/useShowWindowStore'
-// Mocks
-import { bots } from '../../../shared/utils'
 import { TConfigDataProps, useConfigStore } from '../../../shared/store/useConfigStore'
-import { DEFAULT_CONFIG_DATA } from '../../../shared/constants/defaultConfig'
+import { limitMessages } from '../../../shared/utils/limitMessage'
+import { normalizeStoredConfig } from '../../../shared/utils/normalizeConfig'
+import { fetchChannelAvatar, getCachedChannelAvatar } from '../../../shared/api/twitchChannelAvatar'
+import { getChatSystemText, getChatSystemTextWithParams } from '../../../shared/i18n'
 
 interface IEmojis {
   id: string
@@ -20,6 +21,7 @@ interface IChat {
   color?: string
   emojis?: IEmojis[] | string
   timestamp?: number
+  channelId?: string
 }
 
 interface IFormatMessage {
@@ -31,6 +33,7 @@ const img = 'https://static-cdn.jtvnw.net/emoticons/v2/'
 
 export function useModel() {
   const [chat, setChat] = useState<IChat[]>([])
+  const [channelAvatars, setChannelAvatars] = useState<Record<string, string>>({})
   const { showWindow } = useShowWindowStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -38,7 +41,7 @@ export function useModel() {
 
   const handleConfigUpdate = async (_event: any, newConfig: TConfigDataProps) => {
     const platform = await window.electron.ipcRenderer.invoke('get-system')
-    setConfig({ ...newConfig, platform: platform })
+    setConfig(normalizeStoredConfig({ ...newConfig, platform }))
   }
 
   // function updateConfig(type: 'kick' | 'twitch', channel: string) {
@@ -57,23 +60,22 @@ export function useModel() {
     const fetchConfig = async () => {
       try {
         const response = await window.electron.ipcRenderer.invoke('get-config')
-        console.log('data', response)
 
         if (response && typeof response === 'object') {
           if (response.success) {
-            setConfig(response.data)
+            setConfig(normalizeStoredConfig(response.data))
           } else {
             console.error('Erro ao carregar configurações no Chat:', response.error)
-            setConfig(response.data || DEFAULT_CONFIG_DATA)
+            setConfig(normalizeStoredConfig(response.data ?? null))
           }
         } else {
           // Se não retornou dados, usa os dados padrão
-          setConfig(DEFAULT_CONFIG_DATA)
+          setConfig(normalizeStoredConfig(null))
         }
       } catch (error) {
         console.error('Erro ao carregar configurações no Chat:', error)
         // Em caso de erro, usa os dados padrão
-        setConfig(DEFAULT_CONFIG_DATA)
+        setConfig(normalizeStoredConfig(null))
       }
     }
 
@@ -116,19 +118,40 @@ export function useModel() {
     return replacedMessage
   }
 
+  function ensureChannelAvatar(channelId: string) {
+    const cached = getCachedChannelAvatar(channelId)
+
+    if (cached?.avatarUrl) {
+      setChannelAvatars((prev) =>
+        prev[channelId] ? prev : { ...prev, [channelId]: cached.avatarUrl }
+      )
+      return
+    }
+
+    fetchChannelAvatar(channelId).then((data) => {
+      if (data?.avatarUrl) {
+        setChannelAvatars((prev) => ({ ...prev, [channelId]: data.avatarUrl }))
+      }
+    })
+  }
+
   useEffect(() => {
     if (!config?.twitch.channel) return
 
-    setChat((data) => [
-      ...data,
-      {
-        name: 'CONEXÃO',
-        color: 'green',
-        message: `...CONECTANDO`,
-        emojis: '',
-        timestamp: Date.now()
-      }
-    ])
+    setChat((data) =>
+      limitMessages([
+        ...data,
+        {
+          name: getChatSystemText(config.language, 'connectLabel'),
+          color: 'green',
+          message: getChatSystemTextWithParams(config.language, 'connecting', {
+            channel: config.twitch.channel
+          }),
+          emojis: '',
+          timestamp: Date.now()
+        }
+      ])
+    )
 
     const client = new tmi.Client({
       channels: [config.twitch.channel]
@@ -137,58 +160,73 @@ export function useModel() {
     client
       .connect()
       .then(() => {
-        setChat((data) => [
-          ...data,
-          {
-            name: 'CONEXÃO',
-            color: 'green',
-            message: `
-            Conectado ao chat de "${config.twitch.channel}"
-             `,
-            emojis: '',
-            timestamp: Date.now()
-          },
-          {
-            name: 'AJUDA',
-            color: 'orange',
-            message: `para esconder a janela (Esconder / aparecer) use no Windows "Ctrl + Alt + A", Mac "CTRL + OPTION + A"`,
-            emojis: '',
-            timestamp: Date.now()
-          }
-        ])
+        setChat((data) =>
+          limitMessages([
+            ...data,
+            {
+              name: getChatSystemText(config.language, 'connectLabel'),
+              color: 'green',
+              message: getChatSystemTextWithParams(config.language, 'connected', {
+                channel: config.twitch.channel
+              }),
+              emojis: '',
+              timestamp: Date.now()
+            },
+            {
+              name: getChatSystemText(config.language, 'helpLabel'),
+              color: 'orange',
+              message: getChatSystemText(config.language, 'overlayHelp'),
+              emojis: '',
+              timestamp: Date.now()
+            }
+          ])
+        )
       })
       .catch((err) => {
-        setChat((data) => [
-          ...data,
-          {
-            name: 'CONEXÃO',
-            color: 'red',
-            message: `O canal ${config.twitch.channel} não foi encontrado`,
-            emojis: '',
-            timestamp: Date.now()
-          }
-        ])
-        console.log('Erro ao conectar:', err)
+        setChat((data) =>
+          limitMessages([
+            ...data,
+            {
+              name: getChatSystemText(config.language, 'connectLabel'),
+              color: 'red',
+              message: getChatSystemTextWithParams(config.language, 'channelNotFound', {
+                channel: config.twitch.channel
+              }),
+              emojis: '',
+              timestamp: Date.now()
+            }
+          ])
+        )
+        console.error('Erro ao conectar:', err)
       })
 
     client.on('message', (_, tags, message) => {
       const emojis = tags['emotes-raw'] && getEmojis(tags['emotes-raw'])
       const replaceMessage = emojis ? formatMessage({ message, emojis }) : message
+      const channelId = tags['source-room-id']
 
       const validator =
-        !bots.includes(tags['display-name']?.toLocaleLowerCase() ?? '') && !message.startsWith('!')
+        !config?.bots?.userBots?.includes(tags['display-name']?.toLocaleLowerCase() ?? '') &&
+        !message.startsWith('!')
 
       if (validator) {
-        setChat((data) => [
-          ...data,
-          {
-            name: tags['display-name'],
-            color: tags.color,
-            message: replaceMessage,
-            emojis: emojis,
-            timestamp: Date.now()
-          }
-        ])
+        if (channelId) {
+          ensureChannelAvatar(channelId)
+        }
+
+        setChat((data) =>
+          limitMessages([
+            ...data,
+            {
+              name: tags['display-name'],
+              color: tags.color,
+              message: replaceMessage,
+              emojis: emojis,
+              timestamp: Date.now(),
+              channelId
+            }
+          ])
+        )
       }
     })
 
@@ -224,5 +262,5 @@ export function useModel() {
     }
   }, [chat])
 
-  return { chat, messagesEndRef, showWindow, processMessageHTML, config }
+  return { chat, channelAvatars, messagesEndRef, showWindow, processMessageHTML, config }
 }

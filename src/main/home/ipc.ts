@@ -6,12 +6,35 @@ import { registerConfigIPC } from '../config/ipc'
 import path from 'path'
 import { defaultConfigData } from '../shared/mocks'
 import { autoUpdater } from 'electron-updater'
+import { platform } from '../platform'
 export type configData = {
   channel: string
 }
 
 let configWin: BrowserWindow | null = null
 let mainWin: BrowserWindow | null = null
+
+function applyOverlayMode(enabled: boolean) {
+  if (!mainWin || mainWin.isDestroyed()) {
+    return
+  }
+
+  if (enabled) {
+    if (platform.isWindows) {
+      mainWin.setAlwaysOnTop(true, 'screen-saver')
+    } else if (platform.isMacOS) {
+      mainWin.setAlwaysOnTop(true, 'floating')
+    } else {
+      mainWin.setAlwaysOnTop(true)
+    }
+
+    mainWin.setIgnoreMouseEvents(true, { forward: true })
+    return
+  }
+
+  mainWin.setAlwaysOnTop(false)
+  mainWin.setIgnoreMouseEvents(false)
+}
 
 export const registerIPC = (win: BrowserWindow) => {
   // Atualizar referência da janela principal
@@ -20,6 +43,7 @@ export const registerIPC = (win: BrowserWindow) => {
   // Remover listeners antigos antes de criar novos
   ipcMain.removeAllListeners('setFullScreen')
   ipcMain.removeAllListeners('alwaysOnTop')
+  ipcMain.removeAllListeners('set-overlay-mode')
   ipcMain.removeAllListeners('closeFilePreview')
   ipcMain.removeAllListeners('close')
   ipcMain.removeAllListeners('setIgnoreMouseEvents')
@@ -29,7 +53,6 @@ export const registerIPC = (win: BrowserWindow) => {
   ipcMain.removeHandler('get-system')
 
   ipcMain.handle('get-system', () => {
-    console.log('process.platform', process.platform)
     return process.platform
   })
 
@@ -40,9 +63,11 @@ export const registerIPC = (win: BrowserWindow) => {
   })
 
   ipcMain.on('alwaysOnTop', (_event, boolean: boolean) => {
-    if (mainWin && !mainWin.isDestroyed()) {
-      mainWin.setAlwaysOnTop(boolean)
-    }
+    applyOverlayMode(boolean)
+  })
+
+  ipcMain.on('set-overlay-mode', (_event, enabled: boolean) => {
+    applyOverlayMode(enabled)
   })
 
   ipcMain.on('closeFilePreview', () => {
@@ -60,7 +85,7 @@ export const registerIPC = (win: BrowserWindow) => {
 
   ipcMain.on('setIgnoreMouseEvents', (_event, value: boolean) => {
     if (mainWin && !mainWin.isDestroyed()) {
-      mainWin.setIgnoreMouseEvents(value)
+      mainWin.setIgnoreMouseEvents(value, value ? { forward: true } : undefined)
     }
   })
 
@@ -82,53 +107,32 @@ export const registerIPC = (win: BrowserWindow) => {
 
   // Registrar novo handler
   ipcMain.handle('get-config', async () => {
-    console.log('Handler get-config chamado')
-
-    // Usa o diretório de dados do usuário para carregar configurações
     const userDataPath = app.getPath('userData')
     const configDir = path.join(userDataPath, 'config')
-
-    // save config path
     const saveConfigPath = configDir
-    console.log('Caminho para carregar:', saveConfigPath)
-
     const configPath = path.join(saveConfigPath, 'config.json')
-    console.log('Arquivo de configuração:', configPath)
 
     try {
-      // Garante que o diretório existe
       if (!fs.existsSync(saveConfigPath)) {
-        console.log('Diretório não existe, criando:', saveConfigPath)
         fs.mkdirSync(saveConfigPath, { recursive: true })
       }
 
-      // Se o arquivo não existe, cria com dados padrão
       if (!fs.existsSync(configPath)) {
-        console.log('Arquivo não existe, criando com dados padrão')
         fs.writeFileSync(configPath, JSON.stringify(defaultConfigData, null, 2), 'utf8')
-        console.log('Arquivo criado com dados padrão:', defaultConfigData)
         return { success: true, data: defaultConfigData }
       }
 
-      // Se o arquivo existe, tenta carregar
-      console.log('Arquivo existe, carregando...')
       const json = fs.readFileSync(configPath, 'utf-8')
       const data = JSON.parse(json)
-      console.log('Dados carregados do arquivo:', data)
 
-      // Verifica se o arquivo tem as propriedades necessárias
       if (!data.kick && !data.twitch && !data.youtube) {
-        console.log('Arquivo inválido, recriando com dados padrão')
         fs.writeFileSync(configPath, JSON.stringify(defaultConfigData, null, 2), 'utf8')
         return { success: true, data: defaultConfigData }
       }
 
-      console.log('Retornando dados válidos:', data)
       return { success: true, data }
     } catch (error) {
       console.error('Erro ao carregar configurações:', error)
-      // Em caso de erro, retorna dados padrão com indicação de erro
-      console.log('Retornando dados padrão devido ao erro')
       return {
         success: false,
         error:
@@ -158,16 +162,52 @@ export const registerIPC = (win: BrowserWindow) => {
       }
 
       const response = await fetch(url, options)
+      const contentType = response.headers.get('content-type') ?? ''
+      const isJson = contentType.includes('application/json')
 
-      if (response.headers.get('content-type')?.includes('application/json')) {
-        const data = await response.json()
-        return { success: true, data }
-      } else {
-        const html = await response.text()
-        return { success: true, data: html }
+      if (!response.ok) {
+        const errorBody = isJson ? await response.json() : await response.text()
+        return {
+          success: false,
+          status: response.status,
+          error: `HTTP ${response.status} ao acessar YouTube`,
+          data: errorBody
+        }
       }
+
+      const data = isJson ? await response.json() : await response.text()
+      return { success: true, data }
     } catch (error) {
       console.error('Erro ao fazer requisição ao YouTube:', error)
+      return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
+    }
+  })
+
+  ipcMain.removeHandler('fetch-twitch-api')
+
+  ipcMain.handle('fetch-twitch-api', async (_event, url: string) => {
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      })
+
+      if (!response.ok) {
+        return {
+          success: false,
+          status: response.status,
+          error: `HTTP ${response.status}`
+        }
+      }
+
+      const data = await response.json()
+      return { success: true, data }
+    } catch (error) {
+      console.error('Erro ao fazer requisição à API Twitch:', error)
       return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
     }
   })

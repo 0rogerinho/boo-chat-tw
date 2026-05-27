@@ -5,6 +5,7 @@ import { electronAPI } from '@electron-toolkit/preload'
 const api = {
   fetchYouTube: (url: string, payload?: string) =>
     ipcRenderer.invoke('fetch-youtube', url, payload),
+  fetchTwitchApi: (url: string) => ipcRenderer.invoke('fetch-twitch-api', url),
 
   // Updater APIs
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),

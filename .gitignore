@@ -1,6 +1,6 @@
 node_modules
 dist
-config
+/config
 config.json
 out
 .DS_Store

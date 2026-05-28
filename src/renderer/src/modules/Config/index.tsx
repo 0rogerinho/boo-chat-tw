@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react'
 import Header from './components/Header'
 import Button from '../../shared/components/Button'
 import { ErrorNotification, SuccessNotification } from '../../shared/components/ErrorNotification'
-import { useModel } from './hooks/useModel'
+
 import {
   MESSAGE_SOUND_IDS,
   getMessageSoundLabels,
@@ -10,6 +10,7 @@ import {
 } from '../../shared/constants/messageSounds'
 import { playIncomingMessageNotification } from '../../shared/utils/messageNotification'
 import { APP_LANGUAGE_OPTIONS, getConfigI18n, normalizeLanguage } from '../../shared/i18n'
+import { useModel } from './hooks/useModel'
 
 function parseBotDraft(value: string): string[] {
   return value

@@ -27,7 +27,6 @@ export default defineConfig({
       }))
     },
     plugins: [react()],
-    appType: 'spa',
     server: {
       cors: true
     }

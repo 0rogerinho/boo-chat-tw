@@ -8,7 +8,7 @@ import { TikTokLiveConnection, WebcastEvent } from 'tiktok-live-connector'
 import { loadAppConfig } from '../config/store'
 import { fetchTwitchApiProxy, fetchYouTubeProxy } from '../http/proxies'
 import { broadcastOverlayEvent } from '../overlay/bus'
-import { getOverlayUrl } from '../overlay/server'
+import { getLocalServerUrl, getOverlayUrl } from '../overlay/server'
 export type configData = {
   channel: string
 }
@@ -265,7 +265,11 @@ export const registerIPC = (win: BrowserWindow) => {
   })
 
   ipcMain.handle('get-overlay-url', () => {
-    return { success: true, url: getOverlayUrl() }
+    const url = getOverlayUrl()
+    const appUrl = getLocalServerUrl()
+    return url && appUrl
+      ? { success: true, url, appUrl }
+      : { success: false, error: 'Servidor HTTP local indisponível' }
   })
 
   ipcMain.handle('tiktok-connect', async (_event, rawChannel: string) => {

@@ -1,6 +1,6 @@
 import { Tray, Menu, app, BrowserWindow, nativeImage, clipboard } from 'electron'
 import { platform } from './platform'
-import { getOverlayUrl } from './overlay/server'
+import { getLocalServerUrl, getOverlayUrl } from './overlay/server'
 
 let tray: Tray | null = null
 
@@ -131,9 +131,21 @@ function updateTrayMenu(win: BrowserWindow) {
       }
     },
     {
+      label: 'Copiar link local',
+      click: () => {
+        const url = getLocalServerUrl()
+        if (url) {
+          clipboard.writeText(url)
+        }
+      }
+    },
+    {
       label: 'Copiar link do OBS',
       click: () => {
-        clipboard.writeText(getOverlayUrl())
+        const url = getOverlayUrl()
+        if (url) {
+          clipboard.writeText(url)
+        }
       }
     },
     {

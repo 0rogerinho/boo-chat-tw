@@ -15,6 +15,7 @@ files:
 asarUnpack:
   - resources/**
   - build/**
+  - out/renderer/**
 
 nsis:
   artifactName: BooChat-${version}-windows-setup.${ext}

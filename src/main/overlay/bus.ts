@@ -1,9 +1,11 @@
 import { EventEmitter } from 'events'
 
+export type OverlayEventName = 'tiktok-chat' | 'tiktok-status' | 'config-updated'
+
+type OverlayEventListener = (payload: unknown) => void
+
 const overlayBus = new EventEmitter()
 overlayBus.setMaxListeners(50)
-
-export type OverlayEventName = 'tiktok-chat' | 'tiktok-status' | 'config-updated'
 
 export function broadcastOverlayEvent(event: OverlayEventName, payload: unknown): void {
   overlayBus.emit(event, payload)
@@ -11,9 +13,10 @@ export function broadcastOverlayEvent(event: OverlayEventName, payload: unknown)
 
 export function onOverlayEvent(
   event: OverlayEventName,
-  listener: (payload: unknown) => void
+  listener: OverlayEventListener
 ): () => void {
   overlayBus.on(event, listener)
+
   return () => {
     overlayBus.off(event, listener)
   }

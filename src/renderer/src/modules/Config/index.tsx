@@ -33,8 +33,9 @@ export const Config = () => {
   } = useModel()
 
   const [botDraft, setBotDraft] = useState('')
+  const [localAppUrl, setLocalAppUrl] = useState('')
   const [overlayUrl, setOverlayUrl] = useState('')
-  const [overlayCopied, setOverlayCopied] = useState(false)
+  const [copiedField, setCopiedField] = useState<'app' | 'overlay' | null>(null)
   const language = normalizeLanguage(config?.language)
   const i18n = getConfigI18n(language)
   const soundLabels = getMessageSoundLabels(language)
@@ -42,37 +43,40 @@ export const Config = () => {
   useEffect(() => {
     let cancelled = false
 
-    const loadOverlayUrl = async () => {
+    const loadLocalUrls = async () => {
       for (let attempt = 0; attempt < 10; attempt++) {
         try {
           const response = await window.electron.ipcRenderer.invoke('get-overlay-url')
-          if (response?.success && response.url) {
-            if (!cancelled) setOverlayUrl(response.url)
+          if (response?.success && (response.appUrl || response.url)) {
+            if (!cancelled) {
+              setLocalAppUrl(response.appUrl || '')
+              setOverlayUrl(response.url || '')
+            }
             return
           }
         } catch (error) {
-          console.error('Erro ao obter link do OBS:', error)
+          console.error('Erro ao obter link local:', error)
         }
 
         await new Promise((resolve) => setTimeout(resolve, 300))
       }
     }
 
-    void loadOverlayUrl()
+    void loadLocalUrls()
 
     return () => {
       cancelled = true
     }
   }, [])
 
-  const copyOverlayUrl = async () => {
-    if (!overlayUrl) return
+  const copyUrl = async (url: string, field: 'app' | 'overlay') => {
+    if (!url) return
     try {
-      await navigator.clipboard.writeText(overlayUrl)
-      setOverlayCopied(true)
-      window.setTimeout(() => setOverlayCopied(false), 2000)
+      await navigator.clipboard.writeText(url)
+      setCopiedField(field)
+      window.setTimeout(() => setCopiedField(null), 2000)
     } catch (error) {
-      console.error('Erro ao copiar link do OBS:', error)
+      console.error('Erro ao copiar link local:', error)
     }
   }
 
@@ -195,7 +199,26 @@ export const Config = () => {
           />
         </div>
 
-        {/* OBS overlay link */}
+        <div className="space-y-2">
+          <h3 className="text-white font-medium text-lg">{i18n.localServerTitle}</h3>
+          <p className="text-white/80 text-xs">{i18n.localServerDescription}</p>
+          <div className="flex gap-2">
+            <input
+              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              readOnly
+              value={localAppUrl}
+            />
+            <Button
+              className="w-fit shrink-0"
+              type="button"
+              onClick={() => copyUrl(localAppUrl, 'app')}
+            >
+              {copiedField === 'app' ? i18n.obsCopied : i18n.obsCopyLink}
+            </Button>
+          </div>
+          <p className="text-white/70 text-xs leading-relaxed">{i18n.localServerHelp}</p>
+        </div>
+
         <div className="space-y-2">
           <h3 className="text-white font-medium text-lg">{i18n.obsTitle}</h3>
           <p className="text-white/80 text-xs">{i18n.obsDescription}</p>
@@ -205,8 +228,12 @@ export const Config = () => {
               readOnly
               value={overlayUrl}
             />
-            <Button className="w-fit shrink-0" type="button" onClick={copyOverlayUrl}>
-              {overlayCopied ? i18n.obsCopied : i18n.obsCopyLink}
+            <Button
+              className="w-fit shrink-0"
+              type="button"
+              onClick={() => copyUrl(overlayUrl, 'overlay')}
+            >
+              {copiedField === 'overlay' ? i18n.obsCopied : i18n.obsCopyLink}
             </Button>
           </div>
           <p className="text-white/70 text-xs leading-relaxed">{i18n.obsHelp}</p>

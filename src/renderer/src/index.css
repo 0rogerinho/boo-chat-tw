@@ -126,8 +126,8 @@
   html.obs-overlay body,
   html.obs-overlay #root,
   body.obs-overlay {
-    background: transparent !important;
-    background-color: rgba(0, 0, 0, 0) !important;
+    background: #111827 !important;
+    color: #fff;
     overflow: hidden;
     margin: 0;
     padding: 0;

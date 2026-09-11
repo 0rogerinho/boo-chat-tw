@@ -1,28 +1,17 @@
 import http from 'http'
 import fs from 'fs'
 import path from 'path'
+import express, { type NextFunction, type Request, type Response } from 'express'
 import { is } from '@electron-toolkit/utils'
 import { loadAppConfig } from '../config/store'
 import { fetchKickChannelProxy, fetchTwitchApiProxy, fetchYouTubeProxy } from '../http/proxies'
 import { onOverlayEvent, type OverlayEventName } from './bus'
 
-export const OVERLAY_HOST = '127.0.0.1'
-export const OVERLAY_PORT = 3847
-export const OVERLAY_URL = `http://${OVERLAY_HOST}:${OVERLAY_PORT}/overlay`
-
-function getDevOverlayUrl(): string | null {
-  const viteOrigin = process.env['ELECTRON_RENDERER_URL']?.replace(/\/$/, '')
-  if (!is.dev || !viteOrigin) {
-    return null
-  }
-
-  return `${viteOrigin}/overlay`
-}
-
-const HOST = OVERLAY_HOST
+const PREFERRED_PORT = 3847
+const HOST = '127.0.0.1'
 
 const OVERLAY_CSP =
-  "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' http://127.0.0.1:3847 http://localhost:3847 http://127.0.0.1:5173 http://localhost:5173 ws://127.0.0.1:5173 ws://localhost:5173 wss://irc-ws.chat.twitch.tv wss://ws-mt1.pusher.com wss://ws-us2.pusher.com wss://ws-eu.pusher.com wss://ws-ap-southeast-1.pusher.com wss://ws-us-east-1.pusher.com https://kick.com https://api.kick.com https://www.youtube.com https://youtube.com https://m.youtube.com; frame-src 'none'"
+  "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' http://127.0.0.1:* http://localhost:* ws://127.0.0.1:* ws://localhost:* wss://irc-ws.chat.twitch.tv wss://ws-mt1.pusher.com wss://ws-us2.pusher.com wss://ws-eu.pusher.com wss://ws-ap-southeast-1.pusher.com wss://ws-us-east-1.pusher.com https://kick.com https://api.kick.com https://www.youtube.com https://youtube.com https://m.youtube.com; frame-src 'none'"
 
 const MIME_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -45,36 +34,11 @@ const MIME_TYPES: Record<string, string> = {
 let overlayServer: http.Server | null = null
 let overlayPort: number | null = null
 
-function applyCors(res: http.ServerResponse): void {
+function applyCors(_req: Request, res: Response, next: NextFunction): void {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-}
-
-function sendJson(res: http.ServerResponse, status: number, payload: unknown): void {
-  applyCors(res)
-  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' })
-  res.end(JSON.stringify(payload))
-}
-
-function readJsonBody(req: http.IncomingMessage): Promise<Record<string, unknown>> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = []
-    req.on('data', (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)))
-    req.on('end', () => {
-      const raw = Buffer.concat(chunks).toString('utf8')
-      if (!raw) {
-        resolve({})
-        return
-      }
-      try {
-        resolve(JSON.parse(raw))
-      } catch (error) {
-        reject(error)
-      }
-    })
-    req.on('error', reject)
-  })
+  next()
 }
 
 function rewriteHtmlCsp(html: string): string {
@@ -91,30 +55,8 @@ function rewriteHtmlCsp(html: string): string {
   )
 }
 
-function stripViteHmr(html: string): string {
-  return html
-    .replace(/<script type="module">\s*import RefreshRuntime[\s\S]*?<\/script>/, '')
-    .replace(/<script type="module" src="\/@vite\/client"><\/script>/, '')
-}
-
-function prepareOverlayHtml(html: string): string {
-  return stripViteHmr(rewriteHtmlCsp(html))
-}
-
-function viteProxyTarget(reqUrl: string, viteUrl: string): URL {
-  const incoming = new URL(reqUrl || '/', 'http://127.0.0.1')
-  if (incoming.pathname === '/overlay' || incoming.pathname === '/overlay/') {
-    incoming.pathname = '/'
-  }
-  return new URL(`${incoming.pathname}${incoming.search}`, viteUrl)
-}
-
-async function proxyToVite(
-  req: http.IncomingMessage,
-  res: http.ServerResponse,
-  viteUrl: string
-): Promise<void> {
-  const target = viteProxyTarget(req.url || '/', viteUrl)
+async function proxyToVite(req: Request, res: Response, viteUrl: string): Promise<void> {
+  const target = new URL(req.originalUrl || req.url, viteUrl)
 
   try {
     const proxied = await fetch(target, {
@@ -128,65 +70,71 @@ async function proxyToVite(
     let body = Buffer.from(await proxied.arrayBuffer())
 
     if (contentType.includes('text/html')) {
-      body = Buffer.from(prepareOverlayHtml(body.toString('utf8')))
+      body = Buffer.from(rewriteHtmlCsp(body.toString('utf8')))
     }
 
-    applyCors(res)
-    res.writeHead(proxied.status, {
-      'Content-Type': contentType,
-      'Cache-Control': 'no-store'
-    })
+    res.status(proxied.status)
+    res.setHeader('Content-Type', contentType)
     res.end(body)
   } catch (error) {
     console.error('Erro ao fazer proxy do overlay para o Vite:', error)
-    res.writeHead(502)
-    res.end('Falha ao carregar overlay')
+    res.status(502).send('Falha ao carregar overlay')
   }
 }
 
-function serveRendererFile(req: http.IncomingMessage, res: http.ServerResponse): void {
-  const rendererRoot = path.resolve(path.join(__dirname, '../renderer'))
-  const urlPath = decodeURIComponent((req.url || '/').split('?')[0])
-  const normalizedPath = urlPath === '/overlay' || urlPath === '/overlay/' ? '/' : urlPath
-  const safePath = path.normalize(normalizedPath).replace(/^(\.\.[/\\])+/, '')
-  let filePath = path.join(rendererRoot, safePath === '/' || safePath === '\\' ? 'index.html' : safePath)
+function getRendererRoot(): string {
+  return path.resolve(path.join(__dirname, '../renderer'))
+}
+
+function sendIndexHtml(res: Response): void {
+  const indexPath = path.join(getRendererRoot(), 'index.html')
+  const html = rewriteHtmlCsp(fs.readFileSync(indexPath, 'utf8'))
+  res.setHeader('Content-Type', 'text/html; charset=utf-8')
+  res.send(html)
+}
+
+function serveRendererFile(req: Request, res: Response): void {
+  const rendererRoot = getRendererRoot()
+  const urlPath = decodeURIComponent((req.path || '/').split('?')[0])
+  const safePath = path.normalize(urlPath).replace(/^(\.\.[/\\])+/, '')
+  let filePath = path.join(
+    rendererRoot,
+    safePath === '/' || safePath === '\\' ? 'index.html' : safePath
+  )
 
   if (!filePath.startsWith(rendererRoot)) {
-    res.writeHead(403)
-    res.end()
+    res.status(403).end()
     return
   }
 
   if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
-    filePath = path.join(rendererRoot, 'index.html')
+    sendIndexHtml(res)
+    return
   }
 
   const ext = path.extname(filePath).toLowerCase()
   const mime = MIME_TYPES[ext] || 'application/octet-stream'
 
   try {
-    let body = fs.readFileSync(filePath)
+    let body: Buffer | string = fs.readFileSync(filePath)
     if (ext === '.html') {
-      body = Buffer.from(prepareOverlayHtml(body.toString('utf8')))
+      body = rewriteHtmlCsp(body.toString('utf8'))
     }
 
-    applyCors(res)
-    res.writeHead(200, { 'Content-Type': mime })
-    res.end(body)
+    res.setHeader('Content-Type', mime)
+    res.send(body)
   } catch (error) {
     console.error('Erro ao servir arquivo do overlay:', error)
-    res.writeHead(404)
-    res.end('Not found')
+    res.status(404).send('Not found')
   }
 }
 
-function handleSse(res: http.ServerResponse): void {
-  applyCors(res)
-  res.writeHead(200, {
-    'Content-Type': 'text/event-stream; charset=utf-8',
-    'Cache-Control': 'no-cache, no-transform',
-    Connection: 'keep-alive'
-  })
+function handleSse(_req: Request, res: Response): void {
+  res.status(200)
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8')
+  res.setHeader('Cache-Control', 'no-cache, no-transform')
+  res.setHeader('Connection', 'keep-alive')
+  res.flushHeaders()
   res.write(': connected\n\n')
 
   const writeEvent = (event: OverlayEventName, payload: unknown) => {
@@ -210,83 +158,55 @@ function handleSse(res: http.ServerResponse): void {
   })
 }
 
-async function handleApi(
-  req: http.IncomingMessage,
-  res: http.ServerResponse,
-  url: URL
-): Promise<boolean> {
-  if (req.method === 'OPTIONS' && url.pathname.startsWith('/api/')) {
-    applyCors(res)
-    res.writeHead(204)
-    res.end()
-    return true
-  }
+function createExpressApp(): express.Express {
+  const app = express()
+  const api = express.Router()
 
-  if (url.pathname === '/api/health' && req.method === 'GET') {
-    sendJson(res, 200, { ok: true, name: 'boochat-overlay', url: OVERLAY_URL })
-    return true
-  }
+  app.disable('x-powered-by')
+  app.use(applyCors)
+  app.options('*', (_req, res) => {
+    res.sendStatus(204)
+  })
 
-  if (url.pathname === '/api/config' && req.method === 'GET') {
-    sendJson(res, 200, loadAppConfig())
-    return true
-  }
+  api.use(express.json({ limit: '1mb' }))
 
-  if (url.pathname === '/api/events' && req.method === 'GET') {
-    handleSse(res)
-    return true
-  }
+  api.get('/config', (_req, res) => {
+    res.json(loadAppConfig())
+  })
 
-  if (url.pathname === '/api/youtube' && req.method === 'POST') {
-    try {
-      const body = await readJsonBody(req)
-      const targetUrl = typeof body.url === 'string' ? body.url : ''
-      const payload = typeof body.payload === 'string' ? body.payload : undefined
-      sendJson(res, 200, await fetchYouTubeProxy(targetUrl, payload))
-    } catch {
-      sendJson(res, 400, { success: false, error: 'JSON inválido' })
-    }
-    return true
-  }
+  api.get('/events', handleSse)
 
-  if (url.pathname === '/api/twitch' && req.method === 'GET') {
-    const targetUrl = url.searchParams.get('url') ?? ''
-    sendJson(res, 200, await fetchTwitchApiProxy(targetUrl))
-    return true
-  }
+  api.post('/youtube', async (req, res) => {
+    const targetUrl = typeof req.body?.url === 'string' ? req.body.url : ''
+    const payload = typeof req.body?.payload === 'string' ? req.body.payload : undefined
+    res.json(await fetchYouTubeProxy(targetUrl, payload))
+  })
 
-  if (url.pathname.startsWith('/api/kick/channels/') && req.method === 'GET') {
-    const slug = decodeURIComponent(url.pathname.slice('/api/kick/channels/'.length))
-    sendJson(res, 200, await fetchKickChannelProxy(slug))
-    return true
-  }
+  api.get('/twitch', async (req, res) => {
+    const targetUrl = typeof req.query.url === 'string' ? req.query.url : ''
+    res.json(await fetchTwitchApiProxy(targetUrl))
+  })
 
-  if (url.pathname === '/api/tiktok/connect' && req.method === 'POST') {
-    try {
-      const body = await readJsonBody(req)
-      const channel = typeof body.channel === 'string' ? body.channel : ''
-      const { connectTikTokChannel } = await import('../home/ipc')
-      sendJson(res, 200, await connectTikTokChannel(channel))
-    } catch {
-      sendJson(res, 400, { success: false, error: 'JSON inválido' })
-    }
-    return true
-  }
+  api.get('/kick/channels/:slug', async (req, res) => {
+    res.json(await fetchKickChannelProxy(req.params.slug))
+  })
 
-  if (url.pathname === '/api/tiktok/disconnect' && req.method === 'POST') {
+  api.post('/tiktok/connect', async (req, res) => {
+    const channel = typeof req.body?.channel === 'string' ? req.body.channel : ''
+    const { connectTikTokChannel } = await import('../home/ipc')
+    res.json(await connectTikTokChannel(channel))
+  })
+
+  api.post('/tiktok/disconnect', async (_req, res) => {
     const { disconnectTikTokChannel } = await import('../home/ipc')
-    sendJson(res, 200, await disconnectTikTokChannel())
-    return true
-  }
+    res.json(await disconnectTikTokChannel())
+  })
 
-  return false
-}
+  app.use('/api', api)
 
-async function requestListener(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-  const url = new URL(req.url || '/', `http://${HOST}`)
-
-  try {
-    if (await handleApi(req, res, url)) {
+  app.use(async (req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+      next()
       return
     }
 
@@ -296,49 +216,61 @@ async function requestListener(req: http.IncomingMessage, res: http.ServerRespon
     }
 
     serveRendererFile(req, res)
-  } catch (error) {
-    console.error('Erro no servidor de overlay:', error)
-    if (!res.headersSent) {
-      res.writeHead(500)
-      res.end('Internal overlay server error')
+  })
+
+  app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    if (error instanceof SyntaxError) {
+      res.status(400).json({ success: false, error: 'JSON inválido' })
+      return
     }
-  }
+
+    console.error('Erro no servidor HTTP local:', error)
+    if (!res.headersSent) {
+      res.status(500).send('Internal overlay server error')
+    }
+  })
+
+  return app
 }
 
-function listenOnFixedPort(server: http.Server): Promise<number> {
+function listenOnPort(server: http.Server, port: number): Promise<number> {
   return new Promise((resolve, reject) => {
     const onError = (error: NodeJS.ErrnoException) => {
       server.off('listening', onListening)
+      if (error.code === 'EADDRINUSE' && port < PREFERRED_PORT + 20) {
+        resolve(listenOnPort(server, port + 1))
+        return
+      }
       reject(error)
     }
 
     const onListening = () => {
       server.off('error', onError)
-      resolve(OVERLAY_PORT)
+      resolve(port)
     }
 
     server.once('error', onError)
     server.once('listening', onListening)
-    server.listen(OVERLAY_PORT, HOST)
+    server.listen(port, HOST)
   })
 }
 
 export async function startOverlayServer(): Promise<string | null> {
   if (overlayServer && overlayPort) {
-    return getOverlayUrl()
+    return getLocalServerUrl()
   }
 
-  const server = http.createServer((req, res) => {
-    void requestListener(req, res)
-  })
+  const app = createExpressApp()
+  const server = http.createServer(app)
 
   try {
-    overlayPort = await listenOnFixedPort(server)
+    overlayPort = await listenOnPort(server, PREFERRED_PORT)
     overlayServer = server
-    console.log(`[Overlay] Browser Source disponível em ${getOverlayUrl()}`)
-    return getOverlayUrl()
+    console.log(`[HTTP] App disponível em ${getLocalServerUrl()}`)
+    console.log(`[HTTP] Overlay OBS disponível em ${getOverlayUrl()}`)
+    return getLocalServerUrl()
   } catch (error) {
-    console.error('Não foi possível iniciar o servidor de overlay:', error)
+    console.error('Não foi possível iniciar o servidor HTTP local:', error)
     overlayServer = null
     overlayPort = null
     return null
@@ -353,10 +285,16 @@ export function stopOverlayServer(): void {
   overlayPort = null
 }
 
-export function getOverlayUrl(): string {
-  return getDevOverlayUrl() ?? OVERLAY_URL
+export function getLocalServerUrl(): string | null {
+  if (!overlayPort) return null
+  return `http://${HOST}:${overlayPort}/`
 }
 
-export function getOverlayPort(): number {
-  return OVERLAY_PORT
+export function getOverlayUrl(): string | null {
+  if (!overlayPort) return null
+  return `http://${HOST}:${overlayPort}/#/overlay`
+}
+
+export function getOverlayPort(): number | null {
+  return overlayPort
 }

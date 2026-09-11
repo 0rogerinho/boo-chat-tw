@@ -1,4 +1,4 @@
-import { getOverlayApiBase, isElectronRuntime, OVERLAY_API_ORIGIN } from './runtime'
+import { isElectronRuntime } from './runtime'
 
 type TikTokStatusPayload = {
   status: 'connected' | 'disconnected' | 'error'
@@ -21,10 +21,6 @@ const tiktokChatListeners = new Set<(payload: TikTokChatPayload) => void>()
 
 let eventSource: EventSource | null = null
 
-function apiUrl(path: string): string {
-  return `${getOverlayApiBase()}${path}`
-}
-
 function parseSseData<T>(event: Event): T | null {
   const message = event as MessageEvent<string>
   if (!message.data) return null
@@ -41,7 +37,7 @@ function connectOverlayEvents(): void {
     eventSource.close()
   }
 
-  eventSource = new EventSource(apiUrl('/api/events'))
+  eventSource = new EventSource('/api/events')
 
   eventSource.addEventListener('config-updated', (event) => {
     const data = parseSseData<unknown>(event)
@@ -70,7 +66,7 @@ function connectOverlayEvents(): void {
 
 async function invokeChannel(channel: string, ...args: any[]): Promise<any> {
   if (channel === 'get-config') {
-    const response = await fetch(apiUrl('/api/config'))
+    const response = await fetch('/api/config')
     return response.json()
   }
 
@@ -80,12 +76,16 @@ async function invokeChannel(channel: string, ...args: any[]): Promise<any> {
 
   if (channel === 'fetch-twitch-api') {
     const targetUrl = encodeURIComponent(String(args[0] ?? ''))
-    const response = await fetch(apiUrl(`/api/twitch?url=${targetUrl}`))
+    const response = await fetch(`/api/twitch?url=${targetUrl}`)
     return response.json()
   }
 
   if (channel === 'get-overlay-url') {
-    return { success: true, url: `${OVERLAY_API_ORIGIN}/overlay` }
+    return {
+      success: true,
+      url: `${window.location.origin}/#/overlay`,
+      appUrl: `${window.location.origin}/`
+    }
   }
 
   return null
@@ -120,7 +120,7 @@ export function installBrowserBridge(): void {
 
   window.api = {
     fetchYouTube: async (url: string, payload?: string) => {
-      const response = await fetch(apiUrl('/api/youtube'), {
+      const response = await fetch('/api/youtube', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url, payload })
@@ -128,11 +128,11 @@ export function installBrowserBridge(): void {
       return response.json()
     },
     fetchTwitchApi: async (url: string) => {
-      const response = await fetch(apiUrl(`/api/twitch?url=${encodeURIComponent(url)}`))
+      const response = await fetch(`/api/twitch?url=${encodeURIComponent(url)}`)
       return response.json()
     },
     connectTikTok: async (channel: string) => {
-      const response = await fetch(apiUrl('/api/tiktok/connect'), {
+      const response = await fetch('/api/tiktok/connect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ channel })
@@ -140,7 +140,7 @@ export function installBrowserBridge(): void {
       return response.json()
     },
     disconnectTikTok: async () => {
-      const response = await fetch(apiUrl('/api/tiktok/disconnect'), { method: 'POST' })
+      const response = await fetch('/api/tiktok/disconnect', { method: 'POST' })
       return response.json()
     },
     onTikTokStatus: (callback) => {

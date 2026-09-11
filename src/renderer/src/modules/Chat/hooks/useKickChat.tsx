@@ -2,7 +2,7 @@ import { useConfigStore } from '../../../shared/store/useConfigStore'
 import { useEffect, useState } from 'react'
 import Pusher from 'pusher-js'
 import { getChatSystemTextWithParams } from '../../../shared/i18n'
-import { isElectronRuntime, getOverlayApiBase } from '../../../shared/overlay/runtime'
+import { isElectronRuntime } from '../../../shared/overlay/runtime'
 
 type TKickChat = {
   id: string
@@ -74,9 +74,7 @@ export default function useKickChat() {
         // Obter informações do canal
         const channelResponse = isElectronRuntime
           ? await fetch(`https://kick.com/api/v1/channels/${config.kick.slug}`)
-          : await fetch(
-              `${getOverlayApiBase()}/api/kick/channels/${encodeURIComponent(config.kick.slug)}`
-            )
+          : await fetch(`/api/kick/channels/${encodeURIComponent(config.kick.slug)}`)
         const channelPayload = await channelResponse.json()
         const channelData = isElectronRuntime ? channelPayload : channelPayload.data
 

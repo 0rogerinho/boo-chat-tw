@@ -172,7 +172,7 @@ export const Chat = ({ overlay = false }: { overlay?: boolean }) => {
     }
   }, [allChats])
 
-  const overlayMode = isOverlay || !showWindow
+  const electronOverlay = !showWindow && !isOverlay
 
   useEffect(() => {
     document.documentElement.classList.toggle('obs-overlay', isOverlay)
@@ -184,15 +184,11 @@ export const Chat = ({ overlay = false }: { overlay?: boolean }) => {
     }
   }, [isOverlay])
 
-  const visibleChats = isOverlay
-    ? allChats.filter((data) => !isChatSystemNoticeMessage(data))
-    : allChats
-
   return (
     <main
       className={cn(
         'relative w-screen h-screen flex flex-col overflow-hidden rounded-[8px] bg-gray-900/95 backdrop-blur-sm border border-gray-600',
-        overlayMode && 'bg-transparent backdrop-blur-none border-transparent',
+        electronOverlay && 'bg-transparent backdrop-blur-none border-transparent',
         isOverlay && 'rounded-none'
       )}
     >
@@ -202,18 +198,18 @@ export const Chat = ({ overlay = false }: { overlay?: boolean }) => {
         className={cn(
           'overflow-y-auto overflow-x-hidden flex-1 scroll px-3 pb-3',
           isOverlay ? 'mt-0' : 'mt-8',
-          overlayMode && 'scroll-none'
+          electronOverlay && 'scroll-none'
         )}
       >
         <div className="space-y-2">
-          {visibleChats
+          {allChats
             .sort((a, b) => a.timestamp - b.timestamp)
             .map((data, index) => (
               <div
                 className={cn(
                   'flex gap-2 p-0 rounded-md transition-all duration-200 fade-in',
                   index % 2 === 0 && 'bg-gray-800/10',
-                  overlayMode && 'bg-transparent'
+                  electronOverlay && 'bg-transparent'
                 )}
                 style={{
                   backgroundColor: hexToRgba(

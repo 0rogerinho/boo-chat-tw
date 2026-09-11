@@ -50,6 +50,10 @@ type ConfigI18nText = {
   cancel: string
   save: string
   saving: string
+  localServerTitle: string
+  localServerDescription: string
+  localServerHelp: string
+  localServerCopyAria: string
   obsTitle: string
   obsDescription: string
   obsCopyLink: string
@@ -94,13 +98,19 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     cancel: 'Cancelar',
     save: 'Salvar',
     saving: 'Salvando...',
+    localServerTitle: 'Acesso pelo navegador',
+    localServerDescription:
+      'Com o BooChat aberto, use este link no Chrome, Edge ou Firefox — igual ao localhost do modo de desenvolvimento.',
+    localServerHelp:
+      'O servidor HTTP inicia junto com o aplicativo em 127.0.0.1. O app precisa permanecer aberto.',
+    localServerCopyAria: 'Copiar link do aplicativo para o navegador',
     obsTitle: 'Link para o OBS',
     obsDescription:
-      'Cole este link no OBS como Fonte do Navegador. Nao use localhost:5173 — isso so existe no modo de desenvolvimento. No app instalado o link e o mesmo (porta 3847). O BooChat precisa permanecer aberto.',
+      'Use este link como Fonte do Navegador (Browser Source) no OBS. O BooChat precisa permanecer aberto.',
     obsCopyLink: 'Copiar link',
     obsCopied: 'Link copiado!',
     obsHelp:
-      'No OBS: Adicionar > Navegador. URL copiada (http://127.0.0.1:3847/overlay). Em CSS personalizado deixe: body { background-color: rgba(0,0,0,0) !important; margin: 0; overflow: hidden; }. Desmarque "Desligar fonte quando nao estiver visivel".',
+      'No OBS: Adicionar > Navegador. Cole a URL, defina largura e altura, deixe o fundo transparente e desmarque "Desligar fonte quando não estiver visível".',
     obsCopyAria: 'Copiar link do overlay para o OBS',
     fontWeights: {
       300: 'Leve',
@@ -142,13 +152,18 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     cancel: 'Cancel',
     save: 'Save',
     saving: 'Saving...',
+    localServerTitle: 'Browser access',
+    localServerDescription:
+      'While BooChat is open, open this link in Chrome, Edge, or Firefox — just like localhost in development.',
+    localServerHelp: 'The HTTP server starts with the app on 127.0.0.1. BooChat must stay open.',
+    localServerCopyAria: 'Copy app link for the browser',
     obsTitle: 'OBS link',
     obsDescription:
-      'Paste this as a Browser Source in OBS. Do not use localhost:5173 — that only exists in development. The installed app uses the same link (port 3847). BooChat must stay open.',
+      'Use this link as a Browser Source in OBS. BooChat must stay open while you stream.',
     obsCopyLink: 'Copy link',
     obsCopied: 'Link copied!',
     obsHelp:
-      'In OBS: Add > Browser. Use the copied URL (http://127.0.0.1:3847/overlay). Custom CSS: body { background-color: rgba(0,0,0,0) !important; margin: 0; overflow: hidden; }. Uncheck "Shutdown source when not visible".',
+      'In OBS: Add > Browser. Paste the URL, set width and height, keep a transparent background, and uncheck "Shutdown source when not visible".',
     obsCopyAria: 'Copy overlay link for OBS',
     fontWeights: {
       300: 'Light',
@@ -192,13 +207,19 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     cancel: 'Cancelar',
     save: 'Guardar',
     saving: 'Guardando...',
+    localServerTitle: 'Acceso desde el navegador',
+    localServerDescription:
+      'Con BooChat abierto, usa este enlace en Chrome, Edge o Firefox, igual que localhost en desarrollo.',
+    localServerHelp:
+      'El servidor HTTP arranca con la aplicacion en 127.0.0.1. BooChat debe permanecer abierto.',
+    localServerCopyAria: 'Copiar enlace de la aplicacion para el navegador',
     obsTitle: 'Enlace para OBS',
     obsDescription:
-      'Pega este enlace como Fuente de navegador en OBS. No uses localhost:5173 — solo existe en desarrollo. En la app instalada el enlace es el mismo (puerto 3847). BooChat debe permanecer abierto.',
+      'Usa este enlace como Fuente de navegador en OBS. BooChat debe permanecer abierto.',
     obsCopyLink: 'Copiar enlace',
     obsCopied: 'Enlace copiado!',
     obsHelp:
-      'En OBS: Agregar > Navegador. URL copiada (http://127.0.0.1:3847/overlay). CSS: body { background-color: rgba(0,0,0,0) !important; margin: 0; overflow: hidden; }. Desmarca "Apagar fuente cuando no sea visible".',
+      'En OBS: Agregar > Navegador. Pega la URL, define ancho y alto, deja el fondo transparente y desmarca "Apagar fuente cuando no sea visible".',
     obsCopyAria: 'Copiar enlace del overlay para OBS',
     fontWeights: {
       300: 'Ligera',
@@ -241,13 +262,19 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     cancel: 'Annuler',
     save: 'Enregistrer',
     saving: 'Enregistrement...',
+    localServerTitle: 'Acces navigateur',
+    localServerDescription:
+      'Tant que BooChat est ouvert, ouvrez ce lien dans Chrome, Edge ou Firefox, comme le localhost en developpement.',
+    localServerHelp:
+      "Le serveur HTTP demarre avec l'application sur 127.0.0.1. BooChat doit rester ouvert.",
+    localServerCopyAria: "Copier le lien de l'application pour le navigateur",
     obsTitle: 'Lien OBS',
     obsDescription:
-      "Collez ce lien comme source Navigateur dans OBS. N'utilisez pas localhost:5173 — il n'existe qu'en developpement. L'app installee utilise le meme lien (port 3847). BooChat doit rester ouvert.",
+      "Utilisez ce lien comme source Navigateur dans OBS. BooChat doit rester ouvert.",
     obsCopyLink: 'Copier le lien',
     obsCopied: 'Lien copie !',
     obsHelp:
-      'Dans OBS : Ajouter > Navigateur. URL copiee (http://127.0.0.1:3847/overlay). CSS : body { background-color: rgba(0,0,0,0) !important; margin: 0; overflow: hidden; }. Decochez "Desactiver la source quand elle n\'est pas visible".',
+      'Dans OBS : Ajouter > Navigateur. Collez l\'URL, definissez largeur et hauteur, gardez le fond transparent et decochez "Desactiver la source quand elle n\'est pas visible".',
     obsCopyAria: 'Copier le lien overlay pour OBS',
     fontWeights: {
       300: 'Legere',
@@ -290,13 +317,19 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     cancel: 'Abbrechen',
     save: 'Speichern',
     saving: 'Wird gespeichert...',
+    localServerTitle: 'Browser-Zugriff',
+    localServerDescription:
+      'Solange BooChat geoeffnet ist, oeffne diesen Link in Chrome, Edge oder Firefox — wie localhost im Entwicklungsmodus.',
+    localServerHelp:
+      'Der HTTP-Server startet mit der App auf 127.0.0.1. BooChat muss geoeffnet bleiben.',
+    localServerCopyAria: 'App-Link fuer den Browser kopieren',
     obsTitle: 'OBS-Link',
     obsDescription:
-      'Nutze diesen Link als Browserquelle in OBS. Nicht localhost:5173 verwenden — das gibt es nur in der Entwicklung. Die installierte App nutzt denselben Link (Port 3847). BooChat muss geoffnet bleiben.',
+      'Nutze diesen Link als Browserquelle in OBS. BooChat muss geoffnet bleiben.',
     obsCopyLink: 'Link kopieren',
     obsCopied: 'Link kopiert!',
     obsHelp:
-      'In OBS: Hinzufuegen > Browser. Kopierte URL (http://127.0.0.1:3847/overlay). CSS: body { background-color: rgba(0,0,0,0) !important; margin: 0; overflow: hidden; }. "Quelle schliessen, wenn nicht sichtbar" deaktivieren.',
+      'In OBS: Hinzufuegen > Browser. URL einfuegen, Breite und Hoehe setzen, transparenten Hintergrund behalten und "Quelle schliessen, wenn nicht sichtbar" deaktivieren.',
     obsCopyAria: 'Overlay-Link fuer OBS kopieren',
     fontWeights: {
       300: 'Leicht',
@@ -339,13 +372,19 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     cancel: 'Annulla',
     save: 'Salva',
     saving: 'Salvataggio...',
+    localServerTitle: 'Accesso dal browser',
+    localServerDescription:
+      'Con BooChat aperto, usa questo link in Chrome, Edge o Firefox, come il localhost in sviluppo.',
+    localServerHelp:
+      "Il server HTTP parte insieme all'app su 127.0.0.1. BooChat deve restare aperto.",
+    localServerCopyAria: "Copia il link dell'app per il browser",
     obsTitle: 'Link per OBS',
     obsDescription:
-      'Usa questo link come sorgente Browser in OBS. Non usare localhost:5173 — esiste solo in sviluppo. L\'app installata usa lo stesso link (porta 3847). BooChat deve restare aperto.',
+      'Usa questo link come sorgente Browser in OBS. BooChat deve restare aperto.',
     obsCopyLink: 'Copia link',
     obsCopied: 'Link copiato!',
     obsHelp:
-      'In OBS: Aggiungi > Browser. URL copiato (http://127.0.0.1:3847/overlay). CSS: body { background-color: rgba(0,0,0,0) !important; margin: 0; overflow: hidden; }. Togli "Spegni sorgente quando non visibile".',
+      'In OBS: Aggiungi > Browser. Incolla l\'URL, imposta larghezza e altezza, tieni lo sfondo trasparente e togli "Spegni sorgente quando non visibile".',
     obsCopyAria: 'Copia link overlay per OBS',
     fontWeights: {
       300: 'Leggero',

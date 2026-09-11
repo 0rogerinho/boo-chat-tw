@@ -15,11 +15,11 @@
     "dev": "electron-vite dev",
     "build": "npm run typecheck && electron-vite build",
     "build:win": "npm run build && cross-env NODE_ENV=production electron-builder --win",
-    "build:mac": "npm run build && cross-env NODE_ENV=production electron-builder --mac",
+    "build:mac": "npm run build && cross-env NODE_ENV=production PYTHON=python3 electron-builder --mac",
     "build:linux": "npm run build && cross-env NODE_ENV=production electron-builder --linux",
     "build:all": "npm run build:win && npm run build:mac && npm run build:linux",
     "publish:win": "npm run build && cross-env NODE_ENV=production electron-builder --win --publish=always",
-    "publish:mac": "npm run build && cross-env NODE_ENV=production electron-builder --mac --publish=always",
+    "publish:mac": "npm run build && cross-env NODE_ENV=production PYTHON=python3 electron-builder --mac --publish=always",
     "publish:linux": "npm run build && cross-env NODE_ENV=production electron-builder --linux --publish=always",
     "publish:all": "npm run build && cross-env NODE_ENV=production electron-builder --win --mac --linux --publish=always",
     "test-update": "cross-env NODE_ENV=production electron ."

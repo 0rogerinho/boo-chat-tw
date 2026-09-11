@@ -1,23 +1,29 @@
 import { useCallback, useEffect, useState } from 'react'
 import Header from './components/Header'
 import Sidebar, { type ConfigSection } from './components/Sidebar'
+import { FieldLabel } from './components/FieldLabel'
+import { SectionHeader } from './components/SectionHeader'
+import { SoundSetting } from './components/SoundSetting'
+import { VisibilitySetting } from './components/VisibilitySetting'
+import { ObsAppearanceSetting } from './components/ObsAppearanceSetting'
+import { DEFAULT_CONFIG_DATA } from '../../shared/constants/defaultConfig'
 import Button from '../../shared/components/Button'
 import { ErrorNotification, SuccessNotification } from '../../shared/components/ErrorNotification'
 
-import {
-  MESSAGE_SOUND_IDS,
-  getMessageSoundLabels,
-  parseMessageSound
-} from '../../shared/constants/messageSounds'
-import { playIncomingMessageNotification } from '../../shared/utils/messageNotification'
+import { getMessageSoundLabels, parseMessageSound } from '../../shared/constants/messageSounds'
 import { APP_LANGUAGE_OPTIONS, getConfigI18n, normalizeLanguage } from '../../shared/i18n'
 import { useModel } from './hooks/useModel'
+import { Info, MessagesSquare } from 'lucide-react'
 
 function parseBotDraft(value: string): string[] {
   return value
     .split(/[\s,]+/)
     .map((b) => b.trim().toLowerCase())
     .filter((b) => b.length > 0)
+}
+
+function fontWeightName(weight: number | undefined, labels: Record<number, string>): string {
+  return labels[weight ?? 400] ?? labels[400]
 }
 
 export const Config = () => {
@@ -120,11 +126,16 @@ export const Config = () => {
           <div className="flex-1 overflow-y-auto scroll px-6 py-5 space-y-6">
             {section === 'general' && (
               <div className="space-y-6">
+                <SectionHeader title={i18n.sidebarGeneral} description={i18n.sidebarGeneralIntro} />
+
                 <div className="space-y-2">
-                  <h3 className="text-white font-medium text-lg">{i18n.sidebarGeneral}</h3>
-                  <label className="text-white font-medium text-sm" htmlFor="language">
+                  <FieldLabel
+                    htmlFor="language"
+                    help={i18n.languageHelp}
+                    helpAriaLabel={i18n.helpAriaLabel}
+                  >
                     {i18n.languageLabel}
-                  </label>
+                  </FieldLabel>
                   <select
                     id="language"
                     className={inputClass}
@@ -137,89 +148,94 @@ export const Config = () => {
                       </option>
                     ))}
                   </select>
-                  <p className="text-white/80 text-xs">{i18n.languageHelp}</p>
                 </div>
 
                 <hr className="border-gray-700" />
 
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-white font-medium text-lg">{i18n.soundTitle}</h3>
-                    <p className="text-white/80 text-xs">{i18n.soundDescription}</p>
-                  </div>
+                <SoundSetting
+                  title={i18n.soundTitle}
+                  help={i18n.soundDescription}
+                  helpAriaLabel={i18n.helpAriaLabel}
+                  volumeLabel={i18n.soundVolumeLabel}
+                  volumeHelp={i18n.soundVolumeHelp}
+                  mutedLabel={i18n.mutedLabel}
+                  maxLabel={i18n.maxLabel}
+                  testLabel={i18n.testSound}
+                  volume={config?.notifications?.messageSoundVolume ?? 85}
+                  sound={parseMessageSound(config?.notifications?.messageSound)}
+                  soundLabels={soundLabels}
+                  onVolumeChange={(messageSoundVolume) =>
+                    updateConfig('notifications', {
+                      ...config?.notifications,
+                      messageSoundVolume
+                    })
+                  }
+                  onSoundChange={(messageSound) =>
+                    updateConfig('notifications', {
+                      ...config?.notifications,
+                      messageSound
+                    })
+                  }
+                />
 
-                  <div className="flex flex-col space-y-2">
-                    <label className="text-white font-medium text-sm" htmlFor="message-sound-volume">
-                      {i18n.soundVolumeLabel}: {config?.notifications?.messageSoundVolume ?? 85}%
-                    </label>
-                    <input
-                      id="message-sound-volume"
-                      type="range"
-                      min={0}
-                      max={100}
-                      className="h-2 bg-red-700 rounded-lg appearance-none cursor-pointer slider"
-                      value={config?.notifications?.messageSoundVolume ?? 85}
-                      onChange={({ target }) =>
-                        updateConfig('notifications', {
-                          ...config?.notifications,
-                          messageSoundVolume: parseInt(target.value, 10)
-                        })
-                      }
-                    />
-                    <div className="flex justify-between text-xs text-gray-400">
-                      <span>{i18n.mutedLabel}</span>
-                      <span>{i18n.maxLabel}</span>
-                    </div>
-                  </div>
+                <hr className="border-gray-700" />
 
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
-                    <label className="sr-only" htmlFor="message-sound">
-                      {i18n.soundTitle}
-                    </label>
-                    <select
-                      id="message-sound"
-                      className={`w-full sm:flex-1 ${inputClass}`}
-                      value={parseMessageSound(config?.notifications?.messageSound)}
-                      onChange={({ target }) =>
-                        updateConfig('notifications', {
-                          ...config?.notifications,
-                          messageSound: parseMessageSound(target.value)
-                        })
-                      }
-                    >
-                      {MESSAGE_SOUND_IDS.map((id) => (
-                        <option key={id} value={id}>
-                          {soundLabels[id]}
-                        </option>
-                      ))}
-                    </select>
-                    <Button
-                      type="button"
-                      className="w-full sm:w-auto shrink-0"
-                      variant="secondary"
-                      onClick={() =>
-                        void playIncomingMessageNotification({
-                          ...config?.notifications,
-                          messageSound: parseMessageSound(config?.notifications?.messageSound),
-                          messageSoundVolume: config?.notifications?.messageSoundVolume
-                        })
-                      }
-                    >
-                      {i18n.testSound}
-                    </Button>
-                  </div>
+                <div className="space-y-3">
+                  <h4 className="text-white font-medium text-sm">{i18n.messageVisibilityTitle}</h4>
+
+                  <VisibilitySetting
+                    title={i18n.messageVisibilitySystemTitle}
+                    help={i18n.messageVisibilitySystemHelp}
+                    helpAriaLabel={i18n.helpAriaLabel}
+                    icon={Info}
+                    alwaysVisible={config?.messageVisibility?.systemAlwaysVisible !== false}
+                    seconds={config?.messageVisibility?.systemHideAfterSeconds ?? 8}
+                    alwaysLabel={i18n.messageVisibilityAlways}
+                    timedLabel={i18n.messageVisibilityTimed}
+                    hideAfterLabel={i18n.messageVisibilityHideAfter}
+                    secondsLabel={i18n.messageVisibilitySeconds}
+                    onAlwaysVisibleChange={(always) =>
+                      updateConfig('messageVisibility', { systemAlwaysVisible: always })
+                    }
+                    onSecondsChange={(seconds) =>
+                      updateConfig('messageVisibility', { systemHideAfterSeconds: seconds })
+                    }
+                  />
+
+                  <VisibilitySetting
+                    title={i18n.messageVisibilityViewersTitle}
+                    help={i18n.messageVisibilityViewersHelp}
+                    helpAriaLabel={i18n.helpAriaLabel}
+                    icon={MessagesSquare}
+                    alwaysVisible={config?.messageVisibility?.viewersAlwaysVisible !== false}
+                    seconds={config?.messageVisibility?.viewersHideAfterSeconds ?? 15}
+                    alwaysLabel={i18n.messageVisibilityAlways}
+                    timedLabel={i18n.messageVisibilityTimed}
+                    hideAfterLabel={i18n.messageVisibilityHideAfter}
+                    secondsLabel={i18n.messageVisibilitySeconds}
+                    onAlwaysVisibleChange={(always) =>
+                      updateConfig('messageVisibility', { viewersAlwaysVisible: always })
+                    }
+                    onSecondsChange={(seconds) =>
+                      updateConfig('messageVisibility', { viewersHideAfterSeconds: seconds })
+                    }
+                  />
                 </div>
               </div>
             )}
 
             {section === 'channels' && (
               <div className="space-y-5">
-                <h3 className="text-white font-medium text-lg">{i18n.sidebarChannels}</h3>
+                <SectionHeader title={i18n.sidebarChannels} description={i18n.sidebarChannelsIntro} />
 
                 <div className="space-y-2">
-                  <label className="text-white font-medium text-sm" htmlFor="channel">
+                  <FieldLabel
+                    htmlFor="channel"
+                    help={i18n.twitchChannelHelp}
+                    helpAriaLabel={i18n.helpAriaLabel}
+                  >
                     {i18n.twitchChannelLabel}
-                  </label>
+                  </FieldLabel>
                   <input
                     className={inputClass}
                     id="channel"
@@ -231,9 +247,13 @@ export const Config = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-white font-medium text-sm" htmlFor="kick-channel">
+                  <FieldLabel
+                    htmlFor="kick-channel"
+                    help={i18n.kickChannelHelp}
+                    helpAriaLabel={i18n.helpAriaLabel}
+                  >
                     {i18n.kickChannelLabel}
-                  </label>
+                  </FieldLabel>
                   <input
                     className={inputClass}
                     id="kick-channel"
@@ -245,9 +265,13 @@ export const Config = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-white font-medium text-sm" htmlFor="youtube-channel">
+                  <FieldLabel
+                    htmlFor="youtube-channel"
+                    help={i18n.youtubeChannelHelp}
+                    helpAriaLabel={i18n.helpAriaLabel}
+                  >
                     {i18n.youtubeChannelLabel}
-                  </label>
+                  </FieldLabel>
                   <input
                     className={inputClass}
                     id="youtube-channel"
@@ -263,9 +287,13 @@ export const Config = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-white font-medium text-sm" htmlFor="tiktok-channel">
+                  <FieldLabel
+                    htmlFor="tiktok-channel"
+                    help={i18n.tiktokChannelHelp}
+                    helpAriaLabel={i18n.helpAriaLabel}
+                  >
                     {i18n.tiktokChannelLabel}
-                  </label>
+                  </FieldLabel>
                   <input
                     className={inputClass}
                     id="tiktok-channel"
@@ -284,13 +312,22 @@ export const Config = () => {
 
             {section === 'appearance' && (
               <div className="space-y-6">
+                <SectionHeader
+                  title={i18n.sidebarAppearance}
+                  description={i18n.sidebarAppearanceIntro}
+                />
+
                 <div className="space-y-4">
-                  <h3 className="text-white font-medium text-lg">{i18n.fontTitle}</h3>
+                  <h4 className="text-white font-medium text-sm">{i18n.fontTitle}</h4>
 
                   <div className="flex flex-col space-y-2">
-                    <label className="text-white font-medium text-sm" htmlFor="font-size">
+                    <FieldLabel
+                      htmlFor="font-size"
+                      help={i18n.fontSizeHelp}
+                      helpAriaLabel={i18n.helpAriaLabel}
+                    >
                       {i18n.fontSizeLabel}: {config?.font?.size ?? 14}px
-                    </label>
+                    </FieldLabel>
                     <input
                       className="h-2 bg-red-700 rounded-lg appearance-none cursor-pointer slider"
                       id="font-size"
@@ -312,20 +349,13 @@ export const Config = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-white font-medium text-sm" htmlFor="font-weight">
-                      {i18n.fontWeightLabel}:{' '}
-                      {config?.font?.weight === 300
-                        ? i18n.fontWeights[300]
-                        : config?.font?.weight === 400
-                          ? i18n.fontWeights[400]
-                          : config?.font?.weight === 500
-                            ? i18n.fontWeights[500]
-                            : config?.font?.weight === 600
-                              ? i18n.fontWeights[600]
-                              : config?.font?.weight === 700
-                                ? i18n.fontWeights[700]
-                                : i18n.fontWeights[400]}
-                    </label>
+                    <FieldLabel
+                      htmlFor="font-weight"
+                      help={i18n.fontWeightHelp}
+                      helpAriaLabel={i18n.helpAriaLabel}
+                    >
+                      {i18n.fontWeightLabel}: {fontWeightName(config?.font?.weight, i18n.fontWeights)}
+                    </FieldLabel>
                     <select
                       className={inputClass}
                       id="font-weight"
@@ -349,36 +379,46 @@ export const Config = () => {
                 <hr className="border-gray-700" />
 
                 <div className="space-y-4">
-                  <div>
-                    <h3 className="text-white font-medium text-lg">{i18n.bgTitle}</h3>
-                    <p className="text-white/80 text-xs">{i18n.bgDescription}</p>
-                  </div>
+                  <h4 className="text-white font-medium text-sm">{i18n.bgTitle}</h4>
 
-                  <div className="flex gap-2 items-center">
-                    <input
-                      type="color"
-                      value={config?.background?.background ?? ''}
-                      className="w-12 h-10 rounded-md"
-                      onChange={({ target }) =>
-                        updateConfig('background', { background: target.value })
-                      }
-                    />
-                    <input
-                      className={inputClass}
-                      id="background-color"
-                      type="text"
-                      value={config?.background?.background ?? ''}
-                      placeholder={i18n.bgPlaceholder}
-                      onChange={({ target }) =>
-                        updateConfig('background', { background: target.value })
-                      }
-                    />
+                  <div className="space-y-2">
+                    <FieldLabel
+                      htmlFor="background-color"
+                      help={i18n.bgDescription}
+                      helpAriaLabel={i18n.helpAriaLabel}
+                    >
+                      {i18n.bgColorLabel}
+                    </FieldLabel>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="color"
+                        value={config?.background?.background ?? ''}
+                        className="w-12 h-10 rounded-md"
+                        onChange={({ target }) =>
+                          updateConfig('background', { background: target.value })
+                        }
+                      />
+                      <input
+                        className={inputClass}
+                        id="background-color"
+                        type="text"
+                        value={config?.background?.background ?? ''}
+                        placeholder={i18n.bgPlaceholder}
+                        onChange={({ target }) =>
+                          updateConfig('background', { background: target.value })
+                        }
+                      />
+                    </div>
                   </div>
 
                   <div className="flex flex-col space-y-2">
-                    <label className="text-white font-medium text-sm" htmlFor="bg-opacity">
+                    <FieldLabel
+                      htmlFor="bg-opacity"
+                      help={i18n.bgOpacityHelp}
+                      helpAriaLabel={i18n.helpAriaLabel}
+                    >
                       {i18n.bgOpacityLabel}: {config?.background?.opacity ?? 30}%
-                    </label>
+                    </FieldLabel>
                     <input
                       className="h-2 bg-red-700 rounded-lg appearance-none cursor-pointer slider"
                       id="bg-opacity"
@@ -404,16 +444,22 @@ export const Config = () => {
 
             {section === 'obs' && (
               <div className="space-y-6">
-                <h3 className="text-white font-medium text-lg">{i18n.sidebarObs}</h3>
+                <SectionHeader title={i18n.sidebarObs} description={i18n.sidebarObsIntro} />
 
                 <div className="space-y-2">
-                  <h4 className="text-white font-medium text-sm">{i18n.localServerTitle}</h4>
-                  <p className="text-white/80 text-xs">{i18n.localServerDescription}</p>
+                  <FieldLabel
+                    as="h4"
+                    help={`${i18n.localServerDescription}\n\n${i18n.localServerHelp}`}
+                    helpAriaLabel={i18n.helpAriaLabel}
+                  >
+                    {i18n.localServerTitle}
+                  </FieldLabel>
                   <div className="flex gap-2">
                     <input
                       className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       readOnly
                       value={localAppUrl}
+                      aria-label={i18n.localServerCopyAria}
                     />
                     <Button
                       className="w-fit shrink-0"
@@ -423,17 +469,22 @@ export const Config = () => {
                       {copiedField === 'app' ? i18n.obsCopied : i18n.obsCopyLink}
                     </Button>
                   </div>
-                  <p className="text-white/70 text-xs leading-relaxed">{i18n.localServerHelp}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <h4 className="text-white font-medium text-sm">{i18n.obsTitle}</h4>
-                  <p className="text-white/80 text-xs">{i18n.obsDescription}</p>
+                  <FieldLabel
+                    as="h4"
+                    help={`${i18n.obsDescription}\n\n${i18n.obsHelp}`}
+                    helpAriaLabel={i18n.helpAriaLabel}
+                  >
+                    {i18n.obsTitle}
+                  </FieldLabel>
                   <div className="flex gap-2">
                     <input
                       className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       readOnly
                       value={overlayUrl}
+                      aria-label={i18n.obsCopyAria}
                     />
                     <Button
                       className="w-fit shrink-0"
@@ -443,23 +494,26 @@ export const Config = () => {
                       {copiedField === 'overlay' ? i18n.obsCopied : i18n.obsCopyLink}
                     </Button>
                   </div>
-                  <p className="text-white/70 text-xs leading-relaxed">{i18n.obsHelp}</p>
                 </div>
+
+                <hr className="border-gray-700" />
+
+                <ObsAppearanceSetting
+                  i18n={i18n}
+                  inputClass={inputClass}
+                  appearance={config?.obsAppearance ?? DEFAULT_CONFIG_DATA.obsAppearance}
+                  onChange={(value) => updateConfig('obsAppearance', value)}
+                />
               </div>
             )}
 
             {section === 'filters' && (
               <div className="space-y-4">
-                <div>
-                  <h3 className="text-white font-medium text-lg">{i18n.ignoreBotsTitle}</h3>
-                  <p className="text-white/80 text-xs">
-                    {i18n.ignoreBotsDescription} Exemplo:{' '}
-                    <span className="text-primary-400">nightbot streamelements</span>
-                    <br />
-                    <br />
-                    {i18n.save}.
-                  </p>
-                </div>
+                <SectionHeader title={i18n.sidebarFilters} description={i18n.sidebarFiltersIntro} />
+
+                <FieldLabel as="h4" help={i18n.ignoreBotsDescription} helpAriaLabel={i18n.helpAriaLabel}>
+                  {i18n.ignoreBotsTitle}
+                </FieldLabel>
 
                 <div
                   id="ignore-bots"

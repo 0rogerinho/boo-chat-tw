@@ -14,7 +14,15 @@ function isAllowedTwitchProxyUrl(url: string): boolean {
     const parsed = new URL(url)
     const isLocal =
       parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1' || parsed.hostname === '::1'
-    return (parsed.protocol === 'http:' || parsed.protocol === 'https:') && isLocal
+    if ((parsed.protocol === 'http:' || parsed.protocol === 'https:') && isLocal) {
+      return true
+    }
+
+    return (
+      parsed.protocol === 'https:' &&
+      parsed.hostname === 'api.ivr.fi' &&
+      parsed.pathname.startsWith('/v2/twitch/badges')
+    )
   } catch {
     return false
   }

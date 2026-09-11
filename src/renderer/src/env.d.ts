@@ -19,7 +19,13 @@ interface Window {
       callback: (payload: { status: 'connected' | 'disconnected' | 'error'; message?: string; roomId?: string }) => void
     ) => () => void
     onTikTokChat: (
-      callback: (payload: { username: string; message: string; channel: string; timestamp: number }) => void
+      callback: (payload: {
+        username: string
+        message: string
+        channel: string
+        timestamp: number
+        badges?: Array<{ id: string; title?: string; imageUrl?: string }>
+      }) => void
     ) => () => void
     checkForUpdates: () => Promise<any>
     downloadUpdate: () => Promise<any>

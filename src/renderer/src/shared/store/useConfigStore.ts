@@ -21,6 +21,20 @@ export type TConfigDataProps = {
     background: string
     opacity: number
   }
+  obsAppearance: {
+    font: {
+      family: string
+      size: number
+      weight: number
+    }
+    pageBackground: {
+      color: string
+      opacity: number
+    }
+    messageBackground: {
+      colors: Array<{ color: string; opacity: number }>
+    }
+  }
   bots: {
     userBots: string[]
     defaultTrue: boolean
@@ -30,6 +44,12 @@ export type TConfigDataProps = {
     messageSound: MessageSoundId
     /** Intensidade 0–100 (volume) */
     messageSoundVolume: number
+  }
+  messageVisibility: {
+    systemAlwaysVisible: boolean
+    systemHideAfterSeconds: number
+    viewersAlwaysVisible: boolean
+    viewersHideAfterSeconds: number
   }
   language: AppLanguageCode
 }

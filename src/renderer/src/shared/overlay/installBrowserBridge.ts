@@ -11,6 +11,7 @@ type TikTokChatPayload = {
   message: string
   channel: string
   timestamp: number
+  badges?: Array<{ id: string; title?: string; imageUrl?: string }>
 }
 
 type IpcListener = (...args: any[]) => void
@@ -77,6 +78,12 @@ async function invokeChannel(channel: string, ...args: any[]): Promise<any> {
   if (channel === 'fetch-twitch-api') {
     const targetUrl = encodeURIComponent(String(args[0] ?? ''))
     const response = await fetch(`/api/twitch?url=${targetUrl}`)
+    return response.json()
+  }
+
+  if (channel === 'fetch-kick-channel') {
+    const slug = encodeURIComponent(String(args[0] ?? ''))
+    const response = await fetch(`/api/kick/channels/${slug}`)
     return response.json()
   }
 

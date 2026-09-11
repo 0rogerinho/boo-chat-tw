@@ -16,7 +16,13 @@ const api = {
     return () => ipcRenderer.removeListener('tiktok-status', listener)
   },
   onTikTokChat: (
-    callback: (payload: { username: string; message: string; channel: string; timestamp: number }) => void
+    callback: (payload: {
+      username: string
+      message: string
+      channel: string
+      timestamp: number
+      badges?: Array<{ id: string; title?: string; imageUrl?: string }>
+    }) => void
   ) => {
     const listener = (_event: Electron.IpcRendererEvent, payload: any) => callback(payload)
     ipcRenderer.on('tiktok-chat', listener)

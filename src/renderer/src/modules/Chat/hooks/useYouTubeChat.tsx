@@ -2,12 +2,14 @@ import { useConfigStore } from '../../../shared/store/useConfigStore'
 import { useEffect, useState, useRef } from 'react'
 import YouTubeScraperService from '../../../shared/api/youtubeScraper'
 import { getChatSystemTextWithParams } from '../../../shared/i18n'
+import type { ChatBadge } from '../../../shared/utils/chatBadges'
 
 interface ChatMessage {
   id: string
   author: {
     name: string
     color: string
+    badges?: ChatBadge[]
   }
   message: {
     text: string
@@ -25,6 +27,7 @@ export default function useYouTubeChat() {
 
   const { config } = useConfigStore()
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const activeRef = useRef(false)
   // Configuração do intervalo de polling (em ms)
   const POLLING_INTERVAL = 1500 // 1.5 segundos para melhor responsividade
 
@@ -52,6 +55,8 @@ export default function useYouTubeChat() {
         throw new Error('Canal/URL não encontrado ou sem live ativa no momento.')
       }
 
+      if (!activeRef.current) return false
+
       // Iniciar polling das mensagens via scraping
       startScrapingPolling(scraper, liveInfo.chatId)
 
@@ -66,12 +71,14 @@ export default function useYouTubeChat() {
 
   // Função para iniciar o polling via scraping
   const startScrapingPolling = (scraper: YouTubeScraperService, initialChatId: string) => {
+    if (!activeRef.current) return
     if (intervalRef.current) {
       clearInterval(intervalRef.current)
     }
     let currentChatId = initialChatId
 
     const pollMessages = async () => {
+      if (!activeRef.current) return
       try {
         const { messages, continuation, error: pollingError } =
           await scraper.getLiveChatMessages(currentChatId)
@@ -123,6 +130,7 @@ export default function useYouTubeChat() {
 
   // Função para limpar recursos
   const cleanup = () => {
+    activeRef.current = false
     if (intervalRef.current) {
       clearInterval(intervalRef.current)
       intervalRef.current = null
@@ -141,13 +149,13 @@ export default function useYouTubeChat() {
     // setYoutubeChat([])
     setError(null)
     cleanup()
+    activeRef.current = true
 
     const connectToYouTube = async () => {
       try {
-        setYoutubeChat((prev) => [
-          ...prev,
-          {
-            id: `Conexão-YouTube-${Date.now()}`,
+        setYoutubeChat((prev) => {
+          const incoming = {
+            id: `youtube-connecting-${config.youtube.channelName}`,
             author: {
               name: 'YouTube-connect',
               color: '#ff0000'
@@ -159,16 +167,19 @@ export default function useYouTubeChat() {
             },
             timestamp: Date.now()
           }
-        ])
+          if (prev.some((item) => item.id === incoming.id)) return prev
+          return [...prev, incoming]
+        })
 
         // Usar apenas scraping (método gratuito)
         const scrapingSuccess = await connectViaScraping(config.youtube.channelName)
 
+        if (!activeRef.current) return
+
         if (scrapingSuccess) {
-          setYoutubeChat((prev) => [
-            ...prev,
-            {
-              id: `Conexão-YouTube-${Date.now()}`,
+          setYoutubeChat((prev) => {
+            const incoming = {
+              id: `youtube-connected-${config.youtube.channelName}`,
               author: {
                 name: 'YouTube-connect',
                 color: '#ff0000'
@@ -180,7 +191,9 @@ export default function useYouTubeChat() {
               },
               timestamp: Date.now()
             }
-          ])
+            if (prev.some((item) => item.id === incoming.id)) return prev
+            return [...prev, incoming]
+          })
         } else {
           setYoutubeChat((prev) => [
             ...prev,

@@ -6,6 +6,7 @@ export const DEFAULT_CONFIG_DATA = {
   kick: { slug: '' },
   twitch: { channel: '' },
   youtube: { channelName: '' },
+  tiktok: { channel: '' },
   font: {
     size: 16,
     weight: 700
@@ -18,6 +19,23 @@ export const DEFAULT_CONFIG_DATA = {
     text: '#000000',
     background: '#ffffff',
     opacity: 30
+  },
+  obsAppearance: {
+    font: {
+      family: 'Open Sans',
+      size: 16,
+      weight: 700
+    },
+    pageBackground: {
+      color: '#000000',
+      opacity: 0
+    },
+    messageBackground: {
+      colors: [
+        { color: '#111827', opacity: 55 },
+        { color: '#374151', opacity: 35 }
+      ]
+    }
   },
   bots: {
     userBots: [],
@@ -57,5 +75,11 @@ export const DEFAULT_CONFIG_DATA = {
   notifications: {
     messageSound: 'none' as MessageSoundId,
     messageSoundVolume: 85
+  },
+  messageVisibility: {
+    systemAlwaysVisible: true,
+    systemHideAfterSeconds: 8,
+    viewersAlwaysVisible: true,
+    viewersHideAfterSeconds: 15
   }
 }

@@ -6,9 +6,59 @@ import { autoUpdater } from 'electron-updater'
 import { platform } from '../platform'
 import { TikTokLiveConnection, WebcastEvent } from 'tiktok-live-connector'
 import { loadAppConfig } from '../config/store'
-import { fetchTwitchApiProxy, fetchYouTubeProxy } from '../http/proxies'
+import { fetchKickChannelProxy, fetchTwitchApiProxy, fetchYouTubeProxy } from '../http/proxies'
 import { broadcastOverlayEvent } from '../overlay/bus'
 import { getLocalServerUrl, getOverlayUrl } from '../overlay/server'
+
+type TikTokBadge = {
+  id: string
+  title?: string
+  imageUrl?: string
+}
+
+function firstImageUrl(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    if (typeof value === 'string' && /^https?:\/\//.test(value)) return value
+    if (Array.isArray(value)) {
+      const nested = firstImageUrl(...value)
+      if (nested) return nested
+    }
+  }
+  return undefined
+}
+
+function extractTikTokBadges(data: any): TikTokBadge[] {
+  const lists = [data?.user?.badgeList, data?.user?.userBadges, data?.userBadges, data?.badgeList]
+  const badges: TikTokBadge[] = []
+
+  for (const list of lists) {
+    if (!Array.isArray(list)) continue
+
+    for (const [index, item] of list.entries()) {
+      const imageUrl = firstImageUrl(
+        item?.url,
+        item?.imageUrl,
+        item?.combine?.icon?.url?.urlList,
+        item?.icon?.url?.urlList,
+        item?.icon?.url,
+        item?.badgeScene?.icon?.url?.urlList
+      )
+      if (!imageUrl) continue
+      badges.push({
+        id: `tiktok-${index}-${imageUrl}`,
+        title: item?.displayType || item?.combine?.str || 'TikTok',
+        imageUrl
+      })
+    }
+  }
+
+  const seen = new Set<string>()
+  return badges.filter((badge) => {
+    if (!badge.imageUrl || seen.has(badge.imageUrl)) return false
+    seen.add(badge.imageUrl)
+    return true
+  })
+}
 export type configData = {
   channel: string
 }
@@ -30,6 +80,7 @@ type TikTokChatPayload = {
   message: string
   channel: string
   timestamp: number
+  badges?: TikTokBadge[]
 }
 
 function formatRetryAfter(ms: number): string {
@@ -112,7 +163,8 @@ export async function connectTikTokChannel(rawChannel: string) {
           username: data?.nickname || data?.user?.nickname || 'TikTok',
           message: data?.comment || '',
           channel,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          badges: extractTikTokBadges(data)
         })
       })
     }
@@ -344,6 +396,12 @@ export const registerIPC = (win: BrowserWindow) => {
 
   ipcMain.handle('fetch-twitch-api', async (_event, url: string) => {
     return fetchTwitchApiProxy(url)
+  })
+
+  ipcMain.removeHandler('fetch-kick-channel')
+
+  ipcMain.handle('fetch-kick-channel', async (_event, slug: string) => {
+    return fetchKickChannelProxy(slug)
   })
 
   // Handlers para o autoUpdater

@@ -126,7 +126,7 @@
   html.obs-overlay body,
   html.obs-overlay #root,
   body.obs-overlay {
-    background: #111827 !important;
+    background: transparent;
     color: #fff;
     overflow: hidden;
     margin: 0;

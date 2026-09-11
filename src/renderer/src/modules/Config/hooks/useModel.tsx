@@ -4,7 +4,16 @@ import { normalizeStoredConfig } from '../../../shared/utils/normalizeConfig'
 
 type ConfigKey = keyof Pick<
   TConfigDataProps,
-  'kick' | 'twitch' | 'youtube' | 'tiktok' | 'font' | 'background' | 'bots' | 'notifications'
+  | 'kick'
+  | 'twitch'
+  | 'youtube'
+  | 'tiktok'
+  | 'font'
+  | 'background'
+  | 'obsAppearance'
+  | 'bots'
+  | 'notifications'
+  | 'messageVisibility'
 >
 
 export function useModel() {

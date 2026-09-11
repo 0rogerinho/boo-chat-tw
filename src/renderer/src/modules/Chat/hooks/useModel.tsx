@@ -7,7 +7,13 @@ import { TConfigDataProps, useConfigStore } from '../../../shared/store/useConfi
 import { limitMessages } from '../../../shared/utils/limitMessage'
 import { normalizeStoredConfig } from '../../../shared/utils/normalizeConfig'
 import { fetchChannelAvatar, getCachedChannelAvatar } from '../../../shared/api/twitchChannelAvatar'
+import {
+  ensureChannelTwitchBadges,
+  ensureGlobalTwitchBadges,
+  twitchTagsToBadges
+} from '../../../shared/api/twitchBadges'
 import { getChatSystemText, getChatSystemTextWithParams } from '../../../shared/i18n'
+import type { ChatBadge } from '../../../shared/utils/chatBadges'
 
 interface IEmojis {
   id: string
@@ -16,12 +22,14 @@ interface IEmojis {
 }
 
 interface IChat {
+  id?: string
   name?: string
   message: string
   color?: string
   emojis?: IEmojis[] | string
   timestamp?: number
   channelId?: string
+  badges?: ChatBadge[]
 }
 
 interface IFormatMessage {
@@ -30,6 +38,26 @@ interface IFormatMessage {
 }
 
 const img = 'https://static-cdn.jtvnw.net/emoticons/v2/'
+
+function appendUniqueChat(current: IChat[], incoming: IChat | IChat[]): IChat[] {
+  const items = Array.isArray(incoming) ? incoming : [incoming]
+  const next = [...current]
+
+  for (const item of items) {
+    const duplicatedById = item.id ? next.some((existing) => existing.id === item.id) : false
+    const duplicatedByContent = next.some(
+      (existing) =>
+        existing.name === item.name &&
+        existing.message === item.message &&
+        Math.abs((existing.timestamp ?? 0) - (item.timestamp ?? 0)) < 1500
+    )
+
+    if (duplicatedById || duplicatedByContent) continue
+    next.push(item)
+  }
+
+  return limitMessages(next)
+}
 
 export function useModel() {
   const [chat, setChat] = useState<IChat[]>([])
@@ -136,46 +164,54 @@ export function useModel() {
   }
 
   useEffect(() => {
-    if (!config?.twitch.channel) return
+    const channel = config?.twitch.channel?.trim()
+    if (!config || !channel) return
+
+    let active = true
+    const language = config.language
 
     setChat((data) =>
-      limitMessages([
-        ...data,
-        {
-          name: getChatSystemText(config.language, 'connectLabel'),
-          color: 'green',
-          message: getChatSystemTextWithParams(config.language, 'connecting', {
-            channel: config.twitch.channel
-          }),
-          emojis: '',
-          timestamp: Date.now()
-        }
-      ])
+      appendUniqueChat(data, {
+        id: `twitch-connecting-${channel}`,
+        name: getChatSystemText(language, 'connectLabel'),
+        color: 'green',
+        message: getChatSystemTextWithParams(language, 'connecting', {
+          channel
+        }),
+        emojis: '',
+        timestamp: Date.now()
+      })
     )
 
     const client = new tmi.Client({
-      channels: [config.twitch.channel]
+      channels: [channel]
     })
 
     client
       .connect()
       .then(() => {
+        if (!active) {
+          client.removeAllListeners()
+          void client.disconnect()
+          return
+        }
         setChat((data) =>
-          limitMessages([
-            ...data,
+          appendUniqueChat(data, [
             {
-              name: getChatSystemText(config.language, 'connectLabel'),
+              id: `twitch-connected-${channel}`,
+              name: getChatSystemText(language, 'connectLabel'),
               color: 'green',
-              message: getChatSystemTextWithParams(config.language, 'connected', {
-                channel: config.twitch.channel
+              message: getChatSystemTextWithParams(language, 'connected', {
+                channel
               }),
               emojis: '',
               timestamp: Date.now()
             },
             {
-              name: getChatSystemText(config.language, 'helpLabel'),
+              id: `twitch-help-${channel}`,
+              name: getChatSystemText(language, 'helpLabel'),
               color: 'orange',
-              message: getChatSystemText(config.language, 'overlayHelp'),
+              message: getChatSystemText(language, 'overlayHelp'),
               emojis: '',
               timestamp: Date.now()
             }
@@ -183,27 +219,41 @@ export function useModel() {
         )
       })
       .catch((err) => {
+        if (!active) return
         setChat((data) =>
-          limitMessages([
-            ...data,
-            {
-              name: getChatSystemText(config.language, 'connectLabel'),
-              color: 'red',
-              message: getChatSystemTextWithParams(config.language, 'channelNotFound', {
-                channel: config.twitch.channel
-              }),
-              emojis: '',
-              timestamp: Date.now()
-            }
-          ])
+          appendUniqueChat(data, {
+            id: `twitch-error-${channel}`,
+            name: getChatSystemText(language, 'connectLabel'),
+            color: 'red',
+            message: getChatSystemTextWithParams(language, 'channelNotFound', {
+              channel
+            }),
+            emojis: '',
+            timestamp: Date.now()
+          })
         )
         console.error('Erro ao conectar:', err)
       })
 
+    void ensureGlobalTwitchBadges()
+
+    client.on('roomstate', (_channel, state) => {
+      if (!active) return
+      const roomId = state['room-id']
+      if (roomId) void ensureChannelTwitchBadges(roomId)
+    })
+
     client.on('message', (_, tags, message) => {
+      if (!active) return
+
       const emojis = tags['emotes-raw'] && getEmojis(tags['emotes-raw'])
       const replaceMessage = emojis ? formatMessage({ message, emojis }) : message
       const channelId = tags['source-room-id']
+      const badgeChannelId = tags['source-room-id'] || tags['room-id']
+      const messageId = tags.id
+
+      if (tags['room-id']) void ensureChannelTwitchBadges(tags['room-id'])
+      if (channelId) void ensureChannelTwitchBadges(channelId)
 
       const validator =
         !config?.bots?.userBots?.includes(tags['display-name']?.toLocaleLowerCase() ?? '') &&
@@ -215,22 +265,23 @@ export function useModel() {
         }
 
         setChat((data) =>
-          limitMessages([
-            ...data,
-            {
-              name: tags['display-name'],
-              color: tags.color,
-              message: replaceMessage,
-              emojis: emojis,
-              timestamp: Date.now(),
-              channelId
-            }
-          ])
+          appendUniqueChat(data, {
+            id: messageId,
+            name: tags['display-name'],
+            color: tags.color,
+            message: replaceMessage,
+            emojis: emojis,
+            timestamp: Date.now(),
+            channelId,
+            badges: twitchTagsToBadges(tags.badges, badgeChannelId, tags['badges-raw'])
+          })
         )
       }
     })
 
     return () => {
+      active = false
+      client.removeAllListeners()
       client.disconnect()
     }
   }, [config?.twitch.channel])

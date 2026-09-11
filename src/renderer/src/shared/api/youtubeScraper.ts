@@ -1,3 +1,6 @@
+import type { ChatBadge } from '../utils/chatBadges'
+import { mapYouTubeAuthorBadges } from '../utils/chatBadges'
+
 // YouTube Scraper Service - Método gratuito sem limites de quota
 export interface ScrapedChannel {
   id: string
@@ -13,6 +16,7 @@ export interface ScrapedChatMessage {
   author: {
     name: string
     color: string
+    badges?: ChatBadge[]
   }
   message: {
     text: string
@@ -644,7 +648,8 @@ class YouTubeScraperService {
         id: `scraped_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         author: {
           name: authorName,
-          color: this.generateUserColor(authorName)
+          color: this.generateUserColor(authorName),
+          badges: mapYouTubeAuthorBadges(renderer.authorBadges)
         },
         message: {
           text: messageText

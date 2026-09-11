@@ -5,7 +5,7 @@ import { join } from 'node:path'
 export function createConfigWindow() {
   let win = new BrowserWindow({
     width: 720,
-    height: 560,
+    height: 640,
     minWidth: 640,
     minHeight: 480,
     title: 'Configurações',
@@ -15,6 +15,8 @@ export function createConfigWindow() {
     transparent: true,
     frame: false,
     show: false,
+    x: 500,
+    y: 250,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false

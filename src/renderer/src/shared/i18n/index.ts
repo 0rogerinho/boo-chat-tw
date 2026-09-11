@@ -50,6 +50,12 @@ type ConfigI18nText = {
   cancel: string
   save: string
   saving: string
+  obsTitle: string
+  obsDescription: string
+  obsCopyLink: string
+  obsCopied: string
+  obsHelp: string
+  obsCopyAria: string
   fontWeights: Record<number, string>
 }
 
@@ -88,6 +94,14 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     cancel: 'Cancelar',
     save: 'Salvar',
     saving: 'Salvando...',
+    obsTitle: 'Link para o OBS',
+    obsDescription:
+      'Cole este link no OBS como Fonte do Navegador. Nao use localhost:5173 — isso so existe no modo de desenvolvimento. No app instalado o link e o mesmo (porta 3847). O BooChat precisa permanecer aberto.',
+    obsCopyLink: 'Copiar link',
+    obsCopied: 'Link copiado!',
+    obsHelp:
+      'No OBS: Adicionar > Navegador. URL copiada (http://127.0.0.1:3847/overlay). Em CSS personalizado deixe: body { background-color: rgba(0,0,0,0) !important; margin: 0; overflow: hidden; }. Desmarque "Desligar fonte quando nao estiver visivel".',
+    obsCopyAria: 'Copiar link do overlay para o OBS',
     fontWeights: {
       300: 'Leve',
       400: 'Normal',
@@ -128,6 +142,14 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     cancel: 'Cancel',
     save: 'Save',
     saving: 'Saving...',
+    obsTitle: 'OBS link',
+    obsDescription:
+      'Paste this as a Browser Source in OBS. Do not use localhost:5173 — that only exists in development. The installed app uses the same link (port 3847). BooChat must stay open.',
+    obsCopyLink: 'Copy link',
+    obsCopied: 'Link copied!',
+    obsHelp:
+      'In OBS: Add > Browser. Use the copied URL (http://127.0.0.1:3847/overlay). Custom CSS: body { background-color: rgba(0,0,0,0) !important; margin: 0; overflow: hidden; }. Uncheck "Shutdown source when not visible".',
+    obsCopyAria: 'Copy overlay link for OBS',
     fontWeights: {
       300: 'Light',
       400: 'Regular',
@@ -170,6 +192,14 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     cancel: 'Cancelar',
     save: 'Guardar',
     saving: 'Guardando...',
+    obsTitle: 'Enlace para OBS',
+    obsDescription:
+      'Pega este enlace como Fuente de navegador en OBS. No uses localhost:5173 — solo existe en desarrollo. En la app instalada el enlace es el mismo (puerto 3847). BooChat debe permanecer abierto.',
+    obsCopyLink: 'Copiar enlace',
+    obsCopied: 'Enlace copiado!',
+    obsHelp:
+      'En OBS: Agregar > Navegador. URL copiada (http://127.0.0.1:3847/overlay). CSS: body { background-color: rgba(0,0,0,0) !important; margin: 0; overflow: hidden; }. Desmarca "Apagar fuente cuando no sea visible".',
+    obsCopyAria: 'Copiar enlace del overlay para OBS',
     fontWeights: {
       300: 'Ligera',
       400: 'Normal',
@@ -211,6 +241,14 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     cancel: 'Annuler',
     save: 'Enregistrer',
     saving: 'Enregistrement...',
+    obsTitle: 'Lien OBS',
+    obsDescription:
+      "Collez ce lien comme source Navigateur dans OBS. N'utilisez pas localhost:5173 — il n'existe qu'en developpement. L'app installee utilise le meme lien (port 3847). BooChat doit rester ouvert.",
+    obsCopyLink: 'Copier le lien',
+    obsCopied: 'Lien copie !',
+    obsHelp:
+      'Dans OBS : Ajouter > Navigateur. URL copiee (http://127.0.0.1:3847/overlay). CSS : body { background-color: rgba(0,0,0,0) !important; margin: 0; overflow: hidden; }. Decochez "Desactiver la source quand elle n\'est pas visible".',
+    obsCopyAria: 'Copier le lien overlay pour OBS',
     fontWeights: {
       300: 'Legere',
       400: 'Normale',
@@ -252,6 +290,14 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     cancel: 'Abbrechen',
     save: 'Speichern',
     saving: 'Wird gespeichert...',
+    obsTitle: 'OBS-Link',
+    obsDescription:
+      'Nutze diesen Link als Browserquelle in OBS. Nicht localhost:5173 verwenden — das gibt es nur in der Entwicklung. Die installierte App nutzt denselben Link (Port 3847). BooChat muss geoffnet bleiben.',
+    obsCopyLink: 'Link kopieren',
+    obsCopied: 'Link kopiert!',
+    obsHelp:
+      'In OBS: Hinzufuegen > Browser. Kopierte URL (http://127.0.0.1:3847/overlay). CSS: body { background-color: rgba(0,0,0,0) !important; margin: 0; overflow: hidden; }. "Quelle schliessen, wenn nicht sichtbar" deaktivieren.',
+    obsCopyAria: 'Overlay-Link fuer OBS kopieren',
     fontWeights: {
       300: 'Leicht',
       400: 'Normal',
@@ -293,6 +339,14 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     cancel: 'Annulla',
     save: 'Salva',
     saving: 'Salvataggio...',
+    obsTitle: 'Link per OBS',
+    obsDescription:
+      'Usa questo link come sorgente Browser in OBS. Non usare localhost:5173 — esiste solo in sviluppo. L\'app installata usa lo stesso link (porta 3847). BooChat deve restare aperto.',
+    obsCopyLink: 'Copia link',
+    obsCopied: 'Link copiato!',
+    obsHelp:
+      'In OBS: Aggiungi > Browser. URL copiato (http://127.0.0.1:3847/overlay). CSS: body { background-color: rgba(0,0,0,0) !important; margin: 0; overflow: hidden; }. Togli "Spegni sorgente quando non visibile".',
+    obsCopyAria: 'Copia link overlay per OBS',
     fontWeights: {
       300: 'Leggero',
       400: 'Normale',

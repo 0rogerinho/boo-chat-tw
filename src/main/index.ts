@@ -1,11 +1,12 @@
 import { app, BrowserWindow, dialog } from 'electron'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { createHome } from './home'
-import { registerIPC } from './home/ipc'
+import { registerIPC, getMainWindow } from './home/ipc'
 import { registerShortcuts } from './shortcuts'
 import { createTray } from './tray'
 import { autoUpdater } from 'electron-updater'
 import { platform } from './platform'
+import { startOverlayServer, stopOverlayServer, OVERLAY_URL } from './overlay/server'
 
 // Configurações do autoUpdater
 autoUpdater.autoDownload = false
@@ -60,10 +61,31 @@ autoUpdater.on('update-downloaded', () => {
     })
 })
 
+const gotSingleInstanceLock = app.requestSingleInstanceLock()
+
+if (!gotSingleInstanceLock) {
+  app.quit()
+} else {
+  app.on('second-instance', () => {
+    const existingWin = getMainWindow() ?? BrowserWindow.getAllWindows()[0]
+    if (!existingWin) return
+
+    if (existingWin.isMinimized()) {
+      existingWin.restore()
+    }
+    existingWin.show()
+    existingWin.focus()
+  })
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  if (!gotSingleInstanceLock) {
+    return
+  }
+
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
@@ -95,6 +117,21 @@ app.whenReady().then(() => {
 
   registerShortcuts(win)
 
+  void startOverlayServer().then((url) => {
+    try {
+      createTray(win)
+    } catch (error) {
+      console.error('[Index] ❌ Erro ao atualizar tray após overlay:', error)
+    }
+
+    if (!url) {
+      dialog.showErrorBox(
+        'Overlay do OBS',
+        `Não foi possível abrir o overlay na porta fixa 3847.\n\nFeche outra instância do BooChat ou o programa que está usando essa porta.\nO link do OBS precisa ser sempre:\n${OVERLAY_URL}`
+      )
+    }
+  })
+
   // Verificar atualizações após 5 segundos (apenas em produção)
   if (process.env.NODE_ENV === 'production') {
     setTimeout(() => {
@@ -110,6 +147,7 @@ app.whenReady().then(() => {
       createTray(newWin)
       registerIPC(newWin)
       registerShortcuts(newWin)
+      void startOverlayServer()
     } else {
       // Se a janela existe mas está escondida, mostra ela
       const existingWin = BrowserWindow.getAllWindows()[0]
@@ -128,6 +166,10 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+})
+
+app.on('before-quit', () => {
+  stopOverlayServer()
 })
 
 // In this file you can include the rest of your app"s specific main process

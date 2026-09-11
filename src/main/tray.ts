@@ -1,5 +1,6 @@
-import { Tray, Menu, app, BrowserWindow, nativeImage } from 'electron'
+import { Tray, Menu, app, BrowserWindow, nativeImage, clipboard } from 'electron'
 import { platform } from './platform'
+import { getOverlayUrl } from './overlay/server'
 
 let tray: Tray | null = null
 
@@ -127,6 +128,12 @@ function updateTrayMenu(win: BrowserWindow) {
             app.dock?.show()
           }
         }
+      }
+    },
+    {
+      label: 'Copiar link do OBS',
+      click: () => {
+        clipboard.writeText(getOverlayUrl())
       }
     },
     {

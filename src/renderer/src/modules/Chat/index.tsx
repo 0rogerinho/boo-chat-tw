@@ -1,12 +1,10 @@
 // Libs
 import { cn } from '../../shared/lib'
 import { useEffect, useRef, useState } from 'react'
-// Components
 import { Header } from './components/Header'
 import useKickChat from './hooks/useKickChat'
 import useYouTubeChat from './hooks/useYouTubeChat'
 import { useModel } from './hooks/useModel'
-// Assets
 import twitchLogo from '../../shared/assets/twitch-logo.png'
 import kickLogo from '../../shared/assets/kick-logo.webp'
 import youtubeLogo from '../../shared/assets/youtube-logo.png'
@@ -17,6 +15,7 @@ import {
   playIncomingMessageNotification
 } from '../../shared/utils/messageNotification'
 import useTiktokChat from './hooks/useTiktokChat'
+import { isObsOverlayRoute } from '../../shared/overlay/runtime'
 
 type AllChats = {
   id: string
@@ -49,7 +48,8 @@ function hexToRgba(hexColor: string | undefined, opacityPercent: number): string
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`
 }
 
-export const Chat = () => {
+export const Chat = ({ overlay = false }: { overlay?: boolean }) => {
+  const isOverlay = overlay || isObsOverlayRoute()
   const [allChats, setAllChats] = useState<AllChats>([])
   const messageSoundPrimedRef = useRef(false)
   const newestMessageFingerprintRef = useRef<string | null>(null)
@@ -160,9 +160,10 @@ export const Chat = () => {
     newestMessageFingerprintRef.current = fingerprint
 
     if (isChatSystemNoticeMessage(newest)) return
+    if (isOverlay) return
 
     void playIncomingMessageNotification(config.notifications)
-  }, [allChats, config])
+  }, [allChats, config, isOverlay])
 
   // Scroll automático para novas mensagens de todas as plataformas
   useEffect(() => {
@@ -171,30 +172,48 @@ export const Chat = () => {
     }
   }, [allChats])
 
+  const overlayMode = isOverlay || !showWindow
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('obs-overlay', isOverlay)
+    document.body.classList.toggle('obs-overlay', isOverlay)
+
+    return () => {
+      document.documentElement.classList.remove('obs-overlay')
+      document.body.classList.remove('obs-overlay')
+    }
+  }, [isOverlay])
+
+  const visibleChats = isOverlay
+    ? allChats.filter((data) => !isChatSystemNoticeMessage(data))
+    : allChats
+
   return (
     <main
       className={cn(
         'relative w-screen h-screen flex flex-col overflow-hidden rounded-[8px] bg-gray-900/95 backdrop-blur-sm border border-gray-600',
-        !showWindow && 'bg-transparent backdrop-blur-none border-transparent'
+        overlayMode && 'bg-transparent backdrop-blur-none border-transparent',
+        isOverlay && 'rounded-none'
       )}
     >
-      <Header />
+      {!isOverlay && <Header />}
 
       <div
         className={cn(
-          'mt-8 overflow-y-auto overflow-x-hidden flex-1 scroll px-3 pb-3',
-          !showWindow && 'scroll-none'
+          'overflow-y-auto overflow-x-hidden flex-1 scroll px-3 pb-3',
+          isOverlay ? 'mt-0' : 'mt-8',
+          overlayMode && 'scroll-none'
         )}
       >
         <div className="space-y-2">
-          {allChats
+          {visibleChats
             .sort((a, b) => a.timestamp - b.timestamp)
             .map((data, index) => (
               <div
                 className={cn(
                   'flex gap-2 p-0 rounded-md transition-all duration-200 fade-in',
                   index % 2 === 0 && 'bg-gray-800/10',
-                  !showWindow && 'bg-transparent'
+                  overlayMode && 'bg-transparent'
                 )}
                 style={{
                   backgroundColor: hexToRgba(

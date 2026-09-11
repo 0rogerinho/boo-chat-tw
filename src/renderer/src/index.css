@@ -121,6 +121,17 @@
   body {
     @apply bg-transparent text-gray-900 font-sans;
   }
+
+  html.obs-overlay,
+  html.obs-overlay body,
+  html.obs-overlay #root,
+  body.obs-overlay {
+    background: transparent !important;
+    background-color: rgba(0, 0, 0, 0) !important;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+  }
   
   /* Scrollbar personalizado com raio máximo de 4px */
   .scroll::-webkit-scrollbar {

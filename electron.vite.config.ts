@@ -26,6 +26,10 @@ export default defineConfig({
         replacement: path.resolve(__dirname, replacement)
       }))
     },
-    plugins: [react()]
+    plugins: [react()],
+    appType: 'spa',
+    server: {
+      cors: true
+    }
   }
 })

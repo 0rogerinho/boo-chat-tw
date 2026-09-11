@@ -60,6 +60,7 @@ export function isChatSystemNoticeMessage(payload: {
     return true
   }
   if (name === 'Kick-connect') return true
+  if (name === 'YouTube-connect') return true
   if (text.includes('Connecting to channel')) return true
   if (text.includes('Conectando')) return true
   if (text.includes('Connexion')) return true

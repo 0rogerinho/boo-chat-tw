@@ -1,13 +1,14 @@
 // src/electron/ipc.ts
-import fs from 'fs'
 import { ipcMain, BrowserWindow, app } from 'electron'
 import { createConfigWindow } from '../config'
 import { registerConfigIPC } from '../config/ipc'
-import path from 'path'
-import { defaultConfigData } from '../shared/mocks'
 import { autoUpdater } from 'electron-updater'
 import { platform } from '../platform'
 import { TikTokLiveConnection, WebcastEvent } from 'tiktok-live-connector'
+import { loadAppConfig } from '../config/store'
+import { fetchTwitchApiProxy, fetchYouTubeProxy } from '../http/proxies'
+import { broadcastOverlayEvent } from '../overlay/bus'
+import { getOverlayUrl } from '../overlay/server'
 export type configData = {
   channel: string
 }
@@ -78,12 +79,113 @@ function sendTikTokStatus(payload: TikTokStatusPayload) {
   if (mainWin && !mainWin.isDestroyed()) {
     mainWin.webContents.send('tiktok-status', payload)
   }
+  broadcastOverlayEvent('tiktok-status', payload)
 }
 
 function sendTikTokChat(payload: TikTokChatPayload) {
   if (mainWin && !mainWin.isDestroyed()) {
     mainWin.webContents.send('tiktok-chat', payload)
   }
+  broadcastOverlayEvent('tiktok-chat', payload)
+}
+
+export async function connectTikTokChannel(rawChannel: string) {
+  const channel = rawChannel?.trim().replace(/^@/, '')
+  const currentToken = ++tiktokConnectToken
+
+  if (!channel) {
+    return { success: false, error: 'Canal do TikTok inválido.' }
+  }
+
+  try {
+    if (tiktokClient && tiktokChannel === channel) {
+      return { success: true, alreadyConnected: true }
+    }
+
+    await disconnectTikTok()
+
+    const bindChatListener = (client: TikTokLiveConnection) => {
+      client.on(WebcastEvent.CHAT, (data: any) => {
+        if (currentToken !== tiktokConnectToken || tiktokChannel !== channel) return
+
+        sendTikTokChat({
+          username: data?.nickname || data?.user?.nickname || 'TikTok',
+          message: data?.comment || '',
+          channel,
+          timestamp: Date.now()
+        })
+      })
+    }
+
+    let client = createTikTokClient(channel, false)
+    bindChatListener(client)
+    tiktokClient = client
+    tiktokChannel = channel
+
+    let state
+    try {
+      state = await client.connect()
+    } catch (firstError) {
+      const message = firstError instanceof Error ? firstError.message : String(firstError)
+      const shouldFallback = message.includes('Unexpected server response: 200')
+
+      if (!shouldFallback) {
+        throw firstError
+      }
+
+      console.warn(
+        'TikTok WS retornou HTTP 200 na tentativa padrão, tentando fallback de conexão...'
+      )
+
+      try {
+        await client.disconnect()
+      } catch {
+        // ignora erros de cleanup da tentativa inicial
+      }
+      client.removeAllListeners()
+
+      client = createTikTokClient(channel, true)
+      bindChatListener(client)
+      tiktokClient = client
+      tiktokChannel = channel
+      state = await client.connect()
+    }
+
+    if (currentToken !== tiktokConnectToken || tiktokChannel !== channel) {
+      try {
+        await client.disconnect()
+      } catch {
+        // ignora erros ao encerrar conexão obsoleta
+      }
+      client.removeAllListeners()
+      return { success: false, cancelled: true }
+    }
+
+    sendTikTokStatus({ status: 'connected', roomId: String(state.roomId ?? '') })
+
+    return { success: true, roomId: state.roomId }
+  } catch (error) {
+    const friendlyMessage = getTikTokFriendlyErrorMessage(error)
+
+    console.error('Erro ao conectar TikTok:', error)
+    sendTikTokStatus({
+      status: 'error',
+      message: friendlyMessage
+    })
+
+    await disconnectTikTok()
+
+    return {
+      success: false,
+      error: friendlyMessage
+    }
+  }
+}
+
+export async function disconnectTikTokChannel() {
+  tiktokConnectToken++
+  await disconnectTikTok()
+  return { success: true }
 }
 
 async function disconnectTikTok() {
@@ -156,108 +258,22 @@ export const registerIPC = (win: BrowserWindow) => {
   ipcMain.removeHandler('get-system')
   ipcMain.removeHandler('tiktok-connect')
   ipcMain.removeHandler('tiktok-disconnect')
+  ipcMain.removeHandler('get-overlay-url')
 
   ipcMain.handle('get-system', () => {
     return process.platform
   })
 
+  ipcMain.handle('get-overlay-url', () => {
+    return { success: true, url: getOverlayUrl() }
+  })
+
   ipcMain.handle('tiktok-connect', async (_event, rawChannel: string) => {
-    const channel = rawChannel?.trim().replace(/^@/, '')
-    const currentToken = ++tiktokConnectToken
-
-    if (!channel) {
-      return { success: false, error: 'Canal do TikTok inválido.' }
-    }
-
-    try {
-      if (tiktokClient && tiktokChannel === channel) {
-        return { success: true, alreadyConnected: true }
-      }
-
-      await disconnectTikTok()
-
-      const bindChatListener = (client: TikTokLiveConnection) => {
-        client.on(WebcastEvent.CHAT, (data: any) => {
-          if (currentToken !== tiktokConnectToken || tiktokChannel !== channel) return
-
-          sendTikTokChat({
-            username: data?.nickname || data?.user?.nickname || 'TikTok',
-            message: data?.comment || '',
-            channel,
-            timestamp: Date.now()
-          })
-        })
-      }
-
-      let client = createTikTokClient(channel, false)
-      bindChatListener(client)
-      tiktokClient = client
-      tiktokChannel = channel
-
-      let state
-      try {
-        state = await client.connect()
-      } catch (firstError) {
-        const message = firstError instanceof Error ? firstError.message : String(firstError)
-        const shouldFallback = message.includes('Unexpected server response: 200')
-
-        if (!shouldFallback) {
-          throw firstError
-        }
-
-        console.warn(
-          'TikTok WS retornou HTTP 200 na tentativa padrão, tentando fallback de conexão...'
-        )
-
-        try {
-          await client.disconnect()
-        } catch {
-          // ignora erros de cleanup da tentativa inicial
-        }
-        client.removeAllListeners()
-
-        client = createTikTokClient(channel, true)
-        bindChatListener(client)
-        tiktokClient = client
-        tiktokChannel = channel
-        state = await client.connect()
-      }
-
-      if (currentToken !== tiktokConnectToken || tiktokChannel !== channel) {
-        try {
-          await client.disconnect()
-        } catch {
-          // ignora erros ao encerrar conexão obsoleta
-        }
-        client.removeAllListeners()
-        return { success: false, cancelled: true }
-      }
-
-      sendTikTokStatus({ status: 'connected', roomId: String(state.roomId ?? '') })
-
-      return { success: true, roomId: state.roomId }
-    } catch (error) {
-      const friendlyMessage = getTikTokFriendlyErrorMessage(error)
-
-      console.error('Erro ao conectar TikTok:', error)
-      sendTikTokStatus({
-        status: 'error',
-        message: friendlyMessage
-      })
-
-      await disconnectTikTok()
-
-      return {
-        success: false,
-        error: friendlyMessage
-      }
-    }
+    return connectTikTokChannel(rawChannel)
   })
 
   ipcMain.handle('tiktok-disconnect', async () => {
-    tiktokConnectToken++
-    await disconnectTikTok()
-    return { success: true }
+    return disconnectTikTokChannel()
   })
 
   ipcMain.on('setFullScreen', (_event, showFullscreen: boolean) => {
@@ -306,44 +322,10 @@ export const registerIPC = (win: BrowserWindow) => {
     }
   })
 
-  // Remover handler anterior se existir
   ipcMain.removeHandler('get-config')
 
-  // Registrar novo handler
   ipcMain.handle('get-config', async () => {
-    const userDataPath = app.getPath('userData')
-    const configDir = path.join(userDataPath, 'config')
-    const saveConfigPath = configDir
-    const configPath = path.join(saveConfigPath, 'config.json')
-
-    try {
-      if (!fs.existsSync(saveConfigPath)) {
-        fs.mkdirSync(saveConfigPath, { recursive: true })
-      }
-
-      if (!fs.existsSync(configPath)) {
-        fs.writeFileSync(configPath, JSON.stringify(defaultConfigData, null, 2), 'utf8')
-        return { success: true, data: defaultConfigData }
-      }
-
-      const json = fs.readFileSync(configPath, 'utf-8')
-      const data = JSON.parse(json)
-
-      if (!data.kick && !data.twitch && !data.youtube) {
-        fs.writeFileSync(configPath, JSON.stringify(defaultConfigData, null, 2), 'utf8')
-        return { success: true, data: defaultConfigData }
-      }
-
-      return { success: true, data }
-    } catch (error) {
-      console.error('Erro ao carregar configurações:', error)
-      return {
-        success: false,
-        error:
-          error instanceof Error ? error.message : 'Erro desconhecido ao carregar configurações',
-        data: defaultConfigData
-      }
-    }
+    return loadAppConfig()
   })
 
   // Remover handler anterior se existir
@@ -351,69 +333,13 @@ export const registerIPC = (win: BrowserWindow) => {
 
   // Handler para fazer requisições ao YouTube (sem restrições de CORS)
   ipcMain.handle('fetch-youtube', async (_event, url: string, payload?: string) => {
-    try {
-      const options: RequestInit = {
-        method: payload ? 'POST' : 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-      }
-
-      if (payload) {
-        options.body = payload
-      }
-
-      const response = await fetch(url, options)
-      const contentType = response.headers.get('content-type') ?? ''
-      const isJson = contentType.includes('application/json')
-
-      if (!response.ok) {
-        const errorBody = isJson ? await response.json() : await response.text()
-        return {
-          success: false,
-          status: response.status,
-          error: `HTTP ${response.status} ao acessar YouTube`,
-          data: errorBody
-        }
-      }
-
-      const data = isJson ? await response.json() : await response.text()
-      return { success: true, data }
-    } catch (error) {
-      console.error('Erro ao fazer requisição ao YouTube:', error)
-      return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
-    }
+    return fetchYouTubeProxy(url, payload)
   })
 
   ipcMain.removeHandler('fetch-twitch-api')
 
   ipcMain.handle('fetch-twitch-api', async (_event, url: string) => {
-    try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-      })
-
-      if (!response.ok) {
-        return {
-          success: false,
-          status: response.status,
-          error: `HTTP ${response.status}`
-        }
-      }
-
-      const data = await response.json()
-      return { success: true, data }
-    } catch (error) {
-      console.error('Erro ao fazer requisição à API Twitch:', error)
-      return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
-    }
+    return fetchTwitchApiProxy(url)
   })
 
   // Handlers para o autoUpdater

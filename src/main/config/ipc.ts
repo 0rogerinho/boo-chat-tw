@@ -4,6 +4,7 @@ import { ipcMain, BrowserWindow, app } from 'electron'
 import fs from 'fs'
 import path from 'path'
 import { defaultConfigData } from '../shared/mocks'
+import { broadcastOverlayEvent } from '../overlay/bus'
 
 export interface configDataProps {
   language?: string
@@ -84,6 +85,7 @@ export const registerConfigIPC = (win: BrowserWindow) => {
           window.webContents.send('config-updated', data)
         }
       })
+      broadcastOverlayEvent('config-updated', data)
       console.log('Notificações enviadas para todas as janelas')
 
       // Fecha a janela de configurações após salvar com sucesso

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { getChatSystemTextWithParams } from '../../../shared/i18n'
 import { limitMessages } from '../../../shared/utils/limitMessage'
 import { useConfigStore } from '../../../shared/store/useConfigStore'
+import { isElectronRuntime } from '../../../shared/overlay/runtime'
 
 interface IEmojis {
   id: string
@@ -40,7 +41,9 @@ export default function useTiktokChat() {
     const language = config?.language ?? 'pt-BR'
 
     if (!channel) {
-      void window.api.disconnectTikTok()
+      if (isElectronRuntime) {
+        void window.api.disconnectTikTok()
+      }
       return
     }
 
@@ -117,7 +120,9 @@ export default function useTiktokChat() {
     return () => {
       unsubscribeStatus()
       unsubscribeChat()
-      void window.api.disconnectTikTok()
+      if (isElectronRuntime) {
+        void window.api.disconnectTikTok()
+      }
     }
   }, [config?.tiktok?.channel, config?.language])
   console.log('tiktokChat', tiktokChat)

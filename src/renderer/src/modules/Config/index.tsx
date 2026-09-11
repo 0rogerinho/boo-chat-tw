@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Header from './components/Header'
 import Button from '../../shared/components/Button'
 import { ErrorNotification, SuccessNotification } from '../../shared/components/ErrorNotification'
@@ -33,9 +33,48 @@ export const Config = () => {
   } = useModel()
 
   const [botDraft, setBotDraft] = useState('')
+  const [overlayUrl, setOverlayUrl] = useState('')
+  const [overlayCopied, setOverlayCopied] = useState(false)
   const language = normalizeLanguage(config?.language)
   const i18n = getConfigI18n(language)
   const soundLabels = getMessageSoundLabels(language)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadOverlayUrl = async () => {
+      for (let attempt = 0; attempt < 10; attempt++) {
+        try {
+          const response = await window.electron.ipcRenderer.invoke('get-overlay-url')
+          if (response?.success && response.url) {
+            if (!cancelled) setOverlayUrl(response.url)
+            return
+          }
+        } catch (error) {
+          console.error('Erro ao obter link do OBS:', error)
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 300))
+      }
+    }
+
+    void loadOverlayUrl()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const copyOverlayUrl = async () => {
+    if (!overlayUrl) return
+    try {
+      await navigator.clipboard.writeText(overlayUrl)
+      setOverlayCopied(true)
+      window.setTimeout(() => setOverlayCopied(false), 2000)
+    } catch (error) {
+      console.error('Erro ao copiar link do OBS:', error)
+    }
+  }
 
   const commitBotDraft = useCallback(() => {
     const parsed = parseBotDraft(botDraft)
@@ -154,6 +193,23 @@ export const Config = () => {
               })
             }
           />
+        </div>
+
+        {/* OBS overlay link */}
+        <div className="space-y-2">
+          <h3 className="text-white font-medium text-lg">{i18n.obsTitle}</h3>
+          <p className="text-white/80 text-xs">{i18n.obsDescription}</p>
+          <div className="flex gap-2">
+            <input
+              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              readOnly
+              value={overlayUrl}
+            />
+            <Button className="w-fit shrink-0" type="button" onClick={copyOverlayUrl}>
+              {overlayCopied ? i18n.obsCopied : i18n.obsCopyLink}
+            </Button>
+          </div>
+          <p className="text-white/70 text-xs leading-relaxed">{i18n.obsHelp}</p>
         </div>
 
         {/* Font Settings */}

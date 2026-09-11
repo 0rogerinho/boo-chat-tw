@@ -9,6 +9,7 @@ import { loadAppConfig } from '../config/store'
 import { fetchKickChannelProxy, fetchTwitchApiProxy, fetchYouTubeProxy } from '../http/proxies'
 import { broadcastOverlayEvent } from '../overlay/bus'
 import { getLocalServerUrl, getOverlayUrl } from '../overlay/server'
+import { synthesizeLocalSpeech } from '../tts/piper'
 
 type TikTokBadge = {
   id: string
@@ -311,6 +312,7 @@ export const registerIPC = (win: BrowserWindow) => {
   ipcMain.removeHandler('tiktok-connect')
   ipcMain.removeHandler('tiktok-disconnect')
   ipcMain.removeHandler('get-overlay-url')
+  ipcMain.removeHandler('tts-synthesize')
 
   ipcMain.handle('get-system', () => {
     return process.platform
@@ -323,6 +325,37 @@ export const registerIPC = (win: BrowserWindow) => {
       ? { success: true, url, appUrl }
       : { success: false, error: 'Servidor HTTP local indisponível' }
   })
+
+  ipcMain.handle(
+    'tts-synthesize',
+    async (
+      _event,
+      payload: { text?: string; author?: string; voice?: string; rate?: number }
+    ) => {
+      try {
+        const text = typeof payload?.text === 'string' ? payload.text.trim() : ''
+        const voice = typeof payload?.voice === 'string' ? payload.voice.trim() : ''
+        if (!text || !voice) {
+          return { success: false, error: 'Texto ou voz invalida' }
+        }
+
+        const audio = await synthesizeLocalSpeech({
+          text,
+          author: typeof payload.author === 'string' ? payload.author : '',
+          voice,
+          rate: typeof payload.rate === 'number' ? payload.rate : 1
+        })
+
+        return { success: true, audioBase64: audio.toString('base64'), mime: 'audio/wav' }
+      } catch (error) {
+        console.error('Erro ao sintetizar TTS:', error)
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Erro ao gerar voz'
+        }
+      }
+    }
+  )
 
   ipcMain.handle('tiktok-connect', async (_event, rawChannel: string) => {
     return connectTikTokChannel(rawChannel)

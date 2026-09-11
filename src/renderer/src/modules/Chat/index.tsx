@@ -14,6 +14,7 @@ import {
   isChatSystemNoticeMessage,
   playIncomingMessageNotification
 } from '../../shared/utils/messageNotification'
+import { cancelMessageTts, speakIncomingChatMessage } from '../../shared/utils/messageTts'
 import { isChatMessageExpired } from '../../shared/utils/messageVisibility'
 import useTiktokChat from './hooks/useTiktokChat'
 import { isObsOverlayRoute } from '../../shared/overlay/runtime'
@@ -186,7 +187,17 @@ export const Chat = ({ overlay = false }: { overlay?: boolean }) => {
     if (isOverlay) return
 
     void playIncomingMessageNotification(config.notifications)
+    speakIncomingChatMessage({
+      author: newest.author.name,
+      message: newest.message.text,
+      language: config.language,
+      settings: config.notifications
+    })
   }, [allChats, config, isOverlay])
+
+  useEffect(() => {
+    if (!config?.notifications?.ttsEnabled) cancelMessageTts()
+  }, [config?.notifications?.ttsEnabled])
 
   // Scroll automático para novas mensagens de todas as plataformas
   useEffect(() => {

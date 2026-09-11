@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { Play, Volume2 } from 'lucide-react'
 import {
   MESSAGE_SOUND_IDS,
@@ -5,13 +6,19 @@ import {
   parseMessageSound
 } from '../../../shared/constants/messageSounds'
 import { playIncomingMessageNotification } from '../../../shared/utils/messageNotification'
-import { cn } from '../../../shared/lib'
 import { FieldLabel } from './FieldLabel'
+import { ChoiceCard, PrimaryAction, SettingCard, SettingSwitch, SliderField } from './SettingUi'
+
+const SOUND_CHOICES = MESSAGE_SOUND_IDS.filter((id) => id !== 'none')
 
 type SoundSettingProps = {
   title: string
   help: string
   helpAriaLabel: string
+  onLabel: string
+  offLabel: string
+  offHint: string
+  soundLabel: string
   volumeLabel: string
   volumeHelp: string
   mutedLabel: string
@@ -28,6 +35,10 @@ export function SoundSetting({
   title,
   help,
   helpAriaLabel,
+  onLabel,
+  offLabel,
+  offHint,
+  soundLabel,
   volumeLabel,
   volumeHelp,
   mutedLabel,
@@ -42,6 +53,10 @@ export function SoundSetting({
   const selected = parseMessageSound(sound)
   const enabled = selected !== 'none'
   const volumeValue = Math.min(100, Math.max(0, volume))
+  const lastSoundRef = useRef<Exclude<MessageSoundId, 'none'>>(
+    selected === 'none' ? 'ding' : selected
+  )
+  if (selected !== 'none') lastSoundRef.current = selected
 
   const preview = (nextSound: MessageSoundId, nextVolume = volumeValue) => {
     if (nextSound === 'none') return
@@ -52,76 +67,63 @@ export function SoundSetting({
   }
 
   return (
-    <section className="rounded-lg border border-gray-700 bg-gray-800/40 p-3 space-y-3">
-      <div className="flex items-center gap-2">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-gray-900 text-gray-300">
-          <Volume2 size={16} />
-        </span>
-        <FieldLabel as="h4" help={help} helpAriaLabel={helpAriaLabel} className="flex-1">
-          {title}
-        </FieldLabel>
-        <button
-          type="button"
-          disabled={!enabled}
-          onClick={() => preview(selected)}
-          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md bg-gray-900 px-2.5 text-xs font-medium text-gray-200 transition-colors hover:bg-gray-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          <Play size={12} fill="currentColor" />
-          {testLabel}
-        </button>
-      </div>
-
-      <div
-        className="grid grid-cols-2 gap-1 rounded-md bg-gray-900/80 p-1"
-        role="radiogroup"
-        aria-label={title}
-      >
-        {MESSAGE_SOUND_IDS.map((id) => (
-          <button
-            key={id}
-            type="button"
-            role="radio"
-            aria-checked={selected === id}
-            onClick={() => {
-              onSoundChange(id)
-              preview(id)
-            }}
-            className={cn(
-              'h-8 rounded px-2 text-xs font-medium transition-colors truncate',
-              selected === id
-                ? 'bg-primary-600 text-white shadow-sm'
-                : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-            )}
-          >
-            {soundLabels[id]}
-          </button>
-        ))}
-      </div>
-
+    <SettingCard
+      icon={Volume2}
+      title={title}
+      help={help}
+      helpAriaLabel={helpAriaLabel}
+      hint={enabled ? undefined : offHint}
+      action={
+        <SettingSwitch
+          checked={enabled}
+          label={enabled ? onLabel : offLabel}
+          onChange={(next) => {
+            onSoundChange(next ? lastSoundRef.current : 'none')
+          }}
+        />
+      }
+    >
       {enabled && (
-        <div className="space-y-2">
-          <FieldLabel
-            htmlFor="message-sound-volume"
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <FieldLabel as="span" help={help} helpAriaLabel={helpAriaLabel}>
+              {soundLabel}
+            </FieldLabel>
+            <div className="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label={soundLabel}>
+              {SOUND_CHOICES.map((id) => (
+                <ChoiceCard
+                  key={id}
+                  active={selected === id}
+                  title={soundLabels[id]}
+                  onClick={() => {
+                    onSoundChange(id)
+                    preview(id)
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
+          <SliderField
+            id="message-sound-volume"
+            label={volumeLabel}
             help={volumeHelp}
             helpAriaLabel={helpAriaLabel}
-          >
-            {volumeLabel}: {volumeValue}%
-          </FieldLabel>
-          <input
-            id="message-sound-volume"
-            type="range"
+            value={volumeValue}
+            display={`${volumeValue}%`}
             min={0}
             max={100}
-            className="h-2 w-full bg-red-700 rounded-lg appearance-none cursor-pointer slider"
-            value={volumeValue}
-            onChange={({ target }) => onVolumeChange(parseInt(target.value, 10))}
+            minLabel={mutedLabel}
+            maxLabel={maxLabel}
+            onChange={onVolumeChange}
           />
-          <div className="flex justify-between text-xs text-gray-400">
-            <span>{mutedLabel}</span>
-            <span>{maxLabel}</span>
-          </div>
+
+          <PrimaryAction className="w-full" onClick={() => preview(selected)}>
+            <Play size={12} fill="currentColor" />
+            {testLabel}
+          </PrimaryAction>
         </div>
       )}
-    </section>
+    </SettingCard>
   )
 }

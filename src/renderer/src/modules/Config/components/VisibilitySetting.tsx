@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import { Minus, Plus } from 'lucide-react'
 import { cn } from '../../../shared/lib'
 import { FieldLabel } from './FieldLabel'
+import { SettingCard, SettingSwitch } from './SettingUi'
 
 const DURATION_PRESETS = [5, 8, 15, 30]
 const MIN_SECONDS = 1
@@ -31,7 +32,7 @@ export function VisibilitySetting({
   title,
   help,
   helpAriaLabel,
-  icon: Icon,
+  icon,
   alwaysVisible,
   seconds,
   alwaysLabel,
@@ -48,112 +49,71 @@ export function VisibilitySetting({
   }
 
   return (
-    <section className="rounded-lg border border-gray-700 bg-gray-800/40 p-3 space-y-3">
-      <div className="flex items-center gap-2">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-gray-900 text-gray-300">
-          <Icon size={16} />
-        </span>
-        <FieldLabel as="h4" help={help} helpAriaLabel={helpAriaLabel}>
-          {title}
-        </FieldLabel>
-      </div>
-
-      <div
-        className="grid grid-cols-2 gap-1 rounded-md bg-gray-900/80 p-1"
-        role="radiogroup"
-        aria-label={title}
-      >
-        <ModeButton
-          active={alwaysVisible}
-          onClick={() => onAlwaysVisibleChange(true)}
-        >
-          {alwaysLabel}
-        </ModeButton>
-        <ModeButton
-          active={!alwaysVisible}
-          onClick={() => onAlwaysVisibleChange(false)}
-        >
-          {timedLabel}
-        </ModeButton>
-      </div>
-
+    <SettingCard
+      icon={icon}
+      title={title}
+      help={help}
+      helpAriaLabel={helpAriaLabel}
+      hint={alwaysVisible ? alwaysLabel : undefined}
+      action={
+        <SettingSwitch
+          checked={alwaysVisible}
+          label={alwaysVisible ? alwaysLabel : timedLabel}
+          onChange={onAlwaysVisibleChange}
+        />
+      }
+    >
       {!alwaysVisible && (
-        <div className="space-y-2 pt-0.5">
-          <p className="text-xs text-gray-400">{hideAfterLabel}</p>
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="space-y-2">
+          <FieldLabel as="span" help={help} helpAriaLabel={helpAriaLabel}>
+            {hideAfterLabel}
+          </FieldLabel>
+          <div className="flex items-center gap-1.5" role="radiogroup" aria-label={hideAfterLabel}>
             {DURATION_PRESETS.map((preset) => (
               <button
                 key={preset}
                 type="button"
+                role="radio"
+                aria-checked={duration === preset}
                 onClick={() => onSecondsChange(preset)}
                 className={cn(
-                  'h-7 rounded-md px-2.5 text-xs font-medium transition-colors',
+                  'h-8 min-w-10 shrink-0 rounded-md border px-2 text-xs font-medium transition-colors',
                   duration === preset
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-900 text-gray-300 hover:bg-gray-700 hover:text-white'
+                    ? 'border-primary-500 bg-primary-600/20 text-white'
+                    : 'border-gray-700 bg-gray-900/70 text-gray-300 hover:border-gray-500 hover:text-white'
                 )}
               >
                 {preset}s
               </button>
             ))}
-
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                className="flex size-7 items-center justify-center rounded-md bg-gray-900 text-gray-300 hover:bg-gray-700 hover:text-white"
-                aria-label="-"
-                onClick={() => step(-1)}
-              >
-                <Minus size={14} />
-              </button>
-              <input
-                className="h-7 w-12 rounded-md border border-gray-700 bg-gray-900 text-center text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-                type="number"
-                min={MIN_SECONDS}
-                max={MAX_SECONDS}
-                value={duration}
-                onChange={({ target }) => onSecondsChange(clampSeconds(parseInt(target.value, 10)))}
-              />
-              <button
-                type="button"
-                className="flex size-7 items-center justify-center rounded-md bg-gray-900 text-gray-300 hover:bg-gray-700 hover:text-white"
-                aria-label="+"
-                onClick={() => step(1)}
-              >
-                <Plus size={14} />
-              </button>
-              <span className="text-xs text-gray-400">{secondsLabel}</span>
-            </div>
+            <button
+              type="button"
+              className="flex size-8 shrink-0 items-center justify-center rounded-md border border-gray-700 bg-gray-900 text-gray-300 hover:border-gray-500 hover:text-white"
+              aria-label="-"
+              onClick={() => step(-1)}
+            >
+              <Minus size={14} />
+            </button>
+            <input
+              className="h-8 w-12 shrink-0 rounded-md border border-gray-700 bg-gray-950/60 text-center text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+              type="number"
+              min={MIN_SECONDS}
+              max={MAX_SECONDS}
+              value={duration}
+              onChange={({ target }) => onSecondsChange(clampSeconds(parseInt(target.value, 10)))}
+            />
+            <button
+              type="button"
+              className="flex size-8 shrink-0 items-center justify-center rounded-md border border-gray-700 bg-gray-900 text-gray-300 hover:border-gray-500 hover:text-white"
+              aria-label="+"
+              onClick={() => step(1)}
+            >
+              <Plus size={14} />
+            </button>
+            <span className="shrink-0 text-xs text-gray-400">{secondsLabel}</span>
           </div>
         </div>
       )}
-    </section>
-  )
-}
-
-function ModeButton({
-  active,
-  onClick,
-  children
-}: {
-  active: boolean
-  onClick: () => void
-  children: string
-}) {
-  return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={active}
-      onClick={onClick}
-      className={cn(
-        'h-8 rounded px-2 text-xs font-medium transition-colors',
-        active
-          ? 'bg-primary-600 text-white shadow-sm'
-          : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-      )}
-    >
-      {children}
-    </button>
+    </SettingCard>
   )
 }

@@ -16,6 +16,7 @@ asarUnpack:
   - resources/**
   - build/**
   - out/renderer/**
+  - node_modules/onnxruntime-node/**
 
 nsis:
   artifactName: BooChat-${version}-windows-setup.${ext}

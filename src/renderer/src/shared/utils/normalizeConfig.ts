@@ -4,6 +4,13 @@ import { parseObsFontFamily } from '../constants/obsFonts'
 import { normalizeLanguage } from '../i18n'
 import type { TConfigDataProps } from '../store/useConfigStore'
 import { normalizeHexColor } from './color'
+import { parseTtsVoice } from '../constants/ttsVoices'
+import {
+  parseTtsEnabled,
+  parseTtsRate,
+  parseTtsReadAuthor,
+  parseTtsVolume
+} from './messageTts'
 
 function clampMessageSoundVolume(value: unknown, fallback: number): number {
   const n = typeof value === 'number' ? value : typeof value === 'string' ? parseFloat(value) : NaN
@@ -86,7 +93,18 @@ export function normalizeStoredConfig(
       messageSoundVolume: clampMessageSoundVolume(
         merged.notifications?.messageSoundVolume,
         DEFAULT_CONFIG_DATA.notifications.messageSoundVolume
-      )
+      ),
+      ttsEnabled: parseTtsEnabled(merged.notifications?.ttsEnabled),
+      ttsVolume: parseTtsVolume(
+        merged.notifications?.ttsVolume,
+        DEFAULT_CONFIG_DATA.notifications.ttsVolume
+      ),
+      ttsRate: parseTtsRate(
+        merged.notifications?.ttsRate,
+        DEFAULT_CONFIG_DATA.notifications.ttsRate
+      ),
+      ttsReadAuthor: parseTtsReadAuthor(merged.notifications?.ttsReadAuthor),
+      ttsVoice: parseTtsVoice(merged.notifications?.ttsVoice)
     },
     background: {
       ...DEFAULT_CONFIG_DATA.background,

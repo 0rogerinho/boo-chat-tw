@@ -1,13 +1,15 @@
-import { Minus, Plus } from 'lucide-react'
+import { Layers, Minus, Paintbrush, Plus, Type } from 'lucide-react'
 import { getObsFontStack, OBS_FONT_OPTIONS } from '../../../shared/constants/obsFonts'
 import type { getConfigI18n } from '../../../shared/i18n'
 import type { TConfigDataProps } from '../../../shared/store/useConfigStore'
 import { hexToRgba } from '../../../shared/utils/color'
 import { FieldLabel } from './FieldLabel'
+import { ColorField, PrimaryAction, SelectField, SettingCard, SliderField } from './SettingUi'
 
 const MAX_MESSAGE_COLORS = 6
 const EXTRA_COLOR_PALETTE = ['#1e3a5f', '#3f1d2e', '#14532d', '#713f12']
 const DEFAULT_LAYER_OPACITY = 55
+const FONT_WEIGHTS = [300, 400, 500, 600, 700] as const
 
 type ConfigI18n = ReturnType<typeof getConfigI18n>
 type ObsAppearance = TConfigDataProps['obsAppearance']
@@ -17,10 +19,6 @@ type ObsAppearanceSettingProps = {
   appearance: ObsAppearance
   inputClass: string
   onChange: (value: Partial<ObsAppearance>) => void
-}
-
-function fontWeightName(weight: number | undefined, labels: Record<number, string>): string {
-  return labels[weight ?? 400] ?? labels[400]
 }
 
 export function ObsAppearanceSetting({
@@ -71,152 +69,101 @@ export function ObsAppearanceSetting({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-1">
-        <h4 className="text-white font-medium text-sm">{i18n.obsAppearanceTitle}</h4>
-        <p className="text-xs text-gray-400 leading-relaxed">{i18n.obsAppearanceDescription}</p>
-      </div>
+    <>
+      <SettingCard
+        icon={Type}
+        title={i18n.obsAppearanceTitle}
+        help={i18n.obsAppearanceDescription}
+        helpAriaLabel={i18n.helpAriaLabel}
+        hint={i18n.obsAppearanceDescription}
+      >
+        <SelectField
+          id="obs-font-family"
+          label={i18n.obsFontFamilyLabel}
+          help={i18n.obsFontFamilyHelp}
+          helpAriaLabel={i18n.helpAriaLabel}
+          value={appearance.font.family}
+          onChange={(family) => updateFont({ family })}
+        >
+          {OBS_FONT_OPTIONS.map((font) => (
+            <option key={font.id} value={font.id} style={{ fontFamily: font.stack }}>
+              {font.id}
+            </option>
+          ))}
+        </SelectField>
 
-      <div className="space-y-4">
-        <h4 className="text-white font-medium text-sm">{i18n.fontTitle}</h4>
+        <SliderField
+          id="obs-font-size"
+          label={i18n.fontSizeLabel}
+          help={i18n.obsFontSizeHelp}
+          helpAriaLabel={i18n.helpAriaLabel}
+          value={appearance.font.size}
+          display={`${appearance.font.size}px`}
+          min={10}
+          max={36}
+          minLabel="10px"
+          maxLabel="36px"
+          onChange={(size) => updateFont({ size })}
+        />
 
+        <SelectField
+          id="obs-font-weight"
+          label={i18n.fontWeightLabel}
+          help={i18n.obsFontWeightHelp}
+          helpAriaLabel={i18n.helpAriaLabel}
+          value={String(appearance.font.weight)}
+          onChange={(weight) => updateFont({ weight: parseInt(weight, 10) })}
+        >
+          {FONT_WEIGHTS.map((weight) => (
+            <option key={weight} value={weight}>
+              {i18n.fontWeights[weight]} ({weight})
+            </option>
+          ))}
+        </SelectField>
+      </SettingCard>
+
+      <SettingCard
+        icon={Paintbrush}
+        title={i18n.obsPageBgTitle}
+        help={i18n.obsPageBgColorHelp}
+        helpAriaLabel={i18n.helpAriaLabel}
+      >
+        <ColorField
+          id="obs-page-background"
+          label={i18n.obsPageBgColorLabel}
+          help={i18n.obsPageBgColorHelp}
+          helpAriaLabel={i18n.helpAriaLabel}
+          color={appearance.pageBackground.color}
+          placeholder={i18n.bgPlaceholder}
+          inputClass={inputClass}
+          onChange={(color) => updatePageBackground({ color })}
+        />
+        <SliderField
+          id="obs-page-opacity"
+          label={i18n.obsPageBgOpacityLabel}
+          help={i18n.obsPageBgOpacityHelp}
+          helpAriaLabel={i18n.helpAriaLabel}
+          value={pageOpacity}
+          display={`${pageOpacity}%`}
+          min={0}
+          max={100}
+          minLabel={i18n.mutedLabel}
+          maxLabel={i18n.maxLabel}
+          onChange={(opacity) => updatePageBackground({ opacity })}
+        />
+      </SettingCard>
+
+      <SettingCard
+        icon={Layers}
+        title={i18n.obsMessageBgTitle}
+        help={i18n.obsMessageBgHelp}
+        helpAriaLabel={i18n.helpAriaLabel}
+      >
         <div className="space-y-2">
-          <FieldLabel
-            htmlFor="obs-font-family"
-            help={i18n.obsFontFamilyHelp}
-            helpAriaLabel={i18n.helpAriaLabel}
-          >
-            {i18n.obsFontFamilyLabel}
-          </FieldLabel>
-          <select
-            id="obs-font-family"
-            className={inputClass}
-            value={appearance.font.family}
-            onChange={({ target }) => updateFont({ family: target.value })}
-          >
-            {OBS_FONT_OPTIONS.map((font) => (
-              <option key={font.id} value={font.id} style={{ fontFamily: font.stack }}>
-                {font.id}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex flex-col space-y-2">
-          <FieldLabel
-            htmlFor="obs-font-size"
-            help={i18n.obsFontSizeHelp}
-            helpAriaLabel={i18n.helpAriaLabel}
-          >
-            {i18n.fontSizeLabel}: {appearance.font.size}px
-          </FieldLabel>
-          <input
-            className="h-2 bg-red-700 rounded-lg appearance-none cursor-pointer slider"
-            id="obs-font-size"
-            type="range"
-            min="10"
-            max="36"
-            value={appearance.font.size}
-            onChange={({ target }) => updateFont({ size: parseInt(target.value, 10) })}
-          />
-          <div className="flex justify-between text-xs text-gray-400">
-            <span>10px</span>
-            <span>36px</span>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <FieldLabel
-            htmlFor="obs-font-weight"
-            help={i18n.obsFontWeightHelp}
-            helpAriaLabel={i18n.helpAriaLabel}
-          >
-            {i18n.fontWeightLabel}: {fontWeightName(appearance.font.weight, i18n.fontWeights)}
-          </FieldLabel>
-          <select
-            className={inputClass}
-            id="obs-font-weight"
-            value={appearance.font.weight}
-            onChange={({ target }) => updateFont({ weight: parseInt(target.value, 10) })}
-          >
-            <option value={300}>{i18n.fontWeights[300]} (300)</option>
-            <option value={400}>{i18n.fontWeights[400]} (400)</option>
-            <option value={500}>{i18n.fontWeights[500]} (500)</option>
-            <option value={600}>{i18n.fontWeights[600]} (600)</option>
-            <option value={700}>{i18n.fontWeights[700]} (700)</option>
-          </select>
-        </div>
-      </div>
-
-      <hr className="border-gray-700" />
-
-      <div className="space-y-4">
-        <h4 className="text-white font-medium text-sm">{i18n.obsPageBgTitle}</h4>
-
-        <div className="space-y-2">
-          <FieldLabel
-            htmlFor="obs-page-background"
-            help={i18n.obsPageBgColorHelp}
-            helpAriaLabel={i18n.helpAriaLabel}
-          >
-            {i18n.obsPageBgColorLabel}
-          </FieldLabel>
-          <div className="flex gap-2 items-center">
-            <input
-              type="color"
-              value={appearance.pageBackground.color}
-              className="w-12 h-10 rounded-md"
-              onChange={({ target }) => updatePageBackground({ color: target.value })}
-            />
-            <input
-              className={inputClass}
-              id="obs-page-background"
-              type="text"
-              value={appearance.pageBackground.color}
-              placeholder={i18n.bgPlaceholder}
-              onChange={({ target }) => updatePageBackground({ color: target.value })}
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-col space-y-2">
-          <FieldLabel
-            htmlFor="obs-page-opacity"
-            help={i18n.obsPageBgOpacityHelp}
-            helpAriaLabel={i18n.helpAriaLabel}
-          >
-            {i18n.obsPageBgOpacityLabel}: {pageOpacity}%
-          </FieldLabel>
-          <input
-            className="h-2 bg-red-700 rounded-lg appearance-none cursor-pointer slider"
-            id="obs-page-opacity"
-            type="range"
-            min={0}
-            max={100}
-            value={pageOpacity}
-            onChange={({ target }) =>
-              updatePageBackground({ opacity: parseInt(target.value, 10) })
-            }
-          />
-          <div className="flex justify-between text-xs text-gray-400">
-            <span>{i18n.mutedLabel}</span>
-            <span>{i18n.maxLabel}</span>
-          </div>
-        </div>
-      </div>
-
-      <hr className="border-gray-700" />
-
-      <div className="space-y-4">
-        <FieldLabel as="h4" help={i18n.obsMessageBgHelp} helpAriaLabel={i18n.helpAriaLabel}>
-          {i18n.obsMessageBgTitle}
-        </FieldLabel>
-
-        <div className="space-y-3">
           {colors.map((layer, index) => (
             <div
               key={`obs-message-color-${index}`}
-              className="space-y-2 rounded-lg border border-gray-700 bg-gray-800/40 p-3"
+              className="space-y-2 rounded-md border border-gray-700 bg-gray-900/50 p-3"
             >
               <div className="flex items-center justify-between gap-2">
                 <FieldLabel
@@ -238,65 +185,43 @@ export function ObsAppearanceSetting({
                   </button>
                 )}
               </div>
-              <div className="flex gap-2 items-center">
-                <input
-                  type="color"
-                  value={layer.color}
-                  className="w-12 h-10 rounded-md"
-                  onChange={({ target }) => setColorAt(index, target.value)}
-                />
-                <input
-                  className={inputClass}
-                  id={`obs-message-color-${index}`}
-                  type="text"
-                  value={layer.color}
-                  placeholder={i18n.bgPlaceholder}
-                  onChange={({ target }) => setColorAt(index, target.value)}
-                />
-              </div>
-              <div className="flex flex-col space-y-2">
-                <FieldLabel
-                  htmlFor={`obs-message-opacity-${index}`}
-                  help={i18n.obsMessageBgOpacityHelp}
-                  helpAriaLabel={i18n.helpAriaLabel}
-                >
-                  {i18n.obsMessageBgOpacityLabel}: {layer.opacity}%
-                </FieldLabel>
-                <input
-                  className="h-2 bg-red-700 rounded-lg appearance-none cursor-pointer slider"
-                  id={`obs-message-opacity-${index}`}
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={layer.opacity}
-                  onChange={({ target }) =>
-                    setOpacityAt(index, parseInt(target.value, 10))
-                  }
-                />
-                <div className="flex justify-between text-xs text-gray-400">
-                  <span>{i18n.mutedLabel}</span>
-                  <span>{i18n.maxLabel}</span>
-                </div>
-              </div>
+              <ColorField
+                id={`obs-message-color-${index}`}
+                help={i18n.obsMessageBgHelp}
+                helpAriaLabel={i18n.helpAriaLabel}
+                color={layer.color}
+                placeholder={i18n.bgPlaceholder}
+                inputClass={inputClass}
+                onChange={(color) => setColorAt(index, color)}
+              />
+              <SliderField
+                id={`obs-message-opacity-${index}`}
+                label={i18n.obsMessageBgOpacityLabel}
+                help={i18n.obsMessageBgOpacityHelp}
+                helpAriaLabel={i18n.helpAriaLabel}
+                value={layer.opacity}
+                display={`${layer.opacity}%`}
+                min={0}
+                max={100}
+                minLabel={i18n.mutedLabel}
+                maxLabel={i18n.maxLabel}
+                onChange={(opacity) => setOpacityAt(index, opacity)}
+              />
             </div>
           ))}
         </div>
 
         {colors.length < MAX_MESSAGE_COLORS && (
-          <button
-            type="button"
-            className="inline-flex h-8 items-center gap-1.5 rounded-md bg-gray-800 px-2.5 text-xs font-medium text-gray-200 hover:bg-gray-700 hover:text-white"
-            onClick={addColor}
-          >
+          <PrimaryAction onClick={addColor}>
             <Plus size={12} />
             {i18n.obsAddColor}
-          </button>
+          </PrimaryAction>
         )}
 
         <div className="space-y-2">
           <p className="text-xs text-gray-400">{i18n.obsPreviewTitle}</p>
           <div
-            className="rounded-md border border-gray-700 overflow-hidden"
+            className="overflow-hidden rounded-md border border-gray-700"
             style={{
               backgroundColor:
                 hexToRgba(appearance.pageBackground.color, pageOpacity) ?? 'transparent'
@@ -315,7 +240,7 @@ export function ObsAppearanceSetting({
                     fontWeight: appearance.font.weight
                   }}
                 >
-                  <span className="text-sky-300 mr-1">
+                  <span className="mr-1 text-sky-300">
                     {i18n.obsPreviewUser}
                     {index + 1}:
                   </span>
@@ -325,7 +250,7 @@ export function ObsAppearanceSetting({
             })}
           </div>
         </div>
-      </div>
-    </div>
+      </SettingCard>
+    </>
   )
 }

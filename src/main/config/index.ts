@@ -19,7 +19,8 @@ export function createConfigWindow() {
     y: 250,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      autoplayPolicy: 'no-user-gesture-required'
     }
   })
 

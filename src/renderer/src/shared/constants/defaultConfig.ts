@@ -1,4 +1,5 @@
 import type { MessageSoundId } from './messageSounds'
+import type { TtsVoiceId } from './ttsVoices'
 
 export const DEFAULT_CONFIG_DATA = {
   language: 'pt-BR',
@@ -74,7 +75,12 @@ export const DEFAULT_CONFIG_DATA = {
   },
   notifications: {
     messageSound: 'none' as MessageSoundId,
-    messageSoundVolume: 85
+    messageSoundVolume: 85,
+    ttsEnabled: false,
+    ttsVolume: 85,
+    ttsRate: 1,
+    ttsReadAuthor: true,
+    ttsVoice: 'auto' as TtsVoiceId
   },
   messageVisibility: {
     systemAlwaysVisible: true,

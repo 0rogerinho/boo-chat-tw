@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { MessageSoundId } from '../constants/messageSounds'
+import type { TtsVoiceId } from '../constants/ttsVoices'
 import type { AppLanguageCode } from '../i18n'
 
 export type TConfigDataProps = {
@@ -44,6 +45,11 @@ export type TConfigDataProps = {
     messageSound: MessageSoundId
     /** Intensidade 0–100 (volume) */
     messageSoundVolume: number
+    ttsEnabled: boolean
+    ttsVolume: number
+    ttsRate: number
+    ttsReadAuthor: boolean
+    ttsVoice: TtsVoiceId
   }
   messageVisibility: {
     systemAlwaysVisible: boolean

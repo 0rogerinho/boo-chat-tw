@@ -4,8 +4,12 @@ import Sidebar, { type ConfigSection } from './components/Sidebar'
 import { FieldLabel } from './components/FieldLabel'
 import { SectionHeader } from './components/SectionHeader'
 import { SoundSetting } from './components/SoundSetting'
+import { TtsSetting } from './components/TtsSetting'
 import { VisibilitySetting } from './components/VisibilitySetting'
 import { ObsAppearanceSetting } from './components/ObsAppearanceSetting'
+import { AppearanceSetting } from './components/AppearanceSetting'
+import { ChannelField } from './components/ChannelField'
+import { PrimaryAction, SettingCard, settingStackClass } from './components/SettingUi'
 import { DEFAULT_CONFIG_DATA } from '../../shared/constants/defaultConfig'
 import Button from '../../shared/components/Button'
 import { ErrorNotification, SuccessNotification } from '../../shared/components/ErrorNotification'
@@ -13,17 +17,17 @@ import { ErrorNotification, SuccessNotification } from '../../shared/components/
 import { getMessageSoundLabels, parseMessageSound } from '../../shared/constants/messageSounds'
 import { APP_LANGUAGE_OPTIONS, getConfigI18n, normalizeLanguage } from '../../shared/i18n'
 import { useModel } from './hooks/useModel'
-import { Info, MessagesSquare } from 'lucide-react'
+import { ChevronDown, Copy, Filter, Info, Languages, Link2, MessagesSquare } from 'lucide-react'
+import twitchLogo from '../../shared/assets/twitch-logo.png'
+import kickLogo from '../../shared/assets/kick-logo.webp'
+import youtubeLogo from '../../shared/assets/youtube-logo.png'
+import tiktokLogo from '../../shared/assets/tiktok-logo.png'
 
 function parseBotDraft(value: string): string[] {
   return value
     .split(/[\s,]+/)
     .map((b) => b.trim().toLowerCase())
     .filter((b) => b.length > 0)
-}
-
-function fontWeightName(weight: number | undefined, labels: Record<number, string>): string {
-  return labels[weight ?? 400] ?? labels[400]
 }
 
 export const Config = () => {
@@ -41,9 +45,8 @@ export const Config = () => {
 
   const [section, setSection] = useState<ConfigSection>('channels')
   const [botDraft, setBotDraft] = useState('')
-  const [localAppUrl, setLocalAppUrl] = useState('')
   const [overlayUrl, setOverlayUrl] = useState('')
-  const [copiedField, setCopiedField] = useState<'app' | 'overlay' | null>(null)
+  const [copiedOverlay, setCopiedOverlay] = useState(false)
   const language = normalizeLanguage(config?.language)
   const i18n = getConfigI18n(language)
   const soundLabels = getMessageSoundLabels(language)
@@ -57,7 +60,6 @@ export const Config = () => {
           const response = await window.electron.ipcRenderer.invoke('get-overlay-url')
           if (response?.success && (response.appUrl || response.url)) {
             if (!cancelled) {
-              setLocalAppUrl(response.appUrl || '')
               setOverlayUrl(response.url || '')
             }
             return
@@ -77,12 +79,12 @@ export const Config = () => {
     }
   }, [])
 
-  const copyUrl = async (url: string, field: 'app' | 'overlay') => {
-    if (!url) return
+  const copyOverlayUrl = async () => {
+    if (!overlayUrl) return
     try {
-      await navigator.clipboard.writeText(url)
-      setCopiedField(field)
-      window.setTimeout(() => setCopiedField(null), 2000)
+      await navigator.clipboard.writeText(overlayUrl)
+      setCopiedOverlay(true)
+      window.setTimeout(() => setCopiedOverlay(false), 2000)
     } catch (error) {
       console.error('Erro ao copiar link local:', error)
     }
@@ -107,7 +109,7 @@ export const Config = () => {
   )
 
   const inputClass =
-    'w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200'
+    'w-full px-3 py-2 bg-gray-950/60 border border-gray-700 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent'
 
   return (
     <div className="flex flex-col w-screen h-screen rounded-[8px] overflow-hidden bg-gray-900 backdrop-blur-sm border border-gray-600">
@@ -119,43 +121,54 @@ export const Config = () => {
       <div className="flex flex-1 min-h-0">
         <Sidebar section={section} onSelect={setSection} i18n={i18n} />
 
-        <form
-          className="flex flex-1 min-w-0 flex-col"
-          onSubmit={handleUpdateConfig}
-        >
-          <div className="flex-1 overflow-y-auto scroll px-6 py-5 space-y-6">
+        <form className="flex flex-1 min-w-0 flex-col" onSubmit={handleUpdateConfig}>
+          <div className="flex-1 overflow-y-auto scroll px-6 py-5 space-y-5">
             {section === 'general' && (
-              <div className="space-y-6">
+              <div className="space-y-3">
                 <SectionHeader title={i18n.sidebarGeneral} description={i18n.sidebarGeneralIntro} />
 
                 <div className="space-y-2">
-                  <FieldLabel
-                    htmlFor="language"
-                    help={i18n.languageHelp}
-                    helpAriaLabel={i18n.helpAriaLabel}
-                  >
-                    {i18n.languageLabel}
-                  </FieldLabel>
-                  <select
-                    id="language"
-                    className={inputClass}
-                    value={language}
-                    onChange={({ target }) => setLanguage(normalizeLanguage(target.value))}
-                  >
-                    {APP_LANGUAGE_OPTIONS.map((option) => (
-                      <option key={option.code} value={option.code}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex items-center gap-2">
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-gray-800 text-gray-300">
+                      <Languages size={16} />
+                    </span>
+                    <FieldLabel
+                      htmlFor="language"
+                      help={i18n.languageHelp}
+                      helpAriaLabel={i18n.helpAriaLabel}
+                    >
+                      {i18n.languageLabel}
+                    </FieldLabel>
+                  </div>
+                  <div className="relative">
+                    <select
+                      id="language"
+                      className="w-full appearance-none px-3 py-2 pr-10 bg-gray-950/60 border border-gray-700 rounded-[8px] text-white placeholder-gray-400 [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      value={language}
+                      onChange={({ target }) => setLanguage(normalizeLanguage(target.value))}
+                    >
+                      {APP_LANGUAGE_OPTIONS.map((option) => (
+                        <option key={option.code} value={option.code}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={16}
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    />
+                  </div>
                 </div>
 
-                <hr className="border-gray-700" />
-
+                <div className={settingStackClass}>
                 <SoundSetting
                   title={i18n.soundTitle}
                   help={i18n.soundDescription}
                   helpAriaLabel={i18n.helpAriaLabel}
+                  onLabel={i18n.ttsOn}
+                  offLabel={i18n.ttsOff}
+                  offHint={i18n.soundDescription}
+                  soundLabel={i18n.soundTypeLabel}
                   volumeLabel={i18n.soundVolumeLabel}
                   volumeHelp={i18n.soundVolumeHelp}
                   mutedLabel={i18n.mutedLabel}
@@ -178,48 +191,112 @@ export const Config = () => {
                   }
                 />
 
-                <hr className="border-gray-700" />
+                <TtsSetting
+                  title={i18n.ttsTitle}
+                  help={i18n.ttsDescription}
+                  helpAriaLabel={i18n.helpAriaLabel}
+                  onLabel={i18n.ttsOn}
+                  offLabel={i18n.ttsOff}
+                  volumeLabel={i18n.ttsVolumeLabel}
+                  volumeHelp={i18n.ttsVolumeHelp}
+                  rateLabel={i18n.ttsRateLabel}
+                  rateHelp={i18n.ttsRateHelp}
+                  readAuthorLabel={i18n.ttsReadAuthorLabel}
+                  readAuthorHelp={i18n.ttsReadAuthorHelp}
+                  mutedLabel={i18n.mutedLabel}
+                  maxLabel={i18n.maxLabel}
+                  slowLabel={i18n.ttsSlowLabel}
+                  fastLabel={i18n.ttsFastLabel}
+                  testLabel={i18n.ttsTestLabel}
+                  testAuthor={i18n.ttsTestAuthor}
+                  testMessage={i18n.ttsTestMessage}
+                  generatingLabel={i18n.ttsGenerating}
+                  playErrorLabel={i18n.ttsPlayError}
+                  retryLabel={i18n.ttsRetryLabel}
+                  exampleLabel={i18n.ttsExampleLabel}
+                  offHint={i18n.ttsOffHint}
+                  voiceLabel={i18n.ttsVoiceLabel}
+                  voiceHelp={i18n.ttsVoiceHelp}
+                  voiceHints={{
+                    'pt-BR-faber': i18n.ttsVoiceHintFaber,
+                    'pt-BR-cadu': i18n.ttsVoiceHintCadu,
+                    'pt-BR-jeff': i18n.ttsVoiceHintJeff
+                  }}
+                  language={language}
+                  enabled={config?.notifications?.ttsEnabled === true}
+                  volume={config?.notifications?.ttsVolume ?? 85}
+                  rate={config?.notifications?.ttsRate ?? 1}
+                  readAuthor={config?.notifications?.ttsReadAuthor !== false}
+                  voice={config?.notifications?.ttsVoice ?? 'auto'}
+                  onEnabledChange={(ttsEnabled) =>
+                    updateConfig('notifications', {
+                      ...config?.notifications,
+                      ttsEnabled
+                    })
+                  }
+                  onVolumeChange={(ttsVolume) =>
+                    updateConfig('notifications', {
+                      ...config?.notifications,
+                      ttsVolume
+                    })
+                  }
+                  onRateChange={(ttsRate) =>
+                    updateConfig('notifications', {
+                      ...config?.notifications,
+                      ttsRate
+                    })
+                  }
+                  onReadAuthorChange={(ttsReadAuthor) =>
+                    updateConfig('notifications', {
+                      ...config?.notifications,
+                      ttsReadAuthor
+                    })
+                  }
+                  onVoiceChange={(ttsVoice) =>
+                    updateConfig('notifications', {
+                      ...config?.notifications,
+                      ttsVoice
+                    })
+                  }
+                />
 
-                <div className="space-y-3">
-                  <h4 className="text-white font-medium text-sm">{i18n.messageVisibilityTitle}</h4>
+                <VisibilitySetting
+                  title={i18n.messageVisibilitySystemTitle}
+                  help={i18n.messageVisibilitySystemHelp}
+                  helpAriaLabel={i18n.helpAriaLabel}
+                  icon={Info}
+                  alwaysVisible={config?.messageVisibility?.systemAlwaysVisible !== false}
+                  seconds={config?.messageVisibility?.systemHideAfterSeconds ?? 8}
+                  alwaysLabel={i18n.messageVisibilityAlways}
+                  timedLabel={i18n.messageVisibilityTimed}
+                  hideAfterLabel={i18n.messageVisibilityHideAfter}
+                  secondsLabel={i18n.messageVisibilitySeconds}
+                  onAlwaysVisibleChange={(always) =>
+                    updateConfig('messageVisibility', { systemAlwaysVisible: always })
+                  }
+                  onSecondsChange={(seconds) =>
+                    updateConfig('messageVisibility', { systemHideAfterSeconds: seconds })
+                  }
+                />
 
-                  <VisibilitySetting
-                    title={i18n.messageVisibilitySystemTitle}
-                    help={i18n.messageVisibilitySystemHelp}
-                    helpAriaLabel={i18n.helpAriaLabel}
-                    icon={Info}
-                    alwaysVisible={config?.messageVisibility?.systemAlwaysVisible !== false}
-                    seconds={config?.messageVisibility?.systemHideAfterSeconds ?? 8}
-                    alwaysLabel={i18n.messageVisibilityAlways}
-                    timedLabel={i18n.messageVisibilityTimed}
-                    hideAfterLabel={i18n.messageVisibilityHideAfter}
-                    secondsLabel={i18n.messageVisibilitySeconds}
-                    onAlwaysVisibleChange={(always) =>
-                      updateConfig('messageVisibility', { systemAlwaysVisible: always })
-                    }
-                    onSecondsChange={(seconds) =>
-                      updateConfig('messageVisibility', { systemHideAfterSeconds: seconds })
-                    }
-                  />
-
-                  <VisibilitySetting
-                    title={i18n.messageVisibilityViewersTitle}
-                    help={i18n.messageVisibilityViewersHelp}
-                    helpAriaLabel={i18n.helpAriaLabel}
-                    icon={MessagesSquare}
-                    alwaysVisible={config?.messageVisibility?.viewersAlwaysVisible !== false}
-                    seconds={config?.messageVisibility?.viewersHideAfterSeconds ?? 15}
-                    alwaysLabel={i18n.messageVisibilityAlways}
-                    timedLabel={i18n.messageVisibilityTimed}
-                    hideAfterLabel={i18n.messageVisibilityHideAfter}
-                    secondsLabel={i18n.messageVisibilitySeconds}
-                    onAlwaysVisibleChange={(always) =>
-                      updateConfig('messageVisibility', { viewersAlwaysVisible: always })
-                    }
-                    onSecondsChange={(seconds) =>
-                      updateConfig('messageVisibility', { viewersHideAfterSeconds: seconds })
-                    }
-                  />
+                <VisibilitySetting
+                  title={i18n.messageVisibilityViewersTitle}
+                  help={i18n.messageVisibilityViewersHelp}
+                  helpAriaLabel={i18n.helpAriaLabel}
+                  icon={MessagesSquare}
+                  alwaysVisible={config?.messageVisibility?.viewersAlwaysVisible !== false}
+                  seconds={config?.messageVisibility?.viewersHideAfterSeconds ?? 15}
+                  alwaysLabel={i18n.messageVisibilityAlways}
+                  timedLabel={i18n.messageVisibilityTimed}
+                  hideAfterLabel={i18n.messageVisibilityHideAfter}
+                  secondsLabel={i18n.messageVisibilitySeconds}
+                  onAlwaysVisibleChange={(always) =>
+                    updateConfig('messageVisibility', { viewersAlwaysVisible: always })
+                  }
+                  onSecondsChange={(seconds) =>
+                    updateConfig('messageVisibility', { viewersHideAfterSeconds: seconds })
+                  }
+                />
                 </div>
               </div>
             )}
@@ -228,275 +305,113 @@ export const Config = () => {
               <div className="space-y-5">
                 <SectionHeader title={i18n.sidebarChannels} description={i18n.sidebarChannelsIntro} />
 
-                <div className="space-y-2">
-                  <FieldLabel
-                    htmlFor="channel"
-                    help={i18n.twitchChannelHelp}
-                    helpAriaLabel={i18n.helpAriaLabel}
-                  >
-                    {i18n.twitchChannelLabel}
-                  </FieldLabel>
-                  <input
-                    className={inputClass}
-                    id="channel"
-                    type="text"
-                    value={config?.twitch.channel ?? ''}
-                    placeholder={i18n.channelPlaceholder}
-                    onChange={({ target }) => updateConfig('twitch', { channel: target.value })}
-                  />
-                </div>
+                <ChannelField
+                  id="channel"
+                  iconSrc={twitchLogo}
+                  iconClassName="size-6"
+                  title={i18n.twitchChannelLabel}
+                  help={i18n.twitchChannelHelp}
+                  helpAriaLabel={i18n.helpAriaLabel}
+                  value={config?.twitch.channel ?? ''}
+                  placeholder={i18n.channelPlaceholder}
+                  onChange={(channel) => updateConfig('twitch', { channel })}
+                />
 
-                <div className="space-y-2">
-                  <FieldLabel
-                    htmlFor="kick-channel"
-                    help={i18n.kickChannelHelp}
-                    helpAriaLabel={i18n.helpAriaLabel}
-                  >
-                    {i18n.kickChannelLabel}
-                  </FieldLabel>
-                  <input
-                    className={inputClass}
-                    id="kick-channel"
-                    type="text"
-                    value={config?.kick.slug ?? ''}
-                    placeholder={i18n.channelPlaceholder}
-                    onChange={({ target }) => updateConfig('kick', { slug: target.value })}
-                  />
-                </div>
+                <ChannelField
+                  id="kick-channel"
+                  iconSrc={kickLogo}
+                  title={i18n.kickChannelLabel}
+                  help={i18n.kickChannelHelp}
+                  helpAriaLabel={i18n.helpAriaLabel}
+                  value={config?.kick.slug ?? ''}
+                  placeholder={i18n.channelPlaceholder}
+                  onChange={(slug) => updateConfig('kick', { slug })}
+                />
 
-                <div className="space-y-2">
-                  <FieldLabel
-                    htmlFor="youtube-channel"
-                    help={i18n.youtubeChannelHelp}
-                    helpAriaLabel={i18n.helpAriaLabel}
-                  >
-                    {i18n.youtubeChannelLabel}
-                  </FieldLabel>
-                  <input
-                    className={inputClass}
-                    id="youtube-channel"
-                    type="text"
-                    value={config?.youtube?.channelName ?? ''}
-                    placeholder={i18n.youtubePlaceholder}
-                    onChange={({ target }) =>
-                      updateConfig('youtube', {
-                        channelName: target.value
-                      })
-                    }
-                  />
-                </div>
+                <ChannelField
+                  id="youtube-channel"
+                  iconSrc={youtubeLogo}
+                  title={i18n.youtubeChannelLabel}
+                  help={i18n.youtubeChannelHelp}
+                  helpAriaLabel={i18n.helpAriaLabel}
+                  value={config?.youtube?.channelName ?? ''}
+                  placeholder={i18n.youtubePlaceholder}
+                  onChange={(channelName) => updateConfig('youtube', { channelName })}
+                />
 
-                <div className="space-y-2">
-                  <FieldLabel
-                    htmlFor="tiktok-channel"
-                    help={i18n.tiktokChannelHelp}
-                    helpAriaLabel={i18n.helpAriaLabel}
-                  >
-                    {i18n.tiktokChannelLabel}
-                  </FieldLabel>
-                  <input
-                    className={inputClass}
-                    id="tiktok-channel"
-                    type="text"
-                    value={config?.tiktok?.channel ?? ''}
-                    placeholder={i18n.tiktokPlaceholder}
-                    onChange={({ target }) =>
-                      updateConfig('tiktok', {
-                        channel: target.value
-                      })
-                    }
-                  />
-                </div>
+                <ChannelField
+                  id="tiktok-channel"
+                  iconSrc={tiktokLogo}
+                  title={i18n.tiktokChannelLabel}
+                  help={i18n.tiktokChannelHelp}
+                  helpAriaLabel={i18n.helpAriaLabel}
+                  value={config?.tiktok?.channel ?? ''}
+                  placeholder={i18n.tiktokPlaceholder}
+                  onChange={(channel) => updateConfig('tiktok', { channel })}
+                />
               </div>
             )}
 
             {section === 'appearance' && (
-              <div className="space-y-6">
+              <div className="space-y-3">
                 <SectionHeader
                   title={i18n.sidebarAppearance}
                   description={i18n.sidebarAppearanceIntro}
                 />
 
-                <div className="space-y-4">
-                  <h4 className="text-white font-medium text-sm">{i18n.fontTitle}</h4>
-
-                  <div className="flex flex-col space-y-2">
-                    <FieldLabel
-                      htmlFor="font-size"
-                      help={i18n.fontSizeHelp}
-                      helpAriaLabel={i18n.helpAriaLabel}
-                    >
-                      {i18n.fontSizeLabel}: {config?.font?.size ?? 14}px
-                    </FieldLabel>
-                    <input
-                      className="h-2 bg-red-700 rounded-lg appearance-none cursor-pointer slider"
-                      id="font-size"
-                      type="range"
-                      min="10"
-                      max="24"
-                      value={config?.font?.size ?? 14}
-                      onChange={({ target }) =>
-                        updateConfig('font', {
-                          ...config?.font,
-                          size: parseInt(target.value)
-                        })
-                      }
-                    />
-                    <div className="flex justify-between text-xs text-gray-400">
-                      <span>10px</span>
-                      <span>24px</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <FieldLabel
-                      htmlFor="font-weight"
-                      help={i18n.fontWeightHelp}
-                      helpAriaLabel={i18n.helpAriaLabel}
-                    >
-                      {i18n.fontWeightLabel}: {fontWeightName(config?.font?.weight, i18n.fontWeights)}
-                    </FieldLabel>
-                    <select
-                      className={inputClass}
-                      id="font-weight"
-                      value={config?.font?.weight ?? 400}
-                      onChange={({ target }) =>
-                        updateConfig('font', {
-                          ...config?.font,
-                          weight: parseInt(target.value)
-                        })
-                      }
-                    >
-                      <option value={300}>{i18n.fontWeights[300]} (300)</option>
-                      <option value={400}>{i18n.fontWeights[400]} (400)</option>
-                      <option value={500}>{i18n.fontWeights[500]} (500)</option>
-                      <option value={600}>{i18n.fontWeights[600]} (600)</option>
-                      <option value={700}>{i18n.fontWeights[700]} (700)</option>
-                    </select>
-                  </div>
-                </div>
-
-                <hr className="border-gray-700" />
-
-                <div className="space-y-4">
-                  <h4 className="text-white font-medium text-sm">{i18n.bgTitle}</h4>
-
-                  <div className="space-y-2">
-                    <FieldLabel
-                      htmlFor="background-color"
-                      help={i18n.bgDescription}
-                      helpAriaLabel={i18n.helpAriaLabel}
-                    >
-                      {i18n.bgColorLabel}
-                    </FieldLabel>
-                    <div className="flex gap-2 items-center">
-                      <input
-                        type="color"
-                        value={config?.background?.background ?? ''}
-                        className="w-12 h-10 rounded-md"
-                        onChange={({ target }) =>
-                          updateConfig('background', { background: target.value })
-                        }
-                      />
-                      <input
-                        className={inputClass}
-                        id="background-color"
-                        type="text"
-                        value={config?.background?.background ?? ''}
-                        placeholder={i18n.bgPlaceholder}
-                        onChange={({ target }) =>
-                          updateConfig('background', { background: target.value })
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col space-y-2">
-                    <FieldLabel
-                      htmlFor="bg-opacity"
-                      help={i18n.bgOpacityHelp}
-                      helpAriaLabel={i18n.helpAriaLabel}
-                    >
-                      {i18n.bgOpacityLabel}: {config?.background?.opacity ?? 30}%
-                    </FieldLabel>
-                    <input
-                      className="h-2 bg-red-700 rounded-lg appearance-none cursor-pointer slider"
-                      id="bg-opacity"
-                      type="range"
-                      min={0}
-                      max={100}
-                      value={config?.background?.opacity ?? 30}
-                      onChange={({ target }) =>
-                        updateConfig('background', {
-                          ...config?.background,
-                          opacity: parseInt(target.value, 10)
-                        })
-                      }
-                    />
-                    <div className="flex justify-between text-xs text-gray-400">
-                      <span>{i18n.mutedLabel}</span>
-                      <span>{i18n.maxLabel}</span>
-                    </div>
-                  </div>
-                </div>
+                <AppearanceSetting
+                  i18n={i18n}
+                  inputClass={inputClass}
+                  fontSize={config?.font?.size ?? 14}
+                  fontWeight={config?.font?.weight ?? 400}
+                  background={config?.background?.background ?? ''}
+                  opacity={config?.background?.opacity ?? 30}
+                  onFontSizeChange={(size) =>
+                    updateConfig('font', {
+                      ...config?.font,
+                      size
+                    })
+                  }
+                  onFontWeightChange={(weight) =>
+                    updateConfig('font', {
+                      ...config?.font,
+                      weight
+                    })
+                  }
+                  onBackgroundChange={(background) => updateConfig('background', { background })}
+                  onOpacityChange={(opacity) =>
+                    updateConfig('background', {
+                      ...config?.background,
+                      opacity
+                    })
+                  }
+                />
               </div>
             )}
 
             {section === 'obs' && (
-              <div className="space-y-6">
+              <div className="space-y-3">
                 <SectionHeader title={i18n.sidebarObs} description={i18n.sidebarObsIntro} />
 
-                <div className="space-y-2">
-                  <FieldLabel
-                    as="h4"
-                    help={`${i18n.localServerDescription}\n\n${i18n.localServerHelp}`}
-                    helpAriaLabel={i18n.helpAriaLabel}
-                  >
-                    {i18n.localServerTitle}
-                  </FieldLabel>
-                  <div className="flex gap-2">
-                    <input
-                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      readOnly
-                      value={localAppUrl}
-                      aria-label={i18n.localServerCopyAria}
-                    />
-                    <Button
-                      className="w-fit shrink-0"
-                      type="button"
-                      onClick={() => copyUrl(localAppUrl, 'app')}
-                    >
-                      {copiedField === 'app' ? i18n.obsCopied : i18n.obsCopyLink}
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <FieldLabel
-                    as="h4"
-                    help={`${i18n.obsDescription}\n\n${i18n.obsHelp}`}
-                    helpAriaLabel={i18n.helpAriaLabel}
-                  >
-                    {i18n.obsTitle}
-                  </FieldLabel>
-                  <div className="flex gap-2">
-                    <input
-                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      readOnly
-                      value={overlayUrl}
-                      aria-label={i18n.obsCopyAria}
-                    />
-                    <Button
-                      className="w-fit shrink-0"
-                      type="button"
-                      onClick={() => copyUrl(overlayUrl, 'overlay')}
-                    >
-                      {copiedField === 'overlay' ? i18n.obsCopied : i18n.obsCopyLink}
-                    </Button>
-                  </div>
-                </div>
-
-                <hr className="border-gray-700" />
+                <div className={settingStackClass}>
+                <SettingCard
+                  icon={Link2}
+                  title={i18n.obsTitle}
+                  help={`${i18n.obsDescription}\n\n${i18n.obsHelp}`}
+                  helpAriaLabel={i18n.helpAriaLabel}
+                  hint={i18n.obsDescription}
+                >
+                  <input
+                    className="w-full px-3 py-2 bg-gray-950/60 border border-gray-700 rounded-md text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    readOnly
+                    value={overlayUrl}
+                    aria-label={i18n.obsCopyAria}
+                  />
+                  <PrimaryAction className="w-full" onClick={() => void copyOverlayUrl()}>
+                    <Copy size={14} />
+                    {copiedOverlay ? i18n.obsCopied : i18n.obsCopyLink}
+                  </PrimaryAction>
+                </SettingCard>
 
                 <ObsAppearanceSetting
                   i18n={i18n}
@@ -504,76 +419,83 @@ export const Config = () => {
                   appearance={config?.obsAppearance ?? DEFAULT_CONFIG_DATA.obsAppearance}
                   onChange={(value) => updateConfig('obsAppearance', value)}
                 />
+                </div>
               </div>
             )}
 
             {section === 'filters' && (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <SectionHeader title={i18n.sidebarFilters} description={i18n.sidebarFiltersIntro} />
 
-                <FieldLabel as="h4" help={i18n.ignoreBotsDescription} helpAriaLabel={i18n.helpAriaLabel}>
-                  {i18n.ignoreBotsTitle}
-                </FieldLabel>
-
-                <div
-                  id="ignore-bots"
-                  className="w-full min-h-[3rem] px-2 py-1.5 bg-gray-800 border border-gray-700 rounded flex flex-wrap gap-1.5 items-center focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent transition-all duration-200"
-                  role="group"
-                  aria-label={i18n.ignoreBotsAriaLabel}
+                <div className={settingStackClass}>
+                <SettingCard
+                  icon={Filter}
+                  title={i18n.ignoreBotsTitle}
+                  help={i18n.ignoreBotsDescription}
+                  helpAriaLabel={i18n.helpAriaLabel}
+                  hint={i18n.ignoreBotsDescription}
                 >
-                  {(config?.bots?.userBots ?? []).map((name, index) => (
-                    <span
-                      key={`${name}-${index}`}
-                      className="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-md bg-gray-700 text-white text-sm border border-gray-600"
-                    >
-                      <span className="max-w-[200px] truncate" title={name}>
-                        {name}
-                      </span>
-                      <button
-                        type="button"
-                        className="shrink-0 rounded p-0.5 text-gray-400 hover:text-white hover:bg-gray-600 transition-colors"
-                        aria-label={`${i18n.removeBotAriaPrefix} ${name}`}
-                        onClick={() => removeBotTag(index)}
+                  <div
+                    id="ignore-bots"
+                    className="w-full min-h-[3rem] px-2 py-1.5 bg-gray-950/60 border border-gray-700 rounded-md flex flex-wrap gap-1.5 items-center focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent"
+                    role="group"
+                    aria-label={i18n.ignoreBotsAriaLabel}
+                  >
+                    {(config?.bots?.userBots ?? []).map((name, index) => (
+                      <span
+                        key={`${name}-${index}`}
+                        className="inline-flex items-center gap-1 rounded-md border border-gray-600 bg-gray-800 pl-2 pr-1 py-0.5 text-sm text-white"
                       >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                  <input
-                    className="flex-1 min-w-[8rem] px-1 py-1 bg-transparent text-white placeholder-gray-400 focus:outline-none text-sm"
-                    type="text"
-                    placeholder={
-                      (config?.bots?.userBots?.length ?? 0) === 0
-                        ? i18n.ignoreBotsPlaceholderEmpty
-                        : i18n.ignoreBotsPlaceholderAdd
-                    }
-                    value={botDraft}
-                    onChange={({ target }) => setBotDraft(target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
-                        e.preventDefault()
-                        commitBotDraft()
-                        return
+                        <span className="max-w-[200px] truncate" title={name}>
+                          {name}
+                        </span>
+                        <button
+                          type="button"
+                          className="shrink-0 rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
+                          aria-label={`${i18n.removeBotAriaPrefix} ${name}`}
+                          onClick={() => removeBotTag(index)}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                    <input
+                      className="min-w-[8rem] flex-1 bg-transparent px-1 py-1 text-sm text-white placeholder-gray-400 focus:outline-none"
+                      type="text"
+                      placeholder={
+                        (config?.bots?.userBots?.length ?? 0) === 0
+                          ? i18n.ignoreBotsPlaceholderEmpty
+                          : i18n.ignoreBotsPlaceholderAdd
                       }
-                      if (
-                        e.key === 'Backspace' &&
-                        botDraft === '' &&
-                        (config?.bots?.userBots?.length ?? 0) > 0
-                      ) {
-                        e.preventDefault()
-                        removeBotTag((config?.bots?.userBots?.length ?? 1) - 1)
-                      }
-                    }}
-                    onBlur={() => {
-                      if (parseBotDraft(botDraft).length > 0) commitBotDraft()
-                    }}
-                  />
+                      value={botDraft}
+                      onChange={({ target }) => setBotDraft(target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
+                          e.preventDefault()
+                          commitBotDraft()
+                          return
+                        }
+                        if (
+                          e.key === 'Backspace' &&
+                          botDraft === '' &&
+                          (config?.bots?.userBots?.length ?? 0) > 0
+                        ) {
+                          e.preventDefault()
+                          removeBotTag((config?.bots?.userBots?.length ?? 1) - 1)
+                        }
+                      }}
+                      onBlur={() => {
+                        if (parseBotDraft(botDraft).length > 0) commitBotDraft()
+                      }}
+                    />
+                  </div>
+                </SettingCard>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="flex gap-2 items-center justify-end px-6 py-3 border-t border-gray-700 bg-gray-900">
+          <div className="flex items-center justify-end gap-2 border-t border-gray-700 bg-gray-900 px-6 py-3">
             <Button
               className="w-fit"
               variant="secondary"

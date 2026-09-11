@@ -4,10 +4,12 @@ import { join } from 'node:path'
 
 export function createConfigWindow() {
   let win = new BrowserWindow({
-    width: 400,
+    width: 720,
     height: 560,
+    minWidth: 640,
+    minHeight: 480,
     title: 'Configurações',
-    resizable: false,
+    resizable: true,
     parent: BrowserWindow.getAllWindows()[0], // Define como filha da principal
     modal: true,
     transparent: true,

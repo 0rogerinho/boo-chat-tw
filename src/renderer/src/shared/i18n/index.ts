@@ -60,6 +60,11 @@ type ConfigI18nText = {
   obsCopied: string
   obsHelp: string
   obsCopyAria: string
+  sidebarGeneral: string
+  sidebarChannels: string
+  sidebarAppearance: string
+  sidebarObs: string
+  sidebarFilters: string
   fontWeights: Record<number, string>
 }
 
@@ -112,6 +117,11 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     obsHelp:
       'No OBS: Adicionar > Navegador. Cole a URL, defina largura e altura, deixe o fundo transparente e desmarque "Desligar fonte quando não estiver visível".',
     obsCopyAria: 'Copiar link do overlay para o OBS',
+    sidebarGeneral: 'Geral',
+    sidebarChannels: 'Canais',
+    sidebarAppearance: 'Aparencia',
+    sidebarObs: 'OBS',
+    sidebarFilters: 'Filtros',
     fontWeights: {
       300: 'Leve',
       400: 'Normal',
@@ -165,6 +175,11 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     obsHelp:
       'In OBS: Add > Browser. Paste the URL, set width and height, keep a transparent background, and uncheck "Shutdown source when not visible".',
     obsCopyAria: 'Copy overlay link for OBS',
+    sidebarGeneral: 'General',
+    sidebarChannels: 'Channels',
+    sidebarAppearance: 'Appearance',
+    sidebarObs: 'OBS',
+    sidebarFilters: 'Filters',
     fontWeights: {
       300: 'Light',
       400: 'Regular',
@@ -221,6 +236,11 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     obsHelp:
       'En OBS: Agregar > Navegador. Pega la URL, define ancho y alto, deja el fondo transparente y desmarca "Apagar fuente cuando no sea visible".',
     obsCopyAria: 'Copiar enlace del overlay para OBS',
+    sidebarGeneral: 'General',
+    sidebarChannels: 'Canales',
+    sidebarAppearance: 'Apariencia',
+    sidebarObs: 'OBS',
+    sidebarFilters: 'Filtros',
     fontWeights: {
       300: 'Ligera',
       400: 'Normal',
@@ -276,6 +296,11 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     obsHelp:
       'Dans OBS : Ajouter > Navigateur. Collez l\'URL, definissez largeur et hauteur, gardez le fond transparent et decochez "Desactiver la source quand elle n\'est pas visible".',
     obsCopyAria: 'Copier le lien overlay pour OBS',
+    sidebarGeneral: 'General',
+    sidebarChannels: 'Chaines',
+    sidebarAppearance: 'Apparence',
+    sidebarObs: 'OBS',
+    sidebarFilters: 'Filtres',
     fontWeights: {
       300: 'Legere',
       400: 'Normale',
@@ -331,6 +356,11 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     obsHelp:
       'In OBS: Hinzufuegen > Browser. URL einfuegen, Breite und Hoehe setzen, transparenten Hintergrund behalten und "Quelle schliessen, wenn nicht sichtbar" deaktivieren.',
     obsCopyAria: 'Overlay-Link fuer OBS kopieren',
+    sidebarGeneral: 'Allgemein',
+    sidebarChannels: 'Kanaele',
+    sidebarAppearance: 'Erscheinungsbild',
+    sidebarObs: 'OBS',
+    sidebarFilters: 'Filter',
     fontWeights: {
       300: 'Leicht',
       400: 'Normal',
@@ -386,6 +416,11 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     obsHelp:
       'In OBS: Aggiungi > Browser. Incolla l\'URL, imposta larghezza e altezza, tieni lo sfondo trasparente e togli "Spegni sorgente quando non visibile".',
     obsCopyAria: 'Copia link overlay per OBS',
+    sidebarGeneral: 'Generale',
+    sidebarChannels: 'Canali',
+    sidebarAppearance: 'Aspetto',
+    sidebarObs: 'OBS',
+    sidebarFilters: 'Filtri',
     fontWeights: {
       300: 'Leggero',
       400: 'Normale',

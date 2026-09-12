@@ -1,6 +1,6 @@
 appId: com.devrogerinho.boochat
 productName: BooChat
-buildVersion: 1.2.2
+buildVersion: 1.2.3
 directories:
   buildResources: build
   output: dist
@@ -144,7 +144,6 @@ win:
   icon: icon.ico
   executableName: BooChat
   requestedExecutionLevel: asInvoker
-  publisherName: devrogerinho.com
   target:
     - target: nsis
       arch:

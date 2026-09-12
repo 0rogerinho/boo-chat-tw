@@ -24,6 +24,17 @@ export function setupAutoUpdater(getWindow: () => BrowserWindow | null) {
   autoUpdater.logger = log
   log.transports.file.level = 'info'
 
+  const windowsUpdater = autoUpdater as typeof autoUpdater & {
+    verifyUpdateCodeSignature?: (
+      publisherNames: string[],
+      path: string
+    ) => Promise<string | null>
+  }
+
+  if (typeof windowsUpdater.verifyUpdateCodeSignature === 'function') {
+    windowsUpdater.verifyUpdateCodeSignature = async () => null
+  }
+
   autoUpdater.setFeedURL({
     provider: 'github',
     owner: '0rogerinho',

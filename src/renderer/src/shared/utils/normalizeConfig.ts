@@ -5,12 +5,7 @@ import { normalizeLanguage } from '../i18n'
 import type { TConfigDataProps } from '../store/useConfigStore'
 import { normalizeHexColor } from './color'
 import { parseTtsVoice } from '../constants/ttsVoices'
-import {
-  parseTtsEnabled,
-  parseTtsRate,
-  parseTtsReadAuthor,
-  parseTtsVolume
-} from './messageTts'
+import { parseTtsEnabled, parseTtsRate, parseTtsReadAuthor, parseTtsVolume } from './messageTts'
 
 function clampMessageSoundVolume(value: unknown, fallback: number): number {
   const n = typeof value === 'number' ? value : typeof value === 'string' ? parseFloat(value) : NaN
@@ -56,9 +51,7 @@ function normalizeMessageColors(
     .map((entry) => {
       if (typeof entry === 'string') {
         const color = normalizeHexColor(entry, '')
-        return color
-          ? { color, opacity: clampBackgroundOpacity(fallbackOpacity, 55) }
-          : null
+        return color ? { color, opacity: clampBackgroundOpacity(fallbackOpacity, 55) } : null
       }
 
       if (entry && typeof entry === 'object') {
@@ -160,6 +153,22 @@ export function normalizeStoredConfig(
         merged.messageVisibility?.viewersHideAfterSeconds,
         DEFAULT_CONFIG_DATA.messageVisibility.viewersHideAfterSeconds
       )
+    },
+    emotes: {
+      ...DEFAULT_CONFIG_DATA.emotes,
+      ...merged.emotes,
+      seventv: merged.emotes?.seventv !== false,
+      betterttv: merged.emotes?.betterttv !== false
+    },
+    media: {
+      ...DEFAULT_CONFIG_DATA.media,
+      ...merged.media,
+      linkImages: merged.media?.linkImages === true
+    },
+    appearance: {
+      ...DEFAULT_CONFIG_DATA.appearance,
+      ...merged.appearance,
+      platformColorDot: merged.appearance?.platformColorDot === true
     }
   }
 }

@@ -105,6 +105,7 @@ export function stripMessageForSpeech(raw: string, language: AppLanguageCode): s
   text = decodeEntities(text)
   text = text.replace(/https?:\/\/\S+/gi, ' ')
   text = text.replace(/www\.\S+/gi, ' ')
+  text = text.replace(/(^|[^A-Za-z0-9_])(?:upl|tnr|img|ls):[A-Za-z0-9._-]{1,80}/gi, '$1 ')
   text = text.replace(/@[A-Za-z0-9_.\-]+/g, (match) => ` ${humanizeSpeakerName(match)} `)
   text = text.replace(/#(\w+)/g, ' $1 ')
   text = text.replace(/\b(?:lul|kekw|pog|poggers|kappa|4head|cmonbruh|omonobruh|omegalul)\b/gi, ' ')

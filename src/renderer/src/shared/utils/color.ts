@@ -14,6 +14,16 @@ export function hexToRgba(hexColor: string | undefined, opacityPercent: number):
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`
 }
 
+const NAMED_CSS_COLOR = /^[a-z]{1,20}$/i
+const HEX_CSS_COLOR = /^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i
+
+export function safeCssColor(value: string | undefined, fallback: string): string {
+  if (typeof value !== 'string') return fallback
+  const trimmed = value.trim()
+  if (HEX_CSS_COLOR.test(trimmed) || NAMED_CSS_COLOR.test(trimmed)) return trimmed
+  return fallback
+}
+
 export function normalizeHexColor(value: unknown, fallback: string): string {
   if (typeof value !== 'string') return fallback
 

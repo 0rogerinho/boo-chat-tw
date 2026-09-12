@@ -4,14 +4,20 @@ import path from 'path'
 import express, { type NextFunction, type Request, type Response } from 'express'
 import { is } from '@electron-toolkit/utils'
 import { loadAppConfig } from '../config/store'
-import { fetchKickChannelProxy, fetchTwitchApiProxy, fetchYouTubeProxy } from '../http/proxies'
+import {
+  fetchEmotesApiProxy,
+  fetchKickChannelProxy,
+  fetchTwitchApiProxy,
+  fetchYouTubeProxy
+} from '../http/proxies'
+import { resolveTwshotImage } from '../http/twshot'
 import { onOverlayEvent, type OverlayEventName } from './bus'
 
 const PREFERRED_PORT = 3847
 const HOST = '127.0.0.1'
 
 const OVERLAY_CSP =
-  "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' http://127.0.0.1:* http://localhost:* ws://127.0.0.1:* ws://localhost:* wss://irc-ws.chat.twitch.tv wss://ws-mt1.pusher.com wss://ws-us2.pusher.com wss://ws-eu.pusher.com wss://ws-ap-southeast-1.pusher.com wss://ws-us-east-1.pusher.com https://kick.com https://api.kick.com https://www.youtube.com https://youtube.com https://m.youtube.com; frame-src 'none'"
+  "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' http://127.0.0.1:* http://localhost:* ws://127.0.0.1:* ws://localhost:* wss://irc-ws.chat.twitch.tv wss://ws-mt1.pusher.com wss://ws-us2.pusher.com wss://ws-eu.pusher.com wss://ws-ap-southeast-1.pusher.com wss://ws-us-east-1.pusher.com https://kick.com https://api.kick.com https://www.youtube.com https://youtube.com https://m.youtube.com https://events.7tv.io https://twshot.0r1.org; frame-src 'none'"
 
 const MIME_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -187,8 +193,19 @@ function createExpressApp(): express.Express {
     res.json(await fetchTwitchApiProxy(targetUrl))
   })
 
+  api.get('/emotes', async (req, res) => {
+    const targetUrl = typeof req.query.url === 'string' ? req.query.url : ''
+    res.json(await fetchEmotesApiProxy(targetUrl))
+  })
+
   api.get('/kick/channels/:slug', async (req, res) => {
     res.json(await fetchKickChannelProxy(req.params.slug))
+  })
+
+  api.get('/twshot/resolve', async (req, res) => {
+    const service = typeof req.query.service === 'string' ? req.query.service : ''
+    const id = typeof req.query.id === 'string' ? req.query.id : ''
+    res.json(await resolveTwshotImage(service, id))
   })
 
   api.post('/tiktok/connect', async (req, res) => {

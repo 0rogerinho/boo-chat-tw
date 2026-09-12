@@ -6,7 +6,13 @@ import { autoUpdater } from 'electron-updater'
 import { platform } from '../platform'
 import { TikTokLiveConnection, WebcastEvent } from 'tiktok-live-connector'
 import { loadAppConfig } from '../config/store'
-import { fetchKickChannelProxy, fetchTwitchApiProxy, fetchYouTubeProxy } from '../http/proxies'
+import {
+  fetchEmotesApiProxy,
+  fetchKickChannelProxy,
+  fetchTwitchApiProxy,
+  fetchYouTubeProxy
+} from '../http/proxies'
+import { resolveTwshotImage } from '../http/twshot'
 import { broadcastOverlayEvent } from '../overlay/bus'
 import { getLocalServerUrl, getOverlayUrl } from '../overlay/server'
 import { synthesizeLocalSpeech } from '../tts/piper'
@@ -435,6 +441,18 @@ export const registerIPC = (win: BrowserWindow) => {
 
   ipcMain.handle('fetch-kick-channel', async (_event, slug: string) => {
     return fetchKickChannelProxy(slug)
+  })
+
+  ipcMain.removeHandler('fetch-emotes-api')
+
+  ipcMain.handle('fetch-emotes-api', async (_event, url: string) => {
+    return fetchEmotesApiProxy(url)
+  })
+
+  ipcMain.removeHandler('twshot-resolve')
+
+  ipcMain.handle('twshot-resolve', async (_event, service: string, id: string) => {
+    return resolveTwshotImage(String(service ?? ''), String(id ?? ''))
   })
 
   // Handlers para o autoUpdater

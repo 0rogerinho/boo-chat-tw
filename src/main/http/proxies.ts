@@ -100,6 +100,62 @@ export async function fetchTwitchApiProxy(url: string) {
   }
 }
 
+const TWITCH_NUMERIC_ID = /^[0-9]{1,20}$/
+
+function isAllowedEmotesApiUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    if (parsed.protocol !== 'https:') return false
+
+    if (parsed.hostname === '7tv.io') {
+      if (parsed.pathname === '/v3/emote-sets/global') return true
+      const match = parsed.pathname.match(/^\/v3\/users\/twitch\/([0-9]{1,20})$/)
+      return Boolean(match && TWITCH_NUMERIC_ID.test(match[1]))
+    }
+
+    if (parsed.hostname === 'api.betterttv.net') {
+      if (parsed.pathname === '/3/cached/emotes/global') return true
+      const match = parsed.pathname.match(/^\/3\/cached\/users\/twitch\/([0-9]{1,20})$/)
+      return Boolean(match && TWITCH_NUMERIC_ID.test(match[1]))
+    }
+
+    return false
+  } catch {
+    return false
+  }
+}
+
+export async function fetchEmotesApiProxy(url: string) {
+  if (!isAllowedEmotesApiUrl(url)) {
+    return { success: false, error: 'URL da API de emotes não permitida' }
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    })
+
+    if (!response.ok) {
+      return {
+        success: false,
+        status: response.status,
+        error: `HTTP ${response.status}`
+      }
+    }
+
+    const data = await response.json()
+    return { success: true, status: response.status, data }
+  } catch (error) {
+    console.error('Erro ao fazer requisição à API de emotes:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
+  }
+}
+
 export async function fetchKickChannelProxy(slug: string) {
   const cleanSlug = slug.trim().replace(/^@/, '')
   if (!/^[a-zA-Z0-9_-]{1,50}$/.test(cleanSlug)) {

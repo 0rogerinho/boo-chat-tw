@@ -1,6 +1,14 @@
-import { Paintbrush, Type } from 'lucide-react'
+import { Circle, Paintbrush, Type } from 'lucide-react'
 import type { getConfigI18n } from '../../../shared/i18n'
-import { ColorField, SelectField, SettingCard, SliderField, settingStackClass } from './SettingUi'
+import { FieldLabel } from './FieldLabel'
+import {
+  ColorField,
+  SelectField,
+  SettingCard,
+  SettingSwitch,
+  SliderField,
+  settingStackClass
+} from './SettingUi'
 
 const FONT_WEIGHTS = [300, 400, 500, 600, 700] as const
 
@@ -13,10 +21,12 @@ type AppearanceSettingProps = {
   fontWeight: number
   background: string
   opacity: number
+  platformColorDot: boolean
   onFontSizeChange: (size: number) => void
   onFontWeightChange: (weight: number) => void
   onBackgroundChange: (color: string) => void
   onOpacityChange: (opacity: number) => void
+  onPlatformColorDotChange: (enabled: boolean) => void
 }
 
 export function AppearanceSetting({
@@ -26,14 +36,21 @@ export function AppearanceSetting({
   fontWeight,
   background,
   opacity,
+  platformColorDot,
   onFontSizeChange,
   onFontWeightChange,
   onBackgroundChange,
-  onOpacityChange
+  onOpacityChange,
+  onPlatformColorDotChange
 }: AppearanceSettingProps) {
   return (
     <div className={settingStackClass}>
-      <SettingCard icon={Type} title={i18n.fontTitle} help={i18n.fontSizeHelp} helpAriaLabel={i18n.helpAriaLabel}>
+      <SettingCard
+        icon={Type}
+        title={i18n.fontTitle}
+        help={i18n.fontSizeHelp}
+        helpAriaLabel={i18n.helpAriaLabel}
+      >
         <SliderField
           id="font-size"
           label={i18n.fontSizeLabel}
@@ -93,6 +110,25 @@ export function AppearanceSetting({
           maxLabel={i18n.maxLabel}
           onChange={onOpacityChange}
         />
+      </SettingCard>
+
+      <SettingCard
+        icon={Circle}
+        title={i18n.platformColorDotTitle}
+        help={i18n.platformColorDotHelp}
+        helpAriaLabel={i18n.helpAriaLabel}
+        hint={i18n.platformColorDotHelp}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <FieldLabel as="span" help={i18n.platformColorDotHelp} helpAriaLabel={i18n.helpAriaLabel}>
+            {i18n.platformColorDotLabel}
+          </FieldLabel>
+          <SettingSwitch
+            checked={platformColorDot}
+            label={platformColorDot ? i18n.emotesOn : i18n.emotesOff}
+            onChange={onPlatformColorDotChange}
+          />
+        </div>
       </SettingCard>
     </div>
   )

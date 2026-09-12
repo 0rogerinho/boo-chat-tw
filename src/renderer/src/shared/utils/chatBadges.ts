@@ -71,7 +71,7 @@ export function roleBadgeIcon(role: string): string | undefined {
 
 function firstImageUrl(...values: unknown[]): string | undefined {
   for (const value of values) {
-    if (typeof value === 'string' && /^https?:\/\//.test(value)) return value
+    if (typeof value === 'string' && /^https:\/\//.test(value) && !value.includes('@')) return value
     if (Array.isArray(value)) {
       const nested = firstImageUrl(...value)
       if (nested) return nested

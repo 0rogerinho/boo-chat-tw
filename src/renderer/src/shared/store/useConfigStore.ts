@@ -57,6 +57,16 @@ export type TConfigDataProps = {
     viewersAlwaysVisible: boolean
     viewersHideAfterSeconds: number
   }
+  emotes: {
+    seventv: boolean
+    betterttv: boolean
+  }
+  media: {
+    linkImages: boolean
+  }
+  appearance: {
+    platformColorDot: boolean
+  }
   language: AppLanguageCode
 }
 

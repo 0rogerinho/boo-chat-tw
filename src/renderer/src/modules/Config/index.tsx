@@ -9,7 +9,7 @@ import { VisibilitySetting } from './components/VisibilitySetting'
 import { ObsAppearanceSetting } from './components/ObsAppearanceSetting'
 import { AppearanceSetting } from './components/AppearanceSetting'
 import { ChannelField } from './components/ChannelField'
-import { PrimaryAction, SettingCard, settingStackClass } from './components/SettingUi'
+import { PrimaryAction, SettingCard, SettingSwitch, settingStackClass } from './components/SettingUi'
 import { DEFAULT_CONFIG_DATA } from '../../shared/constants/defaultConfig'
 import Button from '../../shared/components/Button'
 import { ErrorNotification, SuccessNotification } from '../../shared/components/ErrorNotification'
@@ -17,7 +17,7 @@ import { ErrorNotification, SuccessNotification } from '../../shared/components/
 import { getMessageSoundLabels, parseMessageSound } from '../../shared/constants/messageSounds'
 import { APP_LANGUAGE_OPTIONS, getConfigI18n, normalizeLanguage } from '../../shared/i18n'
 import { useModel } from './hooks/useModel'
-import { ChevronDown, Copy, Filter, Info, Languages, Link2, MessagesSquare } from 'lucide-react'
+import { ChevronDown, Copy, Filter, Image, Info, Languages, Link2, MessagesSquare, Smile } from 'lucide-react'
 import twitchLogo from '../../shared/assets/twitch-logo.png'
 import kickLogo from '../../shared/assets/kick-logo.webp'
 import youtubeLogo from '../../shared/assets/youtube-logo.png'
@@ -161,149 +161,203 @@ export const Config = () => {
                 </div>
 
                 <div className={settingStackClass}>
-                <SoundSetting
-                  title={i18n.soundTitle}
-                  help={i18n.soundDescription}
-                  helpAriaLabel={i18n.helpAriaLabel}
-                  onLabel={i18n.ttsOn}
-                  offLabel={i18n.ttsOff}
-                  offHint={i18n.soundDescription}
-                  soundLabel={i18n.soundTypeLabel}
-                  volumeLabel={i18n.soundVolumeLabel}
-                  volumeHelp={i18n.soundVolumeHelp}
-                  mutedLabel={i18n.mutedLabel}
-                  maxLabel={i18n.maxLabel}
-                  testLabel={i18n.testSound}
-                  volume={config?.notifications?.messageSoundVolume ?? 85}
-                  sound={parseMessageSound(config?.notifications?.messageSound)}
-                  soundLabels={soundLabels}
-                  onVolumeChange={(messageSoundVolume) =>
-                    updateConfig('notifications', {
-                      ...config?.notifications,
-                      messageSoundVolume
-                    })
-                  }
-                  onSoundChange={(messageSound) =>
-                    updateConfig('notifications', {
-                      ...config?.notifications,
-                      messageSound
-                    })
-                  }
-                />
+                  <SoundSetting
+                    title={i18n.soundTitle}
+                    help={i18n.soundDescription}
+                    helpAriaLabel={i18n.helpAriaLabel}
+                    onLabel={i18n.ttsOn}
+                    offLabel={i18n.ttsOff}
+                    offHint={i18n.soundDescription}
+                    soundLabel={i18n.soundTypeLabel}
+                    volumeLabel={i18n.soundVolumeLabel}
+                    volumeHelp={i18n.soundVolumeHelp}
+                    mutedLabel={i18n.mutedLabel}
+                    maxLabel={i18n.maxLabel}
+                    testLabel={i18n.testSound}
+                    volume={config?.notifications?.messageSoundVolume ?? 85}
+                    sound={parseMessageSound(config?.notifications?.messageSound)}
+                    soundLabels={soundLabels}
+                    onVolumeChange={(messageSoundVolume) =>
+                      updateConfig('notifications', {
+                        ...config?.notifications,
+                        messageSoundVolume
+                      })
+                    }
+                    onSoundChange={(messageSound) =>
+                      updateConfig('notifications', {
+                        ...config?.notifications,
+                        messageSound
+                      })
+                    }
+                  />
 
-                <TtsSetting
-                  title={i18n.ttsTitle}
-                  help={i18n.ttsDescription}
-                  helpAriaLabel={i18n.helpAriaLabel}
-                  onLabel={i18n.ttsOn}
-                  offLabel={i18n.ttsOff}
-                  volumeLabel={i18n.ttsVolumeLabel}
-                  volumeHelp={i18n.ttsVolumeHelp}
-                  rateLabel={i18n.ttsRateLabel}
-                  rateHelp={i18n.ttsRateHelp}
-                  readAuthorLabel={i18n.ttsReadAuthorLabel}
-                  readAuthorHelp={i18n.ttsReadAuthorHelp}
-                  mutedLabel={i18n.mutedLabel}
-                  maxLabel={i18n.maxLabel}
-                  slowLabel={i18n.ttsSlowLabel}
-                  fastLabel={i18n.ttsFastLabel}
-                  testLabel={i18n.ttsTestLabel}
-                  testAuthor={i18n.ttsTestAuthor}
-                  testMessage={i18n.ttsTestMessage}
-                  generatingLabel={i18n.ttsGenerating}
-                  playErrorLabel={i18n.ttsPlayError}
-                  retryLabel={i18n.ttsRetryLabel}
-                  exampleLabel={i18n.ttsExampleLabel}
-                  offHint={i18n.ttsOffHint}
-                  voiceLabel={i18n.ttsVoiceLabel}
-                  voiceHelp={i18n.ttsVoiceHelp}
-                  voiceHints={{
-                    'pt-BR-faber': i18n.ttsVoiceHintFaber,
-                    'pt-BR-cadu': i18n.ttsVoiceHintCadu,
-                    'pt-BR-jeff': i18n.ttsVoiceHintJeff
-                  }}
-                  language={language}
-                  enabled={config?.notifications?.ttsEnabled === true}
-                  volume={config?.notifications?.ttsVolume ?? 85}
-                  rate={config?.notifications?.ttsRate ?? 1}
-                  readAuthor={config?.notifications?.ttsReadAuthor !== false}
-                  voice={config?.notifications?.ttsVoice ?? 'auto'}
-                  onEnabledChange={(ttsEnabled) =>
-                    updateConfig('notifications', {
-                      ...config?.notifications,
-                      ttsEnabled
-                    })
-                  }
-                  onVolumeChange={(ttsVolume) =>
-                    updateConfig('notifications', {
-                      ...config?.notifications,
-                      ttsVolume
-                    })
-                  }
-                  onRateChange={(ttsRate) =>
-                    updateConfig('notifications', {
-                      ...config?.notifications,
-                      ttsRate
-                    })
-                  }
-                  onReadAuthorChange={(ttsReadAuthor) =>
-                    updateConfig('notifications', {
-                      ...config?.notifications,
-                      ttsReadAuthor
-                    })
-                  }
-                  onVoiceChange={(ttsVoice) =>
-                    updateConfig('notifications', {
-                      ...config?.notifications,
-                      ttsVoice
-                    })
-                  }
-                />
+                  <TtsSetting
+                    title={i18n.ttsTitle}
+                    help={i18n.ttsDescription}
+                    helpAriaLabel={i18n.helpAriaLabel}
+                    onLabel={i18n.ttsOn}
+                    offLabel={i18n.ttsOff}
+                    volumeLabel={i18n.ttsVolumeLabel}
+                    volumeHelp={i18n.ttsVolumeHelp}
+                    rateLabel={i18n.ttsRateLabel}
+                    rateHelp={i18n.ttsRateHelp}
+                    readAuthorLabel={i18n.ttsReadAuthorLabel}
+                    readAuthorHelp={i18n.ttsReadAuthorHelp}
+                    mutedLabel={i18n.mutedLabel}
+                    maxLabel={i18n.maxLabel}
+                    slowLabel={i18n.ttsSlowLabel}
+                    fastLabel={i18n.ttsFastLabel}
+                    testLabel={i18n.ttsTestLabel}
+                    testAuthor={i18n.ttsTestAuthor}
+                    testMessage={i18n.ttsTestMessage}
+                    generatingLabel={i18n.ttsGenerating}
+                    playErrorLabel={i18n.ttsPlayError}
+                    retryLabel={i18n.ttsRetryLabel}
+                    exampleLabel={i18n.ttsExampleLabel}
+                    offHint={i18n.ttsOffHint}
+                    voiceLabel={i18n.ttsVoiceLabel}
+                    voiceHelp={i18n.ttsVoiceHelp}
+                    voiceHints={{
+                      'pt-BR-faber': i18n.ttsVoiceHintFaber,
+                      'pt-BR-cadu': i18n.ttsVoiceHintCadu,
+                      'pt-BR-jeff': i18n.ttsVoiceHintJeff
+                    }}
+                    language={language}
+                    enabled={config?.notifications?.ttsEnabled === true}
+                    volume={config?.notifications?.ttsVolume ?? 85}
+                    rate={config?.notifications?.ttsRate ?? 1}
+                    readAuthor={config?.notifications?.ttsReadAuthor !== false}
+                    voice={config?.notifications?.ttsVoice ?? 'auto'}
+                    onEnabledChange={(ttsEnabled) =>
+                      updateConfig('notifications', {
+                        ...config?.notifications,
+                        ttsEnabled
+                      })
+                    }
+                    onVolumeChange={(ttsVolume) =>
+                      updateConfig('notifications', {
+                        ...config?.notifications,
+                        ttsVolume
+                      })
+                    }
+                    onRateChange={(ttsRate) =>
+                      updateConfig('notifications', {
+                        ...config?.notifications,
+                        ttsRate
+                      })
+                    }
+                    onReadAuthorChange={(ttsReadAuthor) =>
+                      updateConfig('notifications', {
+                        ...config?.notifications,
+                        ttsReadAuthor
+                      })
+                    }
+                    onVoiceChange={(ttsVoice) =>
+                      updateConfig('notifications', {
+                        ...config?.notifications,
+                        ttsVoice
+                      })
+                    }
+                  />
 
-                <VisibilitySetting
-                  title={i18n.messageVisibilitySystemTitle}
-                  help={i18n.messageVisibilitySystemHelp}
-                  helpAriaLabel={i18n.helpAriaLabel}
-                  icon={Info}
-                  alwaysVisible={config?.messageVisibility?.systemAlwaysVisible !== false}
-                  seconds={config?.messageVisibility?.systemHideAfterSeconds ?? 8}
-                  alwaysLabel={i18n.messageVisibilityAlways}
-                  timedLabel={i18n.messageVisibilityTimed}
-                  hideAfterLabel={i18n.messageVisibilityHideAfter}
-                  secondsLabel={i18n.messageVisibilitySeconds}
-                  onAlwaysVisibleChange={(always) =>
-                    updateConfig('messageVisibility', { systemAlwaysVisible: always })
-                  }
-                  onSecondsChange={(seconds) =>
-                    updateConfig('messageVisibility', { systemHideAfterSeconds: seconds })
-                  }
-                />
+                  <VisibilitySetting
+                    title={i18n.messageVisibilitySystemTitle}
+                    help={i18n.messageVisibilitySystemHelp}
+                    helpAriaLabel={i18n.helpAriaLabel}
+                    icon={Info}
+                    alwaysVisible={config?.messageVisibility?.systemAlwaysVisible !== false}
+                    seconds={config?.messageVisibility?.systemHideAfterSeconds ?? 8}
+                    alwaysLabel={i18n.messageVisibilityAlways}
+                    timedLabel={i18n.messageVisibilityTimed}
+                    hideAfterLabel={i18n.messageVisibilityHideAfter}
+                    secondsLabel={i18n.messageVisibilitySeconds}
+                    onAlwaysVisibleChange={(always) =>
+                      updateConfig('messageVisibility', { systemAlwaysVisible: always })
+                    }
+                    onSecondsChange={(seconds) =>
+                      updateConfig('messageVisibility', { systemHideAfterSeconds: seconds })
+                    }
+                  />
 
-                <VisibilitySetting
-                  title={i18n.messageVisibilityViewersTitle}
-                  help={i18n.messageVisibilityViewersHelp}
-                  helpAriaLabel={i18n.helpAriaLabel}
-                  icon={MessagesSquare}
-                  alwaysVisible={config?.messageVisibility?.viewersAlwaysVisible !== false}
-                  seconds={config?.messageVisibility?.viewersHideAfterSeconds ?? 15}
-                  alwaysLabel={i18n.messageVisibilityAlways}
-                  timedLabel={i18n.messageVisibilityTimed}
-                  hideAfterLabel={i18n.messageVisibilityHideAfter}
-                  secondsLabel={i18n.messageVisibilitySeconds}
-                  onAlwaysVisibleChange={(always) =>
-                    updateConfig('messageVisibility', { viewersAlwaysVisible: always })
-                  }
-                  onSecondsChange={(seconds) =>
-                    updateConfig('messageVisibility', { viewersHideAfterSeconds: seconds })
-                  }
-                />
+                  <VisibilitySetting
+                    title={i18n.messageVisibilityViewersTitle}
+                    help={i18n.messageVisibilityViewersHelp}
+                    helpAriaLabel={i18n.helpAriaLabel}
+                    icon={MessagesSquare}
+                    alwaysVisible={config?.messageVisibility?.viewersAlwaysVisible !== false}
+                    seconds={config?.messageVisibility?.viewersHideAfterSeconds ?? 15}
+                    alwaysLabel={i18n.messageVisibilityAlways}
+                    timedLabel={i18n.messageVisibilityTimed}
+                    hideAfterLabel={i18n.messageVisibilityHideAfter}
+                    secondsLabel={i18n.messageVisibilitySeconds}
+                    onAlwaysVisibleChange={(always) =>
+                      updateConfig('messageVisibility', { viewersAlwaysVisible: always })
+                    }
+                    onSecondsChange={(seconds) =>
+                      updateConfig('messageVisibility', { viewersHideAfterSeconds: seconds })
+                    }
+                  />
+
+                  <SettingCard
+                    icon={Smile}
+                    title={i18n.emotesTitle}
+                    help={i18n.emotesHelp}
+                    helpAriaLabel={i18n.helpAriaLabel}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <FieldLabel as="span" help={i18n.emotesHelp} helpAriaLabel={i18n.helpAriaLabel}>
+                        {i18n.emotesSeventvLabel}
+                      </FieldLabel>
+                      <SettingSwitch
+                        checked={config?.emotes?.seventv !== false}
+                        label={config?.emotes?.seventv !== false ? i18n.emotesOn : i18n.emotesOff}
+                        onChange={(seventv) => updateConfig('emotes', { seventv })}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <FieldLabel as="span" help={i18n.emotesHelp} helpAriaLabel={i18n.helpAriaLabel}>
+                        {i18n.emotesBetterttvLabel}
+                      </FieldLabel>
+                      <SettingSwitch
+                        checked={config?.emotes?.betterttv !== false}
+                        label={config?.emotes?.betterttv !== false ? i18n.emotesOn : i18n.emotesOff}
+                        onChange={(betterttv) => updateConfig('emotes', { betterttv })}
+                      />
+                    </div>
+                  </SettingCard>
+
+                  <SettingCard
+                    icon={Image}
+                    title={i18n.linkImagesTitle}
+                    help={i18n.linkImagesHelp}
+                    helpAriaLabel={i18n.helpAriaLabel}
+                    hint={i18n.linkImagesHelp}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <FieldLabel
+                        as="span"
+                        help={i18n.linkImagesHelp}
+                        helpAriaLabel={i18n.helpAriaLabel}
+                      >
+                        {i18n.linkImagesLabel}
+                      </FieldLabel>
+                      <SettingSwitch
+                        checked={config?.media?.linkImages === true}
+                        label={config?.media?.linkImages === true ? i18n.emotesOn : i18n.emotesOff}
+                        onChange={(linkImages) => updateConfig('media', { linkImages })}
+                      />
+                    </div>
+                  </SettingCard>
                 </div>
               </div>
             )}
 
             {section === 'channels' && (
               <div className="space-y-5">
-                <SectionHeader title={i18n.sidebarChannels} description={i18n.sidebarChannelsIntro} />
+                <SectionHeader
+                  title={i18n.sidebarChannels}
+                  description={i18n.sidebarChannelsIntro}
+                />
 
                 <ChannelField
                   id="channel"
@@ -366,6 +420,7 @@ export const Config = () => {
                   fontWeight={config?.font?.weight ?? 400}
                   background={config?.background?.background ?? ''}
                   opacity={config?.background?.opacity ?? 30}
+                  platformColorDot={config?.appearance?.platformColorDot === true}
                   onFontSizeChange={(size) =>
                     updateConfig('font', {
                       ...config?.font,
@@ -385,6 +440,9 @@ export const Config = () => {
                       opacity
                     })
                   }
+                  onPlatformColorDotChange={(platformColorDot) =>
+                    updateConfig('appearance', { platformColorDot })
+                  }
                 />
               </div>
             )}
@@ -394,31 +452,31 @@ export const Config = () => {
                 <SectionHeader title={i18n.sidebarObs} description={i18n.sidebarObsIntro} />
 
                 <div className={settingStackClass}>
-                <SettingCard
-                  icon={Link2}
-                  title={i18n.obsTitle}
-                  help={`${i18n.obsDescription}\n\n${i18n.obsHelp}`}
-                  helpAriaLabel={i18n.helpAriaLabel}
-                  hint={i18n.obsDescription}
-                >
-                  <input
-                    className="w-full px-3 py-2 bg-gray-950/60 border border-gray-700 rounded-md text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    readOnly
-                    value={overlayUrl}
-                    aria-label={i18n.obsCopyAria}
-                  />
-                  <PrimaryAction className="w-full" onClick={() => void copyOverlayUrl()}>
-                    <Copy size={14} />
-                    {copiedOverlay ? i18n.obsCopied : i18n.obsCopyLink}
-                  </PrimaryAction>
-                </SettingCard>
+                  <SettingCard
+                    icon={Link2}
+                    title={i18n.obsTitle}
+                    help={`${i18n.obsDescription}\n\n${i18n.obsHelp}`}
+                    helpAriaLabel={i18n.helpAriaLabel}
+                    hint={i18n.obsDescription}
+                  >
+                    <input
+                      className="w-full px-3 py-2 bg-gray-950/60 border border-gray-700 rounded-md text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      readOnly
+                      value={overlayUrl}
+                      aria-label={i18n.obsCopyAria}
+                    />
+                    <PrimaryAction className="w-full" onClick={() => void copyOverlayUrl()}>
+                      <Copy size={14} />
+                      {copiedOverlay ? i18n.obsCopied : i18n.obsCopyLink}
+                    </PrimaryAction>
+                  </SettingCard>
 
-                <ObsAppearanceSetting
-                  i18n={i18n}
-                  inputClass={inputClass}
-                  appearance={config?.obsAppearance ?? DEFAULT_CONFIG_DATA.obsAppearance}
-                  onChange={(value) => updateConfig('obsAppearance', value)}
-                />
+                  <ObsAppearanceSetting
+                    i18n={i18n}
+                    inputClass={inputClass}
+                    appearance={config?.obsAppearance ?? DEFAULT_CONFIG_DATA.obsAppearance}
+                    onChange={(value) => updateConfig('obsAppearance', value)}
+                  />
                 </div>
               </div>
             )}
@@ -428,68 +486,68 @@ export const Config = () => {
                 <SectionHeader title={i18n.sidebarFilters} description={i18n.sidebarFiltersIntro} />
 
                 <div className={settingStackClass}>
-                <SettingCard
-                  icon={Filter}
-                  title={i18n.ignoreBotsTitle}
-                  help={i18n.ignoreBotsDescription}
-                  helpAriaLabel={i18n.helpAriaLabel}
-                  hint={i18n.ignoreBotsDescription}
-                >
-                  <div
-                    id="ignore-bots"
-                    className="w-full min-h-[3rem] px-2 py-1.5 bg-gray-950/60 border border-gray-700 rounded-md flex flex-wrap gap-1.5 items-center focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent"
-                    role="group"
-                    aria-label={i18n.ignoreBotsAriaLabel}
+                  <SettingCard
+                    icon={Filter}
+                    title={i18n.ignoreBotsTitle}
+                    help={i18n.ignoreBotsDescription}
+                    helpAriaLabel={i18n.helpAriaLabel}
+                    hint={i18n.ignoreBotsDescription}
                   >
-                    {(config?.bots?.userBots ?? []).map((name, index) => (
-                      <span
-                        key={`${name}-${index}`}
-                        className="inline-flex items-center gap-1 rounded-md border border-gray-600 bg-gray-800 pl-2 pr-1 py-0.5 text-sm text-white"
-                      >
-                        <span className="max-w-[200px] truncate" title={name}>
-                          {name}
-                        </span>
-                        <button
-                          type="button"
-                          className="shrink-0 rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
-                          aria-label={`${i18n.removeBotAriaPrefix} ${name}`}
-                          onClick={() => removeBotTag(index)}
+                    <div
+                      id="ignore-bots"
+                      className="w-full min-h-[3rem] px-2 py-1.5 bg-gray-950/60 border border-gray-700 rounded-md flex flex-wrap gap-1.5 items-center focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent"
+                      role="group"
+                      aria-label={i18n.ignoreBotsAriaLabel}
+                    >
+                      {(config?.bots?.userBots ?? []).map((name, index) => (
+                        <span
+                          key={`${name}-${index}`}
+                          className="inline-flex items-center gap-1 rounded-md border border-gray-600 bg-gray-800 pl-2 pr-1 py-0.5 text-sm text-white"
                         >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                    <input
-                      className="min-w-[8rem] flex-1 bg-transparent px-1 py-1 text-sm text-white placeholder-gray-400 focus:outline-none"
-                      type="text"
-                      placeholder={
-                        (config?.bots?.userBots?.length ?? 0) === 0
-                          ? i18n.ignoreBotsPlaceholderEmpty
-                          : i18n.ignoreBotsPlaceholderAdd
-                      }
-                      value={botDraft}
-                      onChange={({ target }) => setBotDraft(target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
-                          e.preventDefault()
-                          commitBotDraft()
-                          return
+                          <span className="max-w-[200px] truncate" title={name}>
+                            {name}
+                          </span>
+                          <button
+                            type="button"
+                            className="shrink-0 rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
+                            aria-label={`${i18n.removeBotAriaPrefix} ${name}`}
+                            onClick={() => removeBotTag(index)}
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                      <input
+                        className="min-w-[8rem] flex-1 bg-transparent px-1 py-1 text-sm text-white placeholder-gray-400 focus:outline-none"
+                        type="text"
+                        placeholder={
+                          (config?.bots?.userBots?.length ?? 0) === 0
+                            ? i18n.ignoreBotsPlaceholderEmpty
+                            : i18n.ignoreBotsPlaceholderAdd
                         }
-                        if (
-                          e.key === 'Backspace' &&
-                          botDraft === '' &&
-                          (config?.bots?.userBots?.length ?? 0) > 0
-                        ) {
-                          e.preventDefault()
-                          removeBotTag((config?.bots?.userBots?.length ?? 1) - 1)
-                        }
-                      }}
-                      onBlur={() => {
-                        if (parseBotDraft(botDraft).length > 0) commitBotDraft()
-                      }}
-                    />
-                  </div>
-                </SettingCard>
+                        value={botDraft}
+                        onChange={({ target }) => setBotDraft(target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
+                            e.preventDefault()
+                            commitBotDraft()
+                            return
+                          }
+                          if (
+                            e.key === 'Backspace' &&
+                            botDraft === '' &&
+                            (config?.bots?.userBots?.length ?? 0) > 0
+                          ) {
+                            e.preventDefault()
+                            removeBotTag((config?.bots?.userBots?.length ?? 1) - 1)
+                          }
+                        }}
+                        onBlur={() => {
+                          if (parseBotDraft(botDraft).length > 0) commitBotDraft()
+                        }}
+                      />
+                    </div>
+                  </SettingCard>
                 </div>
               </div>
             )}

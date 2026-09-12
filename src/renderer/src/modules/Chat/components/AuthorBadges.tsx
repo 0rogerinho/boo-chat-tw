@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { resolveTwitchBadge, subscribeTwitchBadges } from '../../../shared/api/twitchBadges'
 import { roleBadgeIcon, type ChatBadge } from '../../../shared/utils/chatBadges'
+import { isSafeDisplayImageUrl } from '../../../shared/utils/chatHtml'
 
 export function AuthorBadges({ badges }: { badges?: ChatBadge[] }) {
   const [, setRevision] = useState(0)
@@ -39,7 +40,7 @@ export function AuthorBadges({ badges }: { badges?: ChatBadge[] }) {
     <span className="inline-flex items-center gap-0.5 mr-1 align-middle">
       {resolved.map((badge) => (
         <span key={badge.id} className="inline-flex items-center gap-0.5 align-middle">
-          {badge.imageUrl ? (
+          {badge.imageUrl && isSafeDisplayImageUrl(badge.imageUrl) ? (
             <img
               src={badge.imageUrl}
               alt={badge.title ?? badge.id}

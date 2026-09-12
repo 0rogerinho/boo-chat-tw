@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from 'react'
 import YouTubeScraperService from '../../../shared/api/youtubeScraper'
 import { getChatSystemTextWithParams } from '../../../shared/i18n'
 import type { ChatBadge } from '../../../shared/utils/chatBadges'
+import { safeChatImageHtml } from '../../../shared/utils/chatHtml'
 
 interface ChatMessage {
   id: string
@@ -37,8 +38,11 @@ export default function useYouTubeChat() {
     const emojiRegex = /\[emoji:(\d+):([^\]]+)\]/g
 
     return message.replace(emojiRegex, (_, emojiId, emojiName) => {
-      const emojiUrl = `https://yt3.ggpht.com/${emojiId}`
-      return `<img style="display:inline; width:24px; height:24px; vertical-align:middle; margin:0 2px;" src="${emojiUrl}" alt="${emojiName}" title="${emojiName}" />`
+      return safeChatImageHtml(`https://yt3.ggpht.com/${emojiId}`, 'emote', {
+        alt: String(emojiName ?? ''),
+        title: String(emojiName ?? ''),
+        style: 'display:inline;width:24px;height:24px;vertical-align:middle;margin:0 2px'
+      })
     })
   }
 
@@ -94,7 +98,14 @@ export default function useYouTubeChat() {
         if (messages.length > 0) {
           setYoutubeChat((prevChat) => {
             // Filtrar mensagens duplicadas usando o estado atual
-            const newMessages = messages.filter(
+            const incoming = messages.map((item) => ({
+              ...item,
+              message: {
+                ...item.message,
+                text: processYouTubeEmojis(item.message.text)
+              }
+            }))
+            const newMessages = incoming.filter(
               (data) =>
                 !prevChat.some(
                   (msg) =>
@@ -103,8 +114,7 @@ export default function useYouTubeChat() {
             )
 
             if (newMessages.length > 0) {
-              const updatedChat = [...prevChat, ...newMessages]
-              return updatedChat
+              return [...prevChat, ...newMessages]
             }
 
             return prevChat

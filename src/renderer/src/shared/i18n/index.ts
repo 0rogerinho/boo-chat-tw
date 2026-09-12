@@ -44,6 +44,9 @@ type ConfigI18nText = {
   bgPlaceholder: string
   bgOpacityLabel: string
   bgOpacityHelp: string
+  platformColorDotTitle: string
+  platformColorDotHelp: string
+  platformColorDotLabel: string
   soundTitle: string
   soundDescription: string
   soundTypeLabel: string
@@ -138,6 +141,15 @@ type ConfigI18nText = {
   messageVisibilityTimed: string
   messageVisibilityHideAfter: string
   messageVisibilitySeconds: string
+  emotesTitle: string
+  emotesHelp: string
+  emotesSeventvLabel: string
+  emotesBetterttvLabel: string
+  emotesOn: string
+  emotesOff: string
+  linkImagesTitle: string
+  linkImagesHelp: string
+  linkImagesLabel: string
   fontWeights: Record<number, string>
 }
 
@@ -145,8 +157,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
   'pt-BR': {
     helpAriaLabel: 'Ajuda',
     tiktokChannelLabel: 'Nome do canal do TikTok',
-    tiktokChannelHelp:
-      'Usuario do TikTok cujo chat ao vivo sera exibido. Pode ser com ou sem @.',
+    tiktokChannelHelp: 'Usuario do TikTok cujo chat ao vivo sera exibido. Pode ser com ou sem @.',
     languageLabel: 'Idioma do aplicativo',
     languageHelp: 'Define o idioma da interface do BooChat, incluindo menus e avisos.',
     twitchChannelLabel: 'Nome do canal da Twitch',
@@ -154,8 +165,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     kickChannelLabel: 'Nome do canal da Kick',
     kickChannelHelp: 'Canal da Kick cujo chat sera exibido. Digite o slug do canal, sem o link.',
     youtubeChannelLabel: 'Nome do canal do YouTube',
-    youtubeChannelHelp:
-      'Canal, @handle ou URL da live do YouTube para capturar o chat.',
+    youtubeChannelHelp: 'Canal, @handle ou URL da live do YouTube para capturar o chat.',
     channelPlaceholder: 'Digite o nome do canal ex: devrogerinho',
     youtubePlaceholder: 'Ex: @OCodigodoRogerinho ou https://youtube.com/watch?v=...',
     tiktokPlaceholder: 'Ex: @devrogerinho ou devrogerinho',
@@ -170,6 +180,10 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     bgPlaceholder: 'Codigo hexadecimal ou deixe vazio',
     bgOpacityLabel: 'Opacidade do fundo',
     bgOpacityHelp: 'Quao visivel fica o fundo atras da mensagem. 0 e transparente, 100 e solido.',
+    platformColorDotTitle: 'Icone da plataforma',
+    platformColorDotHelp:
+      'Troca o logo da Twitch, Kick, YouTube e TikTok por um circulo na cor de cada plataforma.',
+    platformColorDotLabel: 'Usar circulo colorido',
     soundTitle: 'Som ao receber mensagem',
     soundDescription:
       'Toca um alerta quando chegar mensagem nova do chat (Twitch, Kick, YouTube ou TikTok).',
@@ -196,7 +210,8 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     ttsGenerating: 'Preparando a voz...',
     ttsPlayError: 'Nao deu para tocar. Na primeira vez a voz precisa baixar; depois tenta de novo.',
     ttsVoiceLabel: 'Voz',
-    ttsVoiceHelp: 'Vozes locais em portugues. Cadu e Jeff baixam o modelo na primeira vez (~60 MB).',
+    ttsVoiceHelp:
+      'Vozes locais em portugues. Cadu e Jeff baixam o modelo na primeira vez (~60 MB).',
     ttsVoiceAuto: 'Automatico',
     ttsSlowLabel: 'Lenta',
     ttsFastLabel: 'Rapida',
@@ -257,7 +272,8 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     obsPreviewUser: 'viewer',
     obsPreviewMessage: 'mensagem de exemplo',
     sidebarGeneral: 'Geral',
-    sidebarGeneralIntro: 'Idioma, som de alerta, leitor de voz e quanto tempo as mensagens ficam visiveis.',
+    sidebarGeneralIntro:
+      'Idioma, emotes de terceiros, som de alerta, leitor de voz e quanto tempo as mensagens ficam visiveis.',
     sidebarChannels: 'Canais',
     sidebarChannelsIntro: 'Conecte os chats da Twitch, Kick, YouTube e TikTok.',
     sidebarAppearance: 'Aparencia',
@@ -277,6 +293,17 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     messageVisibilityTimed: 'Desaparecer',
     messageVisibilityHideAfter: 'Sumir depois de',
     messageVisibilitySeconds: 'segundos',
+    emotesTitle: 'Emotes de terceiros',
+    emotesHelp:
+      'Mostra emotes extras da 7TV e BetterTTV no chat da Twitch. Os catalogos sao baixados uma vez e ficam em cache.',
+    emotesSeventvLabel: '7TV',
+    emotesBetterttvLabel: 'BetterTTV',
+    emotesOn: 'Ligado',
+    emotesOff: 'Desligado',
+    linkImagesTitle: 'Imagens e GIFs',
+    linkImagesHelp:
+      'Quando alguem envia um link direto de imagem ou GIF (.png, .jpg, .gif, .webp), o arquivo aparece no chat. Tambem mostra prints da TWShot e links do Lightshot (prnt.sc), Imgur e Tenor.',
+    linkImagesLabel: 'Mostrar imagens dos links',
     fontWeights: {
       300: 'Leve',
       400: 'Normal',
@@ -292,9 +319,11 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     languageLabel: 'App language',
     languageHelp: 'Sets the BooChat interface language, including menus and system notices.',
     twitchChannelLabel: 'Twitch channel name',
-    twitchChannelHelp: 'Twitch channel whose chat will be shown. Enter the name only, without the URL.',
+    twitchChannelHelp:
+      'Twitch channel whose chat will be shown. Enter the name only, without the URL.',
     kickChannelLabel: 'Kick channel name',
-    kickChannelHelp: 'Kick channel whose chat will be shown. Enter the channel slug, without the URL.',
+    kickChannelHelp:
+      'Kick channel whose chat will be shown. Enter the channel slug, without the URL.',
     youtubeChannelLabel: 'YouTube channel name',
     youtubeChannelHelp: 'Channel name, @handle, or live URL used to capture YouTube chat.',
     channelPlaceholder: 'Enter the channel name, e.g. devrogerinho',
@@ -311,8 +340,13 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     bgPlaceholder: 'Hex color code or leave empty',
     bgOpacityLabel: 'Background opacity',
     bgOpacityHelp: 'How visible the message background is. 0 is transparent, 100 is solid.',
+    platformColorDotTitle: 'Platform icon',
+    platformColorDotHelp:
+      'Replaces the Twitch, Kick, YouTube, and TikTok logos with a circle in each platform color.',
+    platformColorDotLabel: 'Use a colored circle',
     soundTitle: 'Message notification sound',
-    soundDescription: 'Plays an alert when a new chat message arrives (Twitch, Kick, YouTube, or TikTok).',
+    soundDescription:
+      'Plays an alert when a new chat message arrives (Twitch, Kick, YouTube, or TikTok).',
     soundTypeLabel: 'Alert sound',
     soundVolumeLabel: 'Volume / intensity',
     soundVolumeHelp: 'How loud the alert is when a new message arrives.',
@@ -334,9 +368,11 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     ttsTestAuthor: 'ana',
     ttsTestMessage: 'hey, just checking the voice with a test message.',
     ttsGenerating: 'Preparing the voice...',
-    ttsPlayError: 'Could not play the voice. The first run needs to download the model; then try again.',
+    ttsPlayError:
+      'Could not play the voice. The first run needs to download the model; then try again.',
     ttsVoiceLabel: 'Voice',
-    ttsVoiceHelp: 'Local Portuguese voices. Cadu and Jeff download their model on first use (~60 MB).',
+    ttsVoiceHelp:
+      'Local Portuguese voices. Cadu and Jeff download their model on first use (~60 MB).',
     ttsVoiceAuto: 'Automatic',
     ttsSlowLabel: 'Slow',
     ttsFastLabel: 'Fast',
@@ -396,7 +432,8 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     obsPreviewUser: 'viewer',
     obsPreviewMessage: 'sample message',
     sidebarGeneral: 'General',
-    sidebarGeneralIntro: 'Language, alert sound, text-to-speech, and how long messages stay on screen.',
+    sidebarGeneralIntro:
+      'Language, third-party emotes, alert sound, text-to-speech, and how long messages stay on screen.',
     sidebarChannels: 'Channels',
     sidebarChannelsIntro: 'Connect chats from Twitch, Kick, YouTube, and TikTok.',
     sidebarAppearance: 'Appearance',
@@ -416,6 +453,17 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     messageVisibilityTimed: 'Hide after',
     messageVisibilityHideAfter: 'Hide after',
     messageVisibilitySeconds: 'seconds',
+    emotesTitle: 'Third-party emotes',
+    emotesHelp:
+      'Show extra 7TV and BetterTTV emotes in Twitch chat. Catalogs are downloaded once and cached.',
+    emotesSeventvLabel: '7TV',
+    emotesBetterttvLabel: 'BetterTTV',
+    emotesOn: 'On',
+    emotesOff: 'Off',
+    linkImagesTitle: 'Images and GIFs',
+    linkImagesHelp:
+      'When someone posts a direct image or GIF link (.png, .jpg, .gif, .webp), it appears in chat. Also shows TWShot images and Lightshot (prnt.sc), Imgur and Tenor links.',
+    linkImagesLabel: 'Show images from links',
     fontWeights: {
       300: 'Light',
       400: 'Regular',
@@ -431,9 +479,11 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     languageLabel: 'Idioma de la aplicacion',
     languageHelp: 'Define el idioma de la interfaz de BooChat, incluidos menus y avisos.',
     twitchChannelLabel: 'Nombre del canal de Twitch',
-    twitchChannelHelp: 'Canal de Twitch cuyo chat se mostrara. Escribe solo el nombre, sin el enlace.',
+    twitchChannelHelp:
+      'Canal de Twitch cuyo chat se mostrara. Escribe solo el nombre, sin el enlace.',
     kickChannelLabel: 'Nombre del canal de Kick',
-    kickChannelHelp: 'Canal de Kick cuyo chat se mostrara. Escribe el slug del canal, sin el enlace.',
+    kickChannelHelp:
+      'Canal de Kick cuyo chat se mostrara. Escribe el slug del canal, sin el enlace.',
     youtubeChannelLabel: 'Nombre del canal de YouTube',
     youtubeChannelHelp: 'Canal, @handle o URL de la live de YouTube para capturar el chat.',
     channelPlaceholder: 'Escribe el nombre del canal, ej: devrogerinho',
@@ -450,6 +500,10 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     bgPlaceholder: 'Codigo hexadecimal o dejalo vacio',
     bgOpacityLabel: 'Opacidad del fondo',
     bgOpacityHelp: 'Que tan visible es el fondo del mensaje. 0 es transparente, 100 es solido.',
+    platformColorDotTitle: 'Icono de la plataforma',
+    platformColorDotHelp:
+      'Cambia el logo de Twitch, Kick, YouTube y TikTok por un circulo del color de cada plataforma.',
+    platformColorDotLabel: 'Usar circulo de color',
     soundTitle: 'Sonido al recibir mensaje',
     soundDescription:
       'Reproduce una alerta cuando llega un mensaje nuevo del chat (Twitch, Kick, YouTube o TikTok).',
@@ -469,14 +523,17 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     ttsRateLabel: 'Velocidad de lectura',
     ttsRateHelp: 'Que tan rapido habla la voz. 1.0 es el ritmo normal.',
     ttsReadAuthorLabel: 'Decir quien hablo',
-    ttsReadAuthorHelp: 'Si esta activo, la voz empieza con el nick. Ejemplo: ana hablo. hola que tal?',
+    ttsReadAuthorHelp:
+      'Si esta activo, la voz empieza con el nick. Ejemplo: ana hablo. hola que tal?',
     ttsTestLabel: 'Probar voz',
     ttsTestAuthor: 'ana',
     ttsTestMessage: 'hola, solo paso para probar la voz.',
     ttsGenerating: 'Preparando la voz...',
-    ttsPlayError: 'No se pudo reproducir. La primera vez hay que descargar el modelo; luego reintenta.',
+    ttsPlayError:
+      'No se pudo reproducir. La primera vez hay que descargar el modelo; luego reintenta.',
     ttsVoiceLabel: 'Voz',
-    ttsVoiceHelp: 'Voces locales en portugues. Cadu y Jeff descargan el modelo la primera vez (~60 MB).',
+    ttsVoiceHelp:
+      'Voces locales en portugues. Cadu y Jeff descargan el modelo la primera vez (~60 MB).',
     ttsVoiceAuto: 'Automatico',
     ttsSlowLabel: 'Lenta',
     ttsFastLabel: 'Rapida',
@@ -537,7 +594,8 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     obsPreviewUser: 'viewer',
     obsPreviewMessage: 'mensaje de ejemplo',
     sidebarGeneral: 'General',
-    sidebarGeneralIntro: 'Idioma, sonido de alerta, lector de voz y cuanto tiempo permanecen visibles los mensajes.',
+    sidebarGeneralIntro:
+      'Idioma, emotes de terceros, sonido de alerta, lector de voz y cuanto tiempo permanecen visibles los mensajes.',
     sidebarChannels: 'Canales',
     sidebarChannelsIntro: 'Conecta los chats de Twitch, Kick, YouTube y TikTok.',
     sidebarAppearance: 'Apariencia',
@@ -557,6 +615,17 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     messageVisibilityTimed: 'Desaparecer',
     messageVisibilityHideAfter: 'Ocultar despues de',
     messageVisibilitySeconds: 'segundos',
+    emotesTitle: 'Emotes de terceros',
+    emotesHelp:
+      'Muestra emotes extra de 7TV y BetterTTV en el chat de Twitch. Los catalogos se descargan una vez y se cachean.',
+    emotesSeventvLabel: '7TV',
+    emotesBetterttvLabel: 'BetterTTV',
+    emotesOn: 'Activado',
+    emotesOff: 'Desactivado',
+    linkImagesTitle: 'Imagenes y GIFs',
+    linkImagesHelp:
+      'Cuando alguien envia un enlace directo de imagen o GIF (.png, .jpg, .gif, .webp), el archivo aparece en el chat. Tambien muestra imagenes de la extension TWShot (upl:, img:, tnr:, ls:).',
+    linkImagesLabel: 'Mostrar imagenes de los enlaces',
     fontWeights: {
       300: 'Ligera',
       400: 'Normal',
@@ -572,9 +641,11 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     languageLabel: "Langue de l'application",
     languageHelp: "Definissez la langue de l'interface BooChat, y compris les menus et les avis.",
     twitchChannelLabel: 'Nom de la chaine Twitch',
-    twitchChannelHelp: 'Chaine Twitch dont le chat sera affiche. Entrez uniquement le nom, sans le lien.',
+    twitchChannelHelp:
+      'Chaine Twitch dont le chat sera affiche. Entrez uniquement le nom, sans le lien.',
     kickChannelLabel: 'Nom de la chaine Kick',
-    kickChannelHelp: 'Chaine Kick dont le chat sera affiche. Entrez le slug de la chaine, sans le lien.',
+    kickChannelHelp:
+      'Chaine Kick dont le chat sera affiche. Entrez le slug de la chaine, sans le lien.',
     youtubeChannelLabel: 'Nom de la chaine YouTube',
     youtubeChannelHelp: 'Chaine, @handle ou URL du live YouTube pour capturer le chat.',
     channelPlaceholder: 'Entrez le nom de la chaine, ex: devrogerinho',
@@ -591,6 +662,10 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     bgPlaceholder: 'Code hexadecimal ou laissez vide',
     bgOpacityLabel: 'Opacite du fond',
     bgOpacityHelp: 'Visibilite du fond du message. 0 est transparent, 100 est opaque.',
+    platformColorDotTitle: 'Icone de la plateforme',
+    platformColorDotHelp:
+      'Remplace le logo Twitch, Kick, YouTube et TikTok par un cercle a la couleur de chaque plateforme.',
+    platformColorDotLabel: 'Utiliser un cercle colore',
     soundTitle: 'Son a la reception de message',
     soundDescription:
       'Joue une alerte quand un nouveau message arrive (Twitch, Kick, YouTube ou TikTok).',
@@ -610,14 +685,17 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     ttsRateLabel: 'Vitesse de lecture',
     ttsRateHelp: 'Vitesse a laquelle la voix parle. 1.0 est le rythme normal.',
     ttsReadAuthorLabel: 'Dire qui a parle',
-    ttsReadAuthorHelp: 'Si active, la voix commence par le nick. Exemple : ana a dit. salut ca va ?',
+    ttsReadAuthorHelp:
+      'Si active, la voix commence par le nick. Exemple : ana a dit. salut ca va ?',
     ttsTestLabel: 'Tester la voix',
     ttsTestAuthor: 'ana',
     ttsTestMessage: 'salut, je passe juste pour tester la voix.',
     ttsGenerating: 'Preparation de la voix...',
-    ttsPlayError: 'Impossible de lire la voix. Le premier lancement doit telecharger le modele ; puis reessayez.',
+    ttsPlayError:
+      'Impossible de lire la voix. Le premier lancement doit telecharger le modele ; puis reessayez.',
     ttsVoiceLabel: 'Voix',
-    ttsVoiceHelp: 'Voix locales en portugais. Cadu et Jeff telechargent le modele au premier usage (~60 Mo).',
+    ttsVoiceHelp:
+      'Voix locales en portugais. Cadu et Jeff telechargent le modele au premier usage (~60 Mo).',
     ttsVoiceAuto: 'Automatique',
     ttsSlowLabel: 'Lente',
     ttsFastLabel: 'Rapide',
@@ -645,7 +723,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     localServerCopyAria: "Copier le lien de l'application pour le navigateur",
     obsTitle: 'Lien OBS',
     obsDescription:
-      "Utilisez ce lien comme source Navigateur dans OBS. BooChat doit rester ouvert.",
+      'Utilisez ce lien comme source Navigateur dans OBS. BooChat doit rester ouvert.',
     obsCopyLink: 'Copier le lien',
     obsCopied: 'Lien copie !',
     obsHelp:
@@ -663,7 +741,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     obsPageBgColorHelp:
       "Couleur derriere tout l'overlay. Mettez l'opacite a 0 pour garder un fond transparent dans OBS.",
     obsPageBgOpacityLabel: 'Opacite de la page',
-    obsPageBgOpacityHelp: "0 laisse la page transparente dans OBS. 100 rend la couleur opaque.",
+    obsPageBgOpacityHelp: '0 laisse la page transparente dans OBS. 100 rend la couleur opaque.',
     obsMessageBgTitle: 'Fonds des messages',
     obsMessageBgHelp:
       'Chaque message utilise la couleur suivante de la liste, puis recommence. Exemple : couleur 1, couleur 2, couleur 1, couleur 2...',
@@ -678,7 +756,8 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     obsPreviewUser: 'viewer',
     obsPreviewMessage: 'message exemple',
     sidebarGeneral: 'General',
-    sidebarGeneralIntro: 'Langue, son d alerte, synthese vocale et duree d affichage des messages.',
+    sidebarGeneralIntro:
+      'Langue, emotes tiers, son d alerte, synthese vocale et duree d affichage des messages.',
     sidebarChannels: 'Chaines',
     sidebarChannelsIntro: 'Connectez les chats Twitch, Kick, YouTube et TikTok.',
     sidebarAppearance: 'Apparence',
@@ -698,6 +777,17 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     messageVisibilityTimed: 'Masquer',
     messageVisibilityHideAfter: 'Masquer apres',
     messageVisibilitySeconds: 'secondes',
+    emotesTitle: 'Emotes tiers',
+    emotesHelp:
+      'Affiche les emotes 7TV et BetterTTV dans le chat Twitch. Les catalogues sont telecharges une fois et mis en cache.',
+    emotesSeventvLabel: '7TV',
+    emotesBetterttvLabel: 'BetterTTV',
+    emotesOn: 'Active',
+    emotesOff: 'Desactive',
+    linkImagesTitle: 'Images et GIFs',
+    linkImagesHelp:
+      'Quand quelqu un envoie un lien direct d image ou de GIF (.png, .jpg, .gif, .webp), le fichier s affiche dans le chat. Affiche aussi les images de l extension TWShot (upl:, img:, tnr:, ls:).',
+    linkImagesLabel: 'Afficher les images des liens',
     fontWeights: {
       300: 'Legere',
       400: 'Normale',
@@ -713,7 +803,8 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     languageLabel: 'App-Sprache',
     languageHelp: 'Legt die Sprache der BooChat-Oberflaeche fest, inklusive Menues und Hinweise.',
     twitchChannelLabel: 'Twitch-Kanalname',
-    twitchChannelHelp: 'Twitch-Kanal, dessen Chat angezeigt wird. Nur den Namen eingeben, ohne Link.',
+    twitchChannelHelp:
+      'Twitch-Kanal, dessen Chat angezeigt wird. Nur den Namen eingeben, ohne Link.',
     kickChannelLabel: 'Kick-Kanalname',
     kickChannelHelp: 'Kick-Kanal, dessen Chat angezeigt wird. Nur den Slug eingeben, ohne Link.',
     youtubeChannelLabel: 'YouTube-Kanalname',
@@ -731,7 +822,12 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     bgColorLabel: 'Hintergrundfarbe',
     bgPlaceholder: 'Hex-Farbcode oder leer lassen',
     bgOpacityLabel: 'Hintergrund-Deckkraft',
-    bgOpacityHelp: 'Wie sichtbar der Nachrichtenhintergrund ist. 0 ist transparent, 100 ist deckend.',
+    bgOpacityHelp:
+      'Wie sichtbar der Nachrichtenhintergrund ist. 0 ist transparent, 100 ist deckend.',
+    platformColorDotTitle: 'Plattform-Symbol',
+    platformColorDotHelp:
+      'Ersetzt die Logos von Twitch, Kick, YouTube und TikTok durch einen Kreis in der Plattformfarbe.',
+    platformColorDotLabel: 'Farbigen Kreis verwenden',
     soundTitle: 'Ton bei neuer Nachricht',
     soundDescription:
       'Spielt einen Alarm bei neuen Chat-Nachrichten (Twitch, Kick, YouTube oder TikTok).',
@@ -751,14 +847,17 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     ttsRateLabel: 'Lesegeschwindigkeit',
     ttsRateHelp: 'Wie schnell die Stimme spricht. 1.0 ist das normale Tempo.',
     ttsReadAuthorLabel: 'Sagen, wer gesprochen hat',
-    ttsReadAuthorHelp: 'Wenn aktiv, beginnt die Stimme mit dem Nick. Beispiel: ana sagte. hallo, alles gut?',
+    ttsReadAuthorHelp:
+      'Wenn aktiv, beginnt die Stimme mit dem Nick. Beispiel: ana sagte. hallo, alles gut?',
     ttsTestLabel: 'Stimme testen',
     ttsTestAuthor: 'ana',
     ttsTestMessage: 'hallo, ich teste nur kurz die Stimme.',
     ttsGenerating: 'Stimme wird vorbereitet...',
-    ttsPlayError: 'Die Stimme konnte nicht abgespielt werden. Beim ersten Mal muss das Modell geladen werden.',
+    ttsPlayError:
+      'Die Stimme konnte nicht abgespielt werden. Beim ersten Mal muss das Modell geladen werden.',
     ttsVoiceLabel: 'Stimme',
-    ttsVoiceHelp: 'Lokale Stimmen auf Portugiesisch. Cadu und Jeff laden das Modell beim ersten Mal (~60 MB).',
+    ttsVoiceHelp:
+      'Lokale Stimmen auf Portugiesisch. Cadu und Jeff laden das Modell beim ersten Mal (~60 MB).',
     ttsVoiceAuto: 'Automatisch',
     ttsSlowLabel: 'Langsam',
     ttsFastLabel: 'Schnell',
@@ -785,8 +884,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
       'Der HTTP-Server startet mit der App auf 127.0.0.1. BooChat muss geoeffnet bleiben.',
     localServerCopyAria: 'App-Link fuer den Browser kopieren',
     obsTitle: 'OBS-Link',
-    obsDescription:
-      'Nutze diesen Link als Browserquelle in OBS. BooChat muss geoffnet bleiben.',
+    obsDescription: 'Nutze diesen Link als Browserquelle in OBS. BooChat muss geoffnet bleiben.',
     obsCopyLink: 'Link kopieren',
     obsCopied: 'Link kopiert!',
     obsHelp:
@@ -819,7 +917,8 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     obsPreviewUser: 'viewer',
     obsPreviewMessage: 'Beispielnachricht',
     sidebarGeneral: 'Allgemein',
-    sidebarGeneralIntro: 'Sprache, Hinweiston, Vorlesen und wie lange Nachrichten sichtbar bleiben.',
+    sidebarGeneralIntro:
+      'Sprache, Drittanbieter-Emotes, Hinweiston, Vorlesen und wie lange Nachrichten sichtbar bleiben.',
     sidebarChannels: 'Kanaele',
     sidebarChannelsIntro: 'Verbinde Chats von Twitch, Kick, YouTube und TikTok.',
     sidebarAppearance: 'Erscheinungsbild',
@@ -839,6 +938,17 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     messageVisibilityTimed: 'Ausblenden',
     messageVisibilityHideAfter: 'Ausblenden nach',
     messageVisibilitySeconds: 'Sekunden',
+    emotesTitle: 'Drittanbieter-Emotes',
+    emotesHelp:
+      'Zeigt zusaetzliche 7TV- und BetterTTV-Emotes im Twitch-Chat. Kataloge werden einmal geladen und zwischengespeichert.',
+    emotesSeventvLabel: '7TV',
+    emotesBetterttvLabel: 'BetterTTV',
+    emotesOn: 'An',
+    emotesOff: 'Aus',
+    linkImagesTitle: 'Bilder und GIFs',
+    linkImagesHelp:
+      'Wenn jemand einen direkten Bild- oder GIF-Link (.png, .jpg, .gif, .webp) sendet, erscheint die Datei im Chat. Zeigt auch Bilder der TWShot-Erweiterung (upl:, img:, tnr:, ls:).',
+    linkImagesLabel: 'Bilder aus Links anzeigen',
     fontWeights: {
       300: 'Leicht',
       400: 'Normal',
@@ -854,9 +964,11 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     languageLabel: "Lingua dell'app",
     languageHelp: "Imposta la lingua dell'interfaccia di BooChat, inclusi menu e avvisi.",
     twitchChannelLabel: 'Nome canale Twitch',
-    twitchChannelHelp: 'Canale Twitch la cui chat verra mostrata. Inserisci solo il nome, senza il link.',
+    twitchChannelHelp:
+      'Canale Twitch la cui chat verra mostrata. Inserisci solo il nome, senza il link.',
     kickChannelLabel: 'Nome canale Kick',
-    kickChannelHelp: 'Canale Kick la cui chat verra mostrata. Inserisci lo slug del canale, senza il link.',
+    kickChannelHelp:
+      'Canale Kick la cui chat verra mostrata. Inserisci lo slug del canale, senza il link.',
     youtubeChannelLabel: 'Nome canale YouTube',
     youtubeChannelHelp: 'Canale, @handle o URL della live YouTube per catturare la chat.',
     channelPlaceholder: 'Inserisci il nome canale, es: devrogerinho',
@@ -873,6 +985,10 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     bgPlaceholder: 'Codice esadecimale o lascia vuoto',
     bgOpacityLabel: 'Opacita sfondo',
     bgOpacityHelp: 'Quanto e visibile lo sfondo del messaggio. 0 e trasparente, 100 e solido.',
+    platformColorDotTitle: 'Icona della piattaforma',
+    platformColorDotHelp:
+      'Sostituisce i loghi di Twitch, Kick, YouTube e TikTok con un cerchio nel colore di ogni piattaforma.',
+    platformColorDotLabel: 'Usa un cerchio colorato',
     soundTitle: 'Suono alla ricezione messaggi',
     soundDescription:
       'Riproduce un avviso quando arriva un nuovo messaggio (Twitch, Kick, YouTube o TikTok).',
@@ -892,14 +1008,17 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     ttsRateLabel: 'Velocita di lettura',
     ttsRateHelp: 'Quanto velocemente parla la voce. 1.0 e il ritmo normale.',
     ttsReadAuthorLabel: 'Dire chi ha parlato',
-    ttsReadAuthorHelp: 'Se attivo, la voce inizia con il nick. Esempio: ana ha detto. ciao, tutto bene?',
+    ttsReadAuthorHelp:
+      'Se attivo, la voce inizia con il nick. Esempio: ana ha detto. ciao, tutto bene?',
     ttsTestLabel: 'Prova voce',
     ttsTestAuthor: 'ana',
     ttsTestMessage: 'ciao, passo solo per provare la voce.',
     ttsGenerating: 'Preparazione della voce...',
-    ttsPlayError: 'Impossibile riprodurre la voce. La prima volta deve scaricare il modello; poi riprova.',
+    ttsPlayError:
+      'Impossibile riprodurre la voce. La prima volta deve scaricare il modello; poi riprova.',
     ttsVoiceLabel: 'Voce',
-    ttsVoiceHelp: 'Voci locali in portoghese. Cadu e Jeff scaricano il modello al primo uso (~60 MB).',
+    ttsVoiceHelp:
+      'Voci locali in portoghese. Cadu e Jeff scaricano il modello al primo uso (~60 MB).',
     ttsVoiceAuto: 'Automatico',
     ttsSlowLabel: 'Lenta',
     ttsFastLabel: 'Veloce',
@@ -926,8 +1045,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
       "Il server HTTP parte insieme all'app su 127.0.0.1. BooChat deve restare aperto.",
     localServerCopyAria: "Copia il link dell'app per il browser",
     obsTitle: 'Link per OBS',
-    obsDescription:
-      'Usa questo link come sorgente Browser in OBS. BooChat deve restare aperto.',
+    obsDescription: 'Usa questo link come sorgente Browser in OBS. BooChat deve restare aperto.',
     obsCopyLink: 'Copia link',
     obsCopied: 'Link copiato!',
     obsHelp:
@@ -945,7 +1063,7 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     obsPageBgColorHelp:
       "Colore dietro tutto l'overlay. Imposta l'opacita a 0 per tenere lo sfondo trasparente in OBS.",
     obsPageBgOpacityLabel: 'Opacita della pagina',
-    obsPageBgOpacityHelp: "0 lascia la pagina trasparente in OBS. 100 rende il colore solido.",
+    obsPageBgOpacityHelp: '0 lascia la pagina trasparente in OBS. 100 rende il colore solido.',
     obsMessageBgTitle: 'Sfondi dei messaggi',
     obsMessageBgHelp:
       'Ogni messaggio usa il colore successivo della lista e poi ricomincia. Esempio: colore 1, colore 2, colore 1, colore 2...',
@@ -960,7 +1078,8 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     obsPreviewUser: 'viewer',
     obsPreviewMessage: 'messaggio di esempio',
     sidebarGeneral: 'Generale',
-    sidebarGeneralIntro: 'Lingua, suono di avviso, lettura vocale e quanto restano visibili i messaggi.',
+    sidebarGeneralIntro:
+      'Lingua, emote di terze parti, suono di avviso, lettura vocale e quanto restano visibili i messaggi.',
     sidebarChannels: 'Canali',
     sidebarChannelsIntro: 'Collega le chat di Twitch, Kick, YouTube e TikTok.',
     sidebarAppearance: 'Aspetto',
@@ -980,6 +1099,17 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     messageVisibilityTimed: 'Nascondi',
     messageVisibilityHideAfter: 'Nascondi dopo',
     messageVisibilitySeconds: 'secondi',
+    emotesTitle: 'Emote di terze parti',
+    emotesHelp:
+      'Mostra emote extra di 7TV e BetterTTV nella chat Twitch. I cataloghi vengono scaricati una volta e restano in cache.',
+    emotesSeventvLabel: '7TV',
+    emotesBetterttvLabel: 'BetterTTV',
+    emotesOn: 'Attivo',
+    emotesOff: 'Disattivo',
+    linkImagesTitle: 'Immagini e GIF',
+    linkImagesHelp:
+      'Quando qualcuno invia un link diretto a un immagine o GIF (.png, .jpg, .gif, .webp), il file appare in chat. Mostra anche le immagini dell estensione TWShot (upl:, img:, tnr:, ls:).',
+    linkImagesLabel: 'Mostra immagini dai link',
     fontWeights: {
       300: 'Leggero',
       400: 'Normale',

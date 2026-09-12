@@ -12,8 +12,14 @@ import {
   ensureGlobalTwitchBadges,
   twitchTagsToBadges
 } from '../../../shared/api/twitchBadges'
+import {
+  ensureThirdPartyEmotes,
+  replaceThirdPartyEmotes,
+  stopSevenTvEvents
+} from '../../../shared/api/thirdPartyEmotes'
 import { getChatSystemText, getChatSystemTextWithParams } from '../../../shared/i18n'
 import type { ChatBadge } from '../../../shared/utils/chatBadges'
+import { sanitizeChatMessageHtml, safeChatImageHtml, TWITCH_EMOTE_ID } from '../../../shared/utils/chatHtml'
 
 interface IEmojis {
   id: string
@@ -66,6 +72,11 @@ export function useModel() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const { config, setConfig } = useConfigStore()
+  const twitchRoomIdRef = useRef('')
+  const seventvEnabled = config?.emotes?.seventv !== false
+  const betterttvEnabled = config?.emotes?.betterttv !== false
+  const emoteOptionsRef = useRef({ seventv: seventvEnabled, betterttv: betterttvEnabled })
+  emoteOptionsRef.current = { seventv: seventvEnabled, betterttv: betterttvEnabled }
 
   const handleConfigUpdate = async (_event: any, newConfig: TConfigDataProps) => {
     const platform = await window.electron.ipcRenderer.invoke('get-system')
@@ -130,10 +141,15 @@ export function useModel() {
     let replacedMessage = message
 
     for (const emoji of emojis) {
+      if (!TWITCH_EMOTE_ID.test(emoji.id)) continue
+
       const url1 = `${img}/${emoji.id}/animated/light/3.0`
       const url2 = `${img}/${emoji.id}/static/light/3.0`
-
-      const emojiImg = ` <img style='display:inline; width:30px; height:30px;' src=${url1} onerror="this.onerror=null; this.src='${url2}'" alt=${emoji.id}/> `
+      const emojiImg = ` ${safeChatImageHtml(url1, 'emote', {
+        alt: emoji.id,
+        fallbackSrc: url2,
+        style: 'display:inline;width:30px;height:30px;vertical-align:middle'
+      })} `
       const emojiName = message.substring(emoji.posInit, emoji.posEnd + 1).split(' ')[0]
       // Escapa caracteres especiais da palavra para evitar erros na regex
       const escapedWord = emojiName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -240,20 +256,28 @@ export function useModel() {
     client.on('roomstate', (_channel, state) => {
       if (!active) return
       const roomId = state['room-id']
-      if (roomId) void ensureChannelTwitchBadges(roomId)
+      if (!roomId) return
+      twitchRoomIdRef.current = roomId
+      void ensureChannelTwitchBadges(roomId)
+      void ensureThirdPartyEmotes(roomId, emoteOptionsRef.current)
     })
 
     client.on('message', (_, tags, message) => {
       if (!active) return
 
       const emojis = tags['emotes-raw'] && getEmojis(tags['emotes-raw'])
-      const replaceMessage = emojis ? formatMessage({ message, emojis }) : message
+      const nativeMessage = emojis ? formatMessage({ message, emojis }) : message
       const channelId = tags['source-room-id']
       const badgeChannelId = tags['source-room-id'] || tags['room-id']
+      const emoteChannelId = badgeChannelId || twitchRoomIdRef.current
+      const replaceMessage = replaceThirdPartyEmotes(nativeMessage, emoteChannelId)
       const messageId = tags.id
 
       if (tags['room-id']) void ensureChannelTwitchBadges(tags['room-id'])
       if (channelId) void ensureChannelTwitchBadges(channelId)
+      if (channelId && channelId !== twitchRoomIdRef.current) {
+        void ensureThirdPartyEmotes(channelId, emoteOptionsRef.current)
+      }
 
       const validator =
         !config?.bots?.userBots?.includes(tags['display-name']?.toLocaleLowerCase() ?? '') &&
@@ -281,29 +305,24 @@ export function useModel() {
 
     return () => {
       active = false
+      twitchRoomIdRef.current = ''
+      stopSevenTvEvents()
       client.removeAllListeners()
       client.disconnect()
     }
   }, [config?.twitch.channel])
 
-  function processMessageHTML(html: string): string {
-    return html.replace(/<([^\s>]+)([^>]*)>/g, (match, tagName, attributes) => {
-      if (tagName.toLowerCase() === 'img') {
-        const srcMatch = attributes.match(/src=["']([^"']+)["']/)
-        if (srcMatch) {
-          try {
-            const url = new URL(srcMatch[1])
-            // Permitir imagens do Twitch, Kick e YouTube
-            const allowedHostnames = ['static-cdn.jtvnw.net', 'files.kick.com', 'yt3.ggpht.com']
-            return allowedHostnames.includes(url.hostname) ? match : '<img />'
-          } catch {
-            return '<img />'
-          }
-        }
-        return '<img />'
-      }
-      return `&lt;${tagName}${attributes}&gt;`
+  useEffect(() => {
+    const roomId = twitchRoomIdRef.current
+    if (!roomId) return
+    void ensureThirdPartyEmotes(roomId, {
+      seventv: seventvEnabled,
+      betterttv: betterttvEnabled
     })
+  }, [seventvEnabled, betterttvEnabled])
+
+  function processMessageHTML(html: string): string {
+    return sanitizeChatMessageHtml(html, config?.media?.linkImages === true)
   }
 
   // Scroll automático para novas mensagens

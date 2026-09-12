@@ -81,9 +81,22 @@ async function invokeChannel(channel: string, ...args: any[]): Promise<any> {
     return response.json()
   }
 
+  if (channel === 'fetch-emotes-api') {
+    const targetUrl = encodeURIComponent(String(args[0] ?? ''))
+    const response = await fetch(`/api/emotes?url=${targetUrl}`)
+    return response.json()
+  }
+
   if (channel === 'fetch-kick-channel') {
     const slug = encodeURIComponent(String(args[0] ?? ''))
     const response = await fetch(`/api/kick/channels/${slug}`)
+    return response.json()
+  }
+
+  if (channel === 'twshot-resolve') {
+    const service = encodeURIComponent(String(args[0] ?? ''))
+    const id = encodeURIComponent(String(args[1] ?? ''))
+    const response = await fetch(`/api/twshot/resolve?service=${service}&id=${id}`)
     return response.json()
   }
 

@@ -19,10 +19,19 @@ import { isChatMessageExpired } from '../../shared/utils/messageVisibility'
 import useTiktokChat from './hooks/useTiktokChat'
 import { isObsOverlayRoute } from '../../shared/overlay/runtime'
 import { getObsFontStack } from '../../shared/constants/obsFonts'
-import { hexToRgba } from '../../shared/utils/color'
+import { hexToRgba, safeCssColor } from '../../shared/utils/color'
+import { hydrateChatImages, isSafeDisplayImageUrl } from '../../shared/utils/chatHtml'
 import { DEFAULT_CONFIG_DATA } from '../../shared/constants/defaultConfig'
 import type { ChatBadge } from '../../shared/utils/chatBadges'
 import { AuthorBadges } from './components/AuthorBadges'
+import { hydrateTwshotImages } from '../../shared/utils/twshotImages'
+
+const PLATFORM_DOT_COLORS = {
+  twitch: '#9146FF',
+  kick: '#53FC18',
+  youtube: '#FF0000',
+  tiktok: '#FE2C55'
+} as const
 
 type AllChats = {
   id: string
@@ -45,6 +54,7 @@ export const Chat = ({ overlay = false }: { overlay?: boolean }) => {
   const [now, setNow] = useState(() => Date.now())
   const messageSoundPrimedRef = useRef(false)
   const newestMessageFingerprintRef = useRef<string | null>(null)
+  const chatListRef = useRef<HTMLDivElement>(null)
   const { chat, channelAvatars, config, messagesEndRef, showWindow, processMessageHTML } =
     useModel()
 
@@ -213,6 +223,7 @@ export const Chat = ({ overlay = false }: { overlay?: boolean }) => {
   const overlayFontSize = isOverlay ? obsAppearance.font.size : (config?.font?.size ?? 14)
   const overlayFontWeight = isOverlay ? obsAppearance.font.weight : (config?.font?.weight ?? 400)
   const platformIconSize = 16
+  const usePlatformColorDot = config?.appearance?.platformColorDot === true
   const overlayPageBackground = isOverlay
     ? hexToRgba(obsAppearance.pageBackground.color, obsAppearance.pageBackground.opacity)
     : undefined
@@ -242,6 +253,13 @@ export const Chat = ({ overlay = false }: { overlay?: boolean }) => {
       })
     }
   }, [isOverlay, overlayPageBackground])
+
+  useEffect(() => {
+    hydrateChatImages(chatListRef.current)
+    if (config?.media?.linkImages === true) {
+      hydrateTwshotImages(chatListRef.current)
+    }
+  }, [allChats, config?.media?.linkImages])
 
   const visibleChats = allChats.filter((data) => {
     const isSystem = isChatSystemNoticeMessage(data)
@@ -278,7 +296,7 @@ export const Chat = ({ overlay = false }: { overlay?: boolean }) => {
           electronOverlay && 'scroll-none'
         )}
       >
-        <div className={cn(isOverlay ? 'space-y-0' : 'space-y-2')}>
+        <div ref={chatListRef} className={cn(isOverlay ? 'space-y-0' : 'space-y-2')}>
           {visibleChats
             .sort((a, b) => a.timestamp - b.timestamp)
             .map((data, index) => {
@@ -309,23 +327,39 @@ export const Chat = ({ overlay = false }: { overlay?: boolean }) => {
                     <span
                       className="text-outline inline-flex flex-wrap items-center gap-0.5 mr-1"
                       style={{
-                        color: data.author.color,
+                        color: safeCssColor(data.author.color, '#ffffff'),
                         fontSize: `${overlayFontSize}px`,
                         fontWeight: overlayFontWeight
                       }}
                     >
-                      <img
-                        src={getPlatformLogo(data.platform)}
-                        alt={`${data.platform} logo`}
-                        className="shrink-0 object-cover inline-block align-middle rounded-sm"
-                        style={{
-                          width: platformIconSize,
-                          height: platformIconSize,
-                          minWidth: platformIconSize,
-                          minHeight: platformIconSize
-                        }}
-                      />
-                      {data.channelId && channelAvatars[data.channelId] && (
+                      {usePlatformColorDot ? (
+                        <span
+                          aria-hidden
+                          className="shrink-0 inline-block rounded-full align-middle"
+                          style={{
+                            width: platformIconSize,
+                            height: platformIconSize,
+                            minWidth: platformIconSize,
+                            minHeight: platformIconSize,
+                            backgroundColor: PLATFORM_DOT_COLORS[data.platform]
+                          }}
+                        />
+                      ) : (
+                        <img
+                          src={getPlatformLogo(data.platform)}
+                          alt={`${data.platform} logo`}
+                          className="shrink-0 object-cover inline-block align-middle rounded-sm"
+                          style={{
+                            width: platformIconSize,
+                            height: platformIconSize,
+                            minWidth: platformIconSize,
+                            minHeight: platformIconSize
+                          }}
+                        />
+                      )}
+                      {data.channelId &&
+                        channelAvatars[data.channelId] &&
+                        isSafeDisplayImageUrl(channelAvatars[data.channelId]) && (
                         <img
                           src={channelAvatars[data.channelId]}
                           alt={`Avatar do canal ${data.channelId}`}

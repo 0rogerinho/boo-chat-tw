@@ -11,6 +11,7 @@ import {
   type ChatBadge,
   type KickSubscriberBadge
 } from '../../../shared/utils/chatBadges'
+import { safeChatImageHtml } from '../../../shared/utils/chatHtml'
 
 type TKickChat = {
   id: string
@@ -44,8 +45,11 @@ export default function useKickChat() {
     const emojiRegex = /\[emote:(\d+):([^\]]+)\]/g
 
     return message.replace(emojiRegex, (_, emoteId, emoteName) => {
-      const emojiUrl = `https://files.kick.com/emotes/${emoteId}/fullsize`
-      return `<img style="display:inline; width:24px; height:24px; vertical-align:middle; margin:0 2px;" src="${emojiUrl}" alt="${emoteName}" title="${emoteName}" />`
+      return safeChatImageHtml(`https://files.kick.com/emotes/${emoteId}/fullsize`, 'emote', {
+        alt: String(emoteName ?? ''),
+        title: String(emoteName ?? ''),
+        style: 'display:inline;width:24px;height:24px;vertical-align:middle;margin:0 2px'
+      })
     })
   }
 

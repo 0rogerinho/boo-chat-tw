@@ -14,6 +14,9 @@ type ConfigKey = keyof Pick<
   | 'bots'
   | 'notifications'
   | 'messageVisibility'
+  | 'emotes'
+  | 'media'
+  | 'appearance'
 >
 
 export function useModel() {

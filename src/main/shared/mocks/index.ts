@@ -10,6 +10,16 @@ export const defaultConfigData = {
     viewersAlwaysVisible: true,
     viewersHideAfterSeconds: 15
   },
+  emotes: {
+    seventv: true,
+    betterttv: true
+  },
+  media: {
+    linkImages: false
+  },
+  appearance: {
+    platformColorDot: false
+  },
   kick: { slug: '' },
   twitch: { channel: '' },
   youtube: { channelName: '' },

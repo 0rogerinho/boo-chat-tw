@@ -222,6 +222,21 @@
   font-weight: 400;
 }
 
+.chat-link-image {
+  display: block;
+  max-width: min(280px, 100%);
+  max-height: 200px;
+  width: auto;
+  height: auto;
+  margin-top: 4px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.chat-link-image.chat-twshot-pending {
+  display: none;
+}
+
 /* Animações suaves */
 .fade-in {
   animation: fadeIn 0.2s ease-in-out;

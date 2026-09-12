@@ -87,5 +87,15 @@ export const DEFAULT_CONFIG_DATA = {
     systemHideAfterSeconds: 8,
     viewersAlwaysVisible: true,
     viewersHideAfterSeconds: 15
+  },
+  emotes: {
+    seventv: true,
+    betterttv: true
+  },
+  media: {
+    linkImages: false
+  },
+  appearance: {
+    platformColorDot: false
   }
 }

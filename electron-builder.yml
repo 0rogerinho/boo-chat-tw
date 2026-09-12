@@ -72,9 +72,6 @@ linux:
     - target: AppImage
       arch:
         - x64
-    - target: snap
-      arch:
-        - x64
     - target: deb
       arch:
         - x64
@@ -93,12 +90,6 @@ linux:
     StartupWMClass: BooChat
 appImage:
   artifactName: BooChat-${version}-linux.${ext}
-snap:
-  artifactName: BooChat-${version}-linux.${ext}
-  grade: stable
-  confinement: strict
-  environment:
-    DISABLE_WAYLAND: 1
 deb:
   artifactName: BooChat-${version}-linux.${ext}
   depends:

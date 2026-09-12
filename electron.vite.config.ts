@@ -14,7 +14,7 @@ const aliases = [
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin({ include: ['electron-updater', 'builder-util-runtime'] })]
   },
   preload: {
     plugins: [externalizeDepsPlugin()]

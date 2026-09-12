@@ -30,7 +30,8 @@
   },
   "publish": {
     "provider": "github",
-    "releaseType": "release"
+    "releaseType": "release",
+    "vPrefixedTagName": false
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",

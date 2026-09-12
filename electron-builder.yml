@@ -137,6 +137,7 @@ publish:
   releaseType: release
   owner: 0rogerinho
   repo: boo-chat-tw
+  vPrefixedTagName: false
 
 # Configurações específicas para Windows auto-update
 win:

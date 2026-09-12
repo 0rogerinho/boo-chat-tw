@@ -263,16 +263,17 @@ async function disconnectTikTok() {
 
 function createTikTokClient(channel: string, fallback = false): TikTokLiveConnection {
   if (!fallback) {
-    return new TikTokLiveConnection(channel)
+    return new TikTokLiveConnection(channel, {})
   }
 
   // Fallback para casos em que o endpoint WS retorna HTTP 200
   return new TikTokLiveConnection(channel, {
-    connectWithUniqueId: true,
     fetchRoomInfoOnConnect: false,
-    wsClientHeaders: {
-      Origin: 'https://www.tiktok.com',
-      Referer: 'https://www.tiktok.com/'
+    wsConfigOverrides: {
+      DEFAULT_WS_CLIENT_HEADERS: {
+        Origin: 'https://www.tiktok.com',
+        Referer: 'https://www.tiktok.com/'
+      }
     }
   })
 }

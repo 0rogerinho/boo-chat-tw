@@ -1,6 +1,6 @@
 appId: com.devrogerinho.boochat
 productName: BooChat
-buildVersion: 1.2.1
+buildVersion: 1.2.2
 directories:
   buildResources: build
   output: dist

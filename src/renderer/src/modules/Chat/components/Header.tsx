@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { IoClose } from 'react-icons/io5'
 import { CgBorderStyleSolid } from 'react-icons/cg'
 import { FaEyeSlash } from 'react-icons/fa6'
@@ -15,6 +15,18 @@ export const Header = () => {
   const { config } = useConfigStore()
   const i18n = getConfigI18n(config?.language)
   const [copied, setCopied] = useState(false)
+  const [version, setVersion] = useState('')
+
+  useEffect(() => {
+    void window.api
+      ?.getAppVersion()
+      .then((value) => {
+        if (value && value !== 'overlay') {
+          setVersion(value)
+        }
+      })
+      .catch(() => undefined)
+  }, [])
 
   const copyOverlayUrl = async () => {
     try {
@@ -71,6 +83,12 @@ export const Header = () => {
           />
         </button>
       </div>
+
+      {version ? (
+        <span className="pointer-events-none text-[11px] text-gray-400 no-move">BooChat {version}</span>
+      ) : (
+        <span />
+      )}
 
       <div className="flex h-full">
         <button

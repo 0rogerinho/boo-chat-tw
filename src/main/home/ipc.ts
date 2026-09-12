@@ -269,8 +269,8 @@ function createTikTokClient(channel: string, fallback = false): TikTokLiveConnec
   // Fallback para casos em que o endpoint WS retorna HTTP 200
   return new TikTokLiveConnection(channel, {
     fetchRoomInfoOnConnect: false,
-    wsConfigOverrides: {
-      DEFAULT_WS_CLIENT_HEADERS: {
+    wsClientOptions: {
+      headers: {
         Origin: 'https://www.tiktok.com',
         Referer: 'https://www.tiktok.com/'
       }

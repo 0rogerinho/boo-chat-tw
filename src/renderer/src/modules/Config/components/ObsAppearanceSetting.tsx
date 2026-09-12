@@ -1,7 +1,7 @@
 import { Layers, Minus, Paintbrush, Plus, Type } from 'lucide-react'
 import { getObsFontStack, OBS_FONT_OPTIONS } from '../../../shared/constants/obsFonts'
 import type { getConfigI18n } from '../../../shared/i18n'
-import type { TConfigDataProps } from '../../../shared/store/useConfigStore'
+import type { DisplayAppearance } from '../../../shared/store/useConfigStore'
 import { hexToRgba } from '../../../shared/utils/color'
 import { FieldLabel } from './FieldLabel'
 import { ColorField, PrimaryAction, SelectField, SettingCard, SliderField } from './SettingUi'
@@ -12,33 +12,51 @@ const DEFAULT_LAYER_OPACITY = 55
 const FONT_WEIGHTS = [300, 400, 500, 600, 700] as const
 
 type ConfigI18n = ReturnType<typeof getConfigI18n>
-type ObsAppearance = TConfigDataProps['obsAppearance']
+
+export type DisplayAppearanceCopy = {
+  title: string
+  description: string
+  fontFamilyHelp: string
+  fontSizeHelp: string
+  fontWeightHelp: string
+  pageBgTitle: string
+  pageBgColorLabel: string
+  pageBgColorHelp: string
+  pageBgOpacityLabel: string
+  pageBgOpacityHelp: string
+  messageBgTitle: string
+  messageBgHelp: string
+}
 
 type ObsAppearanceSettingProps = {
   i18n: ConfigI18n
-  appearance: ObsAppearance
+  appearance: DisplayAppearance
   inputClass: string
-  onChange: (value: Partial<ObsAppearance>) => void
+  idPrefix: string
+  copy: DisplayAppearanceCopy
+  onChange: (value: Partial<DisplayAppearance>) => void
 }
 
 export function ObsAppearanceSetting({
   i18n,
   appearance,
   inputClass,
+  idPrefix,
+  copy,
   onChange
 }: ObsAppearanceSettingProps) {
   const colors = appearance.messageBackground.colors
   const pageOpacity = appearance.pageBackground.opacity
 
-  const updateFont = (value: Partial<ObsAppearance['font']>) => {
+  const updateFont = (value: Partial<DisplayAppearance['font']>) => {
     onChange({ font: { ...appearance.font, ...value } })
   }
 
-  const updatePageBackground = (value: Partial<ObsAppearance['pageBackground']>) => {
+  const updatePageBackground = (value: Partial<DisplayAppearance['pageBackground']>) => {
     onChange({ pageBackground: { ...appearance.pageBackground, ...value } })
   }
 
-  const updateMessageBackground = (value: Partial<ObsAppearance['messageBackground']>) => {
+  const updateMessageBackground = (value: Partial<DisplayAppearance['messageBackground']>) => {
     onChange({ messageBackground: { ...appearance.messageBackground, ...value } })
   }
 
@@ -72,15 +90,15 @@ export function ObsAppearanceSetting({
     <>
       <SettingCard
         icon={Type}
-        title={i18n.obsAppearanceTitle}
-        help={i18n.obsAppearanceDescription}
+        title={copy.title}
+        help={copy.description}
         helpAriaLabel={i18n.helpAriaLabel}
-        hint={i18n.obsAppearanceDescription}
+        hint={copy.description}
       >
         <SelectField
-          id="obs-font-family"
+          id={`${idPrefix}-font-family`}
           label={i18n.obsFontFamilyLabel}
-          help={i18n.obsFontFamilyHelp}
+          help={copy.fontFamilyHelp}
           helpAriaLabel={i18n.helpAriaLabel}
           value={appearance.font.family}
           onChange={(family) => updateFont({ family })}
@@ -93,9 +111,9 @@ export function ObsAppearanceSetting({
         </SelectField>
 
         <SliderField
-          id="obs-font-size"
+          id={`${idPrefix}-font-size`}
           label={i18n.fontSizeLabel}
-          help={i18n.obsFontSizeHelp}
+          help={copy.fontSizeHelp}
           helpAriaLabel={i18n.helpAriaLabel}
           value={appearance.font.size}
           display={`${appearance.font.size}px`}
@@ -107,9 +125,9 @@ export function ObsAppearanceSetting({
         />
 
         <SelectField
-          id="obs-font-weight"
+          id={`${idPrefix}-font-weight`}
           label={i18n.fontWeightLabel}
-          help={i18n.obsFontWeightHelp}
+          help={copy.fontWeightHelp}
           helpAriaLabel={i18n.helpAriaLabel}
           value={String(appearance.font.weight)}
           onChange={(weight) => updateFont({ weight: parseInt(weight, 10) })}
@@ -124,14 +142,14 @@ export function ObsAppearanceSetting({
 
       <SettingCard
         icon={Paintbrush}
-        title={i18n.obsPageBgTitle}
-        help={i18n.obsPageBgColorHelp}
+        title={copy.pageBgTitle}
+        help={copy.pageBgColorHelp}
         helpAriaLabel={i18n.helpAriaLabel}
       >
         <ColorField
-          id="obs-page-background"
-          label={i18n.obsPageBgColorLabel}
-          help={i18n.obsPageBgColorHelp}
+          id={`${idPrefix}-page-background`}
+          label={copy.pageBgColorLabel}
+          help={copy.pageBgColorHelp}
           helpAriaLabel={i18n.helpAriaLabel}
           color={appearance.pageBackground.color}
           placeholder={i18n.bgPlaceholder}
@@ -139,9 +157,9 @@ export function ObsAppearanceSetting({
           onChange={(color) => updatePageBackground({ color })}
         />
         <SliderField
-          id="obs-page-opacity"
-          label={i18n.obsPageBgOpacityLabel}
-          help={i18n.obsPageBgOpacityHelp}
+          id={`${idPrefix}-page-opacity`}
+          label={copy.pageBgOpacityLabel}
+          help={copy.pageBgOpacityHelp}
           helpAriaLabel={i18n.helpAriaLabel}
           value={pageOpacity}
           display={`${pageOpacity}%`}
@@ -155,20 +173,20 @@ export function ObsAppearanceSetting({
 
       <SettingCard
         icon={Layers}
-        title={i18n.obsMessageBgTitle}
-        help={i18n.obsMessageBgHelp}
+        title={copy.messageBgTitle}
+        help={copy.messageBgHelp}
         helpAriaLabel={i18n.helpAriaLabel}
       >
         <div className="space-y-2">
           {colors.map((layer, index) => (
             <div
-              key={`obs-message-color-${index}`}
+              key={`${idPrefix}-message-color-${index}`}
               className="space-y-2 rounded-md border border-gray-700 bg-gray-900/50 p-3"
             >
               <div className="flex items-center justify-between gap-2">
                 <FieldLabel
-                  htmlFor={`obs-message-color-${index}`}
-                  help={i18n.obsMessageBgHelp}
+                  htmlFor={`${idPrefix}-message-color-${index}`}
+                  help={copy.messageBgHelp}
                   helpAriaLabel={i18n.helpAriaLabel}
                 >
                   {i18n.obsMessageColorLabel.replace('{n}', String(index + 1))}
@@ -186,8 +204,8 @@ export function ObsAppearanceSetting({
                 )}
               </div>
               <ColorField
-                id={`obs-message-color-${index}`}
-                help={i18n.obsMessageBgHelp}
+                id={`${idPrefix}-message-color-${index}`}
+                help={copy.messageBgHelp}
                 helpAriaLabel={i18n.helpAriaLabel}
                 color={layer.color}
                 placeholder={i18n.bgPlaceholder}
@@ -195,7 +213,7 @@ export function ObsAppearanceSetting({
                 onChange={(color) => setColorAt(index, color)}
               />
               <SliderField
-                id={`obs-message-opacity-${index}`}
+                id={`${idPrefix}-message-opacity-${index}`}
                 label={i18n.obsMessageBgOpacityLabel}
                 help={i18n.obsMessageBgOpacityHelp}
                 helpAriaLabel={i18n.helpAriaLabel}

@@ -1,12 +1,103 @@
+const DEFAULT_IGNORED_BOTS = [
+  '9kmmrbot',
+  'blerp',
+  'buttsbot',
+  'creatisbot',
+  'dr3ddbot',
+  'kikettebot',
+  'kofistreambot',
+  'logiceftbot',
+  'lolrankbot',
+  'mikuia',
+  'moobot',
+  'mtgbot',
+  'nightbot',
+  'onsprintbot',
+  'playwithviewersbot',
+  'pokemoncommunitygame',
+  'pretzelrocks',
+  'restreambot',
+  'sery_bot',
+  'songlistbot',
+  'soundalerts',
+  'sport_scores_bot',
+  'ssakdook',
+  'streamelements',
+  'streamholics',
+  'streamlabs',
+  'streamstickers',
+  'vtuberplus',
+  'wizebot',
+  'wzbot'
+]
+
 export const defaultConfigData = {
   language: 'pt-BR',
+  kick: { slug: '' },
+  twitch: { channel: '' },
+  youtube: { channelName: '' },
+  tiktok: { channel: '' },
+  font: {
+    size: 16,
+    weight: 700
+  },
+  x: 219,
+  y: 122,
+  width: 452,
+  height: 411,
+  background: {
+    text: '#000000',
+    background: '#000000',
+    opacity: 0
+  },
+  obsAppearance: {
+    font: {
+      family: 'Open Sans',
+      size: 16,
+      weight: 700
+    },
+    pageBackground: {
+      color: '#141414',
+      opacity: 79
+    },
+    messageBackground: {
+      colors: [
+        { color: '#1f1f1f', opacity: 80 },
+        { color: '#000000', opacity: 0 }
+      ]
+    }
+  },
+  liveAppearance: {
+    font: {
+      family: 'Open Sans',
+      size: 16,
+      weight: 700
+    },
+    pageBackground: {
+      color: '#000000',
+      opacity: 0
+    },
+    messageBackground: {
+      colors: [{ color: '#000000', opacity: 0 }]
+    }
+  },
+  bots: {
+    userBots: [...DEFAULT_IGNORED_BOTS],
+    defaultTrue: true,
+    default: [...DEFAULT_IGNORED_BOTS]
+  },
   notifications: {
     messageSound: 'none' as const,
-    messageSoundVolume: 85
+    messageSoundVolume: 20,
+    ttsEnabled: false,
+    ttsVolume: 85,
+    ttsRate: 1,
+    ttsReadAuthor: true,
+    ttsVoice: 'pt-BR-jeff'
   },
   messageVisibility: {
     systemAlwaysVisible: true,
-    systemHideAfterSeconds: 8,
+    systemHideAfterSeconds: 30,
     viewersAlwaysVisible: true,
     viewersHideAfterSeconds: 15
   },
@@ -19,38 +110,5 @@ export const defaultConfigData = {
   },
   appearance: {
     platformColorDot: false
-  },
-  kick: { slug: '' },
-  twitch: { channel: '' },
-  youtube: { channelName: '' },
-  font: {
-    size: 16,
-    weight: 700
-  },
-  background: {
-    text: '#000000',
-    background: '#ffffff',
-    opacity: 30
-  },
-  obsAppearance: {
-    font: {
-      family: 'Open Sans',
-      size: 16,
-      weight: 700
-    },
-    pageBackground: {
-      color: '#000000',
-      opacity: 0
-    },
-    messageBackground: {
-      colors: [
-        { color: '#111827', opacity: 55 },
-        { color: '#374151', opacity: 35 }
-      ]
-    }
-  },
-  x: 219,
-  y: 122,
-  width: 665,
-  height: 601
+  }
 }

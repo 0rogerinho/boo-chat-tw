@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { AlertCircle, CheckCircle, Download, X } from 'lucide-react'
+import { AlertCircle, ArrowUpCircle, CheckCircle2, Download, X } from 'lucide-react'
+import { getUpdateI18n } from '../i18n'
+import { cn } from '../lib'
+import { useConfigStore } from '../store/useConfigStore'
 
 interface UpdateInfo {
   version: string
@@ -11,13 +14,43 @@ interface UpdateNotificationProps {
   onClose: () => void
 }
 
+type UpdateStatus = 'available' | 'downloading' | 'ready' | 'error'
+
+function formatText(template: string, params: Record<string, string>) {
+  return template.replace(/\{(\w+)\}/g, (_match, key) => params[key] ?? '')
+}
+
+function previewReleaseNotes(notes?: string) {
+  if (!notes) return ''
+
+  return notes
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 140)
+}
+
 export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onClose }) => {
+  const { config } = useConfigStore()
+  const i18n = getUpdateI18n(config?.language)
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
+  const [currentVersion, setCurrentVersion] = useState('')
   const [isDownloading, setIsDownloading] = useState(false)
   const [downloadProgress, setDownloadProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [isUpdateDownloaded, setIsUpdateDownloaded] = useState(false)
   const canShowErrorRef = useRef(false)
+
+  useEffect(() => {
+    void window.api
+      ?.getAppVersion()
+      .then((value) => {
+        if (value && value !== 'overlay') {
+          setCurrentVersion(value)
+        }
+      })
+      .catch(() => undefined)
+  }, [])
 
   useEffect(() => {
     const handleUpdateAvailable = (info: UpdateInfo) => {
@@ -63,11 +96,11 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onClose 
       setError(null)
       const result = await window.api.downloadUpdate()
       if (!result.success) {
-        setError(result.error || 'Erro ao baixar atualização')
+        setError(result.error || i18n.downloadError)
         setIsDownloading(false)
       }
     } catch {
-      setError('Erro ao baixar atualização')
+      setError(i18n.downloadError)
       setIsDownloading(false)
     }
   }
@@ -76,110 +109,155 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onClose 
     try {
       await window.api.installUpdate()
     } catch {
-      setError('Erro ao instalar atualização')
+      setError(i18n.installError)
     }
   }
 
-  if (error && updateInfo) {
-    return (
-      <div className="fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg max-w-sm z-50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <AlertCircle className="w-5 h-5" />
-            <span className="font-medium">Erro de Atualização</span>
-          </div>
-          <button onClick={onClose} className="hover:bg-red-600 rounded p-1">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-        <p className="mt-2 text-sm">{error}</p>
-        <button
-          onClick={handleDownloadUpdate}
-          className="mt-3 bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm"
-        >
-          Tentar Novamente
-        </button>
-      </div>
-    )
-  }
+  if (!updateInfo) return null
 
-  if (isUpdateDownloaded) {
-    return (
-      <div className="fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg max-w-sm z-50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <CheckCircle className="w-5 h-5" />
-            <span className="font-medium">Atualização Pronta</span>
-          </div>
-          <button onClick={onClose} className="hover:bg-green-600 rounded p-1">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-        <p className="mt-2 text-sm">A atualização foi baixada e está pronta para instalação.</p>
-        <div className="mt-3 flex space-x-2">
-          <button
-            onClick={handleInstallUpdate}
-            className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm"
+  const status: UpdateStatus = error
+    ? 'error'
+    : isUpdateDownloaded
+      ? 'ready'
+      : isDownloading
+        ? 'downloading'
+        : 'available'
+
+  const version = updateInfo.version
+  const notes = status === 'available' ? previewReleaseNotes(updateInfo.releaseNotes) : ''
+  const title = {
+    available: i18n.availableTitle,
+    downloading: i18n.downloadingTitle,
+    ready: i18n.readyTitle,
+    error: i18n.errorTitle
+  }[status]
+  const description = {
+    available: formatText(i18n.availableDescription, { version }),
+    downloading: i18n.downloadingDescription,
+    ready: formatText(i18n.readyDescription, { version }),
+    error: error || i18n.downloadError
+  }[status]
+  const Icon = {
+    available: ArrowUpCircle,
+    downloading: Download,
+    ready: CheckCircle2,
+    error: AlertCircle
+  }[status]
+  const accentClass = {
+    available: 'from-primary-500 via-primary-400 to-primary-600',
+    downloading: 'from-primary-500 via-primary-400 to-primary-600',
+    ready: 'from-emerald-500 via-emerald-400 to-primary-500',
+    error: 'from-red-500 via-red-400 to-red-600'
+  }[status]
+  const iconClass = {
+    available: 'bg-primary-600/15 text-primary-300',
+    downloading: 'bg-primary-600/15 text-primary-300',
+    ready: 'bg-emerald-500/15 text-emerald-300',
+    error: 'bg-red-500/15 text-red-300'
+  }[status]
+
+  return (
+    <div className="pointer-events-none fixed inset-x-2.5 bottom-2.5 z-50 no-move animate-slide-up">
+      <section
+        role="status"
+        aria-live="polite"
+        className="pointer-events-auto overflow-hidden rounded-[8px] border border-gray-600 bg-gray-900/95 shadow-xl shadow-black/40 backdrop-blur-sm"
+      >
+        <div className={cn('h-0.5 bg-gradient-to-r', accentClass)} />
+
+        <div className="flex items-start gap-2.5 px-3 py-2.5">
+          <span
+            className={cn(
+              'mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md',
+              iconClass
+            )}
           >
-            Instalar Agora
-          </button>
-          <button
-            onClick={onClose}
-            className="bg-green-600/50 hover:bg-green-600 px-3 py-1 rounded text-sm"
-          >
-            Depois
-          </button>
-        </div>
-      </div>
-    )
-  }
+            <Icon size={16} className={status === 'downloading' ? 'animate-pulse' : undefined} />
+          </span>
 
-  if (updateInfo) {
-    return (
-      <div className="fixed top-4 right-4 bg-blue-500 text-white p-4 rounded-lg shadow-lg max-w-sm z-50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Download className="w-5 h-5" />
-            <span className="font-medium">Atualização Disponível</span>
-          </div>
-          <button onClick={onClose} className="hover:bg-blue-600 rounded p-1">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-        <p className="mt-2 text-sm">Nova versão {updateInfo.version} está disponível.</p>
-        {isDownloading && (
-          <div className="mt-3">
-            <div className="flex justify-between text-sm mb-1">
-              <span>Baixando...</span>
-              <span>{Math.round(downloadProgress)}%</span>
-            </div>
-            <div className="w-full bg-blue-600/30 rounded-full h-2">
-              <div
-                className="bg-white h-2 rounded-full transition-all duration-300"
-                style={{ width: `${downloadProgress}%` }}
-              />
-            </div>
-          </div>
-        )}
-        {!isDownloading && (
-          <div className="mt-3 flex space-x-2">
-            <button
-              onClick={handleDownloadUpdate}
-              className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
-            >
-              Baixar Agora
-            </button>
-            <button
-              onClick={onClose}
-              className="bg-blue-600/50 hover:bg-blue-600 px-3 py-1 rounded text-sm"
-            >
-              Depois
-            </button>
-          </div>
-        )}
-      </div>
-    )
-  }
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h3 className="text-sm font-medium text-white">{title}</h3>
+                <p className="mt-0.5 text-xs leading-relaxed text-gray-400">{description}</p>
+              </div>
 
-  return null
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex size-6 shrink-0 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
+                aria-label={i18n.later}
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            {(currentVersion || version) && (
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                {currentVersion ? (
+                  <span className="rounded-md bg-gray-800 px-1.5 py-0.5 text-[11px] text-gray-400">
+                    {currentVersion}
+                  </span>
+                ) : null}
+                {currentVersion && version ? (
+                  <span className="text-[11px] text-gray-500">→</span>
+                ) : null}
+                <span className="rounded-md bg-primary-600/20 px-1.5 py-0.5 text-[11px] text-primary-200">
+                  {version}
+                </span>
+              </div>
+            )}
+
+            {notes ? (
+              <p className="mt-1.5 line-clamp-2 text-[11px] leading-relaxed text-gray-500">{notes}</p>
+            ) : null}
+
+            {status === 'downloading' ? (
+              <div className="mt-2.5">
+                <div className="mb-1 flex items-center justify-between text-[11px] text-gray-400">
+                  <span>{i18n.downloadingTitle}</span>
+                  <span className="tabular-nums text-primary-300">
+                    {Math.round(downloadProgress)}%
+                  </span>
+                </div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-gray-800">
+                  <div
+                    className="h-full rounded-full bg-primary-500 transition-all duration-300"
+                    style={{ width: `${Math.min(100, Math.max(0, downloadProgress))}%` }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="mt-2.5 flex flex-wrap gap-2">
+                {status === 'ready' ? (
+                  <button
+                    type="button"
+                    onClick={handleInstallUpdate}
+                    className="inline-flex h-8 items-center justify-center rounded-md bg-primary-600 px-3 text-sm font-medium text-white transition-colors hover:bg-primary-500"
+                  >
+                    {i18n.installNow}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleDownloadUpdate}
+                    className="inline-flex h-8 items-center justify-center rounded-md bg-primary-600 px-3 text-sm font-medium text-white transition-colors hover:bg-primary-500"
+                  >
+                    {status === 'error' ? i18n.retry : i18n.downloadNow}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="inline-flex h-8 items-center justify-center rounded-md border border-gray-700 bg-gray-800/80 px-3 text-sm font-medium text-gray-300 transition-colors hover:border-gray-500 hover:bg-gray-800 hover:text-white"
+                >
+                  {i18n.later}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    </div>
+  )
 }

@@ -1,6 +1,39 @@
 import type { MessageSoundId } from './messageSounds'
 import type { TtsVoiceId } from './ttsVoices'
 
+const DEFAULT_IGNORED_BOTS = [
+  '9kmmrbot',
+  'blerp',
+  'buttsbot',
+  'creatisbot',
+  'dr3ddbot',
+  'kikettebot',
+  'kofistreambot',
+  'logiceftbot',
+  'lolrankbot',
+  'mikuia',
+  'moobot',
+  'mtgbot',
+  'nightbot',
+  'onsprintbot',
+  'playwithviewersbot',
+  'pokemoncommunitygame',
+  'pretzelrocks',
+  'restreambot',
+  'sery_bot',
+  'songlistbot',
+  'soundalerts',
+  'sport_scores_bot',
+  'ssakdook',
+  'streamelements',
+  'streamholics',
+  'streamlabs',
+  'streamstickers',
+  'vtuberplus',
+  'wizebot',
+  'wzbot'
+]
+
 export const DEFAULT_CONFIG_DATA = {
   language: 'pt-BR',
   platform: '',
@@ -14,14 +47,31 @@ export const DEFAULT_CONFIG_DATA = {
   },
   x: 219,
   y: 122,
-  width: 665,
-  height: 601,
+  width: 452,
+  height: 411,
   background: {
     text: '#000000',
-    background: '#ffffff',
-    opacity: 30
+    background: '#000000',
+    opacity: 0
   },
   obsAppearance: {
+    font: {
+      family: 'Open Sans',
+      size: 16,
+      weight: 700
+    },
+    pageBackground: {
+      color: '#141414',
+      opacity: 79
+    },
+    messageBackground: {
+      colors: [
+        { color: '#1f1f1f', opacity: 80 },
+        { color: '#000000', opacity: 0 }
+      ]
+    }
+  },
+  liveAppearance: {
     font: {
       family: 'Open Sans',
       size: 16,
@@ -33,58 +83,27 @@ export const DEFAULT_CONFIG_DATA = {
     },
     messageBackground: {
       colors: [
-        { color: '#111827', opacity: 55 },
-        { color: '#374151', opacity: 35 }
+        { color: '#000000', opacity: 0 }
       ]
     }
   },
   bots: {
-    userBots: [],
+    userBots: [...DEFAULT_IGNORED_BOTS],
     defaultTrue: true,
-    default: [
-      '9kmmrbot',
-      'blerp',
-      'buttsbot',
-      'creatisbot',
-      'dr3ddbot',
-      'kikettebot',
-      'kofistreambot',
-      'logiceftbot',
-      'lolrankbot',
-      'mikuia',
-      'moobot',
-      'mtgbot',
-      'nightbot',
-      'playwithviewersbot',
-      'pokemoncommunitygame',
-      'pretzelrocks',
-      'restreambot',
-      'sery_bot',
-      'songlistbot',
-      'soundalerts',
-      'sport_scores_bot',
-      'ssakdook',
-      'streamelements',
-      'streamholics',
-      'streamlabs',
-      'streamstickers',
-      'vtuberplus',
-      'wizebot',
-      'wzbot'
-    ]
+    default: [...DEFAULT_IGNORED_BOTS]
   },
   notifications: {
     messageSound: 'none' as MessageSoundId,
-    messageSoundVolume: 85,
+    messageSoundVolume: 20,
     ttsEnabled: false,
     ttsVolume: 85,
     ttsRate: 1,
     ttsReadAuthor: true,
-    ttsVoice: 'auto' as TtsVoiceId
+    ttsVoice: 'pt-BR-jeff' as TtsVoiceId
   },
   messageVisibility: {
     systemAlwaysVisible: true,
-    systemHideAfterSeconds: 8,
+    systemHideAfterSeconds: 30,
     viewersAlwaysVisible: true,
     viewersHideAfterSeconds: 15
   },

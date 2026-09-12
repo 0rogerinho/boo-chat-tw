@@ -13,7 +13,7 @@ import {
 } from '../http/proxies'
 import { resolveTwshotImage } from '../http/twshot'
 import { broadcastOverlayEvent } from '../overlay/bus'
-import { getLocalServerUrl, getOverlayUrl } from '../overlay/server'
+import { getLiveUrl, getLocalServerUrl, getOverlayUrl } from '../overlay/server'
 import { synthesizeLocalSpeech } from '../tts/piper'
 
 type TikTokBadge = {
@@ -326,8 +326,9 @@ export const registerIPC = (win: BrowserWindow) => {
   ipcMain.handle('get-overlay-url', () => {
     const url = getOverlayUrl()
     const appUrl = getLocalServerUrl()
-    return url && appUrl
-      ? { success: true, url, appUrl }
+    const liveUrl = getLiveUrl()
+    return url && appUrl && liveUrl
+      ? { success: true, url, appUrl, liveUrl }
       : { success: false, error: 'Servidor HTTP local indisponível' }
   })
 

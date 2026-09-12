@@ -94,11 +94,13 @@ type ConfigI18nText = {
   localServerDescription: string
   localServerHelp: string
   localServerCopyAria: string
+  liveHowToLabel: string
   obsTitle: string
   obsDescription: string
   obsCopyLink: string
   obsCopied: string
   obsHelp: string
+  obsHowToLabel: string
   obsCopyAria: string
   obsAppearanceTitle: string
   obsAppearanceDescription: string
@@ -130,6 +132,20 @@ type ConfigI18nText = {
   sidebarAppearanceIntro: string
   sidebarObs: string
   sidebarObsIntro: string
+  sidebarLive: string
+  sidebarLiveIntro: string
+  liveAppearanceTitle: string
+  liveAppearanceDescription: string
+  liveFontFamilyHelp: string
+  liveFontSizeHelp: string
+  liveFontWeightHelp: string
+  livePageBgTitle: string
+  livePageBgColorLabel: string
+  livePageBgColorHelp: string
+  livePageBgOpacityLabel: string
+  livePageBgOpacityHelp: string
+  liveMessageBgTitle: string
+  liveMessageBgHelp: string
   sidebarFilters: string
   sidebarFiltersIntro: string
   messageVisibilityTitle: string
@@ -231,20 +247,22 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     cancel: 'Cancelar',
     save: 'Salvar',
     saving: 'Salvando...',
-    localServerTitle: 'Acesso pelo navegador',
+    localServerTitle: 'Aparecer na tela da live',
     localServerDescription:
-      'Com o BooChat aberto, use este link no Chrome, Edge ou Firefox — igual ao localhost do modo de desenvolvimento.',
+      'Este link e so para o chat aparecer na CENA da live, para quem assiste. Nao use no painel/dock do OBS.',
     localServerHelp:
-      'O servidor HTTP inicia junto com o aplicativo em 127.0.0.1. O app precisa permanecer aberto.',
-    localServerCopyAria: 'Copiar link do aplicativo para o navegador',
-    obsTitle: 'Link para o OBS',
+      '1. Copie o link.\n2. No OBS, na CENA da live: Adicionar > Fonte > Navegador.\n3. Cole a URL, defina largura e altura e marque fundo transparente.\n4. Desmarque "Desligar fonte quando nao estiver visivel".\n5. Arraste o chat para o lugar onde ele deve aparecer para quem assiste.\n6. O BooChat precisa ficar aberto.',
+    localServerCopyAria: 'Copiar link para aparecer na live',
+    liveHowToLabel: 'Como colocar na live',
+    obsTitle: 'Usar no painel do OBS',
     obsDescription:
-      'Use este link como Fonte do Navegador (Browser Source) no OBS. O BooChat precisa permanecer aberto.',
+      'Este link e so para o painel do OBS (dock). So voce ve o chat. Quem assiste a live nao ve.',
     obsCopyLink: 'Copiar link',
     obsCopied: 'Link copiado!',
     obsHelp:
-      'No OBS: Adicionar > Navegador. Cole a URL, defina largura e altura, deixe o fundo transparente e desmarque "Desligar fonte quando não estiver visível".',
-    obsCopyAria: 'Copiar link do overlay para o OBS',
+      '1. Copie o link.\n2. No OBS, abra Painéis.\n3. Clique em Painéis personalizáveis com URL...\n4. Adicione o nome do painel (ex: BooChat) e cole a URL.\n5. O chat abre num painel ao lado — só você vê, quem assiste não vê.',
+    obsHowToLabel: 'Como colocar no painel',
+    obsCopyAria: 'Copiar link do painel do OBS',
     obsAppearanceTitle: 'Aparencia do overlay',
     obsAppearanceDescription:
       'Estas opcoes valem so para o link do OBS. A janela do aplicativo continua com as cores da secao Aparencia.',
@@ -278,8 +296,25 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     sidebarChannelsIntro: 'Conecte os chats da Twitch, Kick, YouTube e TikTok.',
     sidebarAppearance: 'Aparencia',
     sidebarAppearanceIntro: 'Fonte e fundo das mensagens na janela do aplicativo.',
-    sidebarObs: 'OBS',
-    sidebarObsIntro: 'Links do overlay e aparencia exclusiva para a fonte do OBS.',
+    sidebarObs: 'Painel OBS',
+    sidebarObsIntro: 'Link e visual do chat no painel do OBS. So voce ve. Nao aparece na live.',
+    sidebarLive: 'Na live',
+    sidebarLiveIntro: 'Link e visual do chat na cena da live. Quem assiste ve. Nao use no painel.',
+    liveAppearanceTitle: 'Aparencia da tela da live',
+    liveAppearanceDescription:
+      'Estas opcoes valem so para o link da live. O painel do OBS e a janela do app nao mudam.',
+    liveFontFamilyHelp: 'Fonte usada nas mensagens na tela da live.',
+    liveFontSizeHelp: 'Tamanho do texto das mensagens na tela da live.',
+    liveFontWeightHelp: 'Quanto mais alto o valor, mais forte fica o texto na tela da live.',
+    livePageBgTitle: 'Fundo da pagina',
+    livePageBgColorLabel: 'Cor de fundo da pagina',
+    livePageBgColorHelp:
+      'Cor atras de todo o chat na live. Use opacidade 0 para deixar o fundo transparente.',
+    livePageBgOpacityLabel: 'Opacidade da pagina',
+    livePageBgOpacityHelp: '0 deixa o fundo transparente na live. 100 deixa a cor solida.',
+    liveMessageBgTitle: 'Fundo das mensagens',
+    liveMessageBgHelp:
+      'Cada mensagem usa a proxima cor da lista, e depois recomeca do inicio. Exemplo: cor 1, cor 2, cor 1, cor 2...',
     sidebarFilters: 'Filtros',
     sidebarFiltersIntro: 'Esconda mensagens de bots e nicks que voce nao quer ver no chat.',
     messageVisibilityTitle: 'Visibilidade das mensagens',
@@ -392,19 +427,22 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     cancel: 'Cancel',
     save: 'Save',
     saving: 'Saving...',
-    localServerTitle: 'Browser access',
+    localServerTitle: 'Show on the live screen',
     localServerDescription:
-      'While BooChat is open, open this link in Chrome, Edge, or Firefox — just like localhost in development.',
-    localServerHelp: 'The HTTP server starts with the app on 127.0.0.1. BooChat must stay open.',
-    localServerCopyAria: 'Copy app link for the browser',
-    obsTitle: 'OBS link',
+      'This link is only for chat on the live SCENE, so viewers can see it. Do not use it in the OBS panel/dock.',
+    localServerHelp:
+      '1. Copy the link.\n2. In OBS, on the live SCENE: Add > Source > Browser.\n3. Paste the URL, set width and height, and enable a transparent background.\n4. Uncheck "Shutdown source when not visible".\n5. Drag the chat to where viewers should see it.\n6. BooChat must stay open.',
+    localServerCopyAria: 'Copy link to show on the live screen',
+    liveHowToLabel: 'How to put it on the live',
+    obsTitle: 'Use in the OBS panel',
     obsDescription:
-      'Use this link as a Browser Source in OBS. BooChat must stay open while you stream.',
+      'This link is only for the OBS panel (dock). Only you see the chat. Viewers do not see it.',
     obsCopyLink: 'Copy link',
     obsCopied: 'Link copied!',
     obsHelp:
-      'In OBS: Add > Browser. Paste the URL, set width and height, keep a transparent background, and uncheck "Shutdown source when not visible".',
-    obsCopyAria: 'Copy overlay link for OBS',
+      '1. Copy the link.\n2. In OBS, open Docks.\n3. Click Custom Browser Docks.\n4. Add the panel name (e.g. BooChat) and paste the URL.\n5. Chat opens in a side panel — only you see it, viewers do not.',
+    obsHowToLabel: 'How to put it in the panel',
+    obsCopyAria: 'Copy OBS panel link',
     obsAppearanceTitle: 'Overlay appearance',
     obsAppearanceDescription:
       'These options apply only to the OBS link. The app window still uses the Appearance section.',
@@ -438,8 +476,25 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     sidebarChannelsIntro: 'Connect chats from Twitch, Kick, YouTube, and TikTok.',
     sidebarAppearance: 'Appearance',
     sidebarAppearanceIntro: 'Font and background of messages in the app window.',
-    sidebarObs: 'OBS',
-    sidebarObsIntro: 'Overlay links and appearance settings for the OBS browser source.',
+    sidebarObs: 'OBS panel',
+    sidebarObsIntro: 'Link and look of the chat in the OBS panel. Only you see it. It does not appear on stream.',
+    sidebarLive: 'On stream',
+    sidebarLiveIntro: 'Link and look of the chat on the live scene. Viewers see it. Do not use it in the panel.',
+    liveAppearanceTitle: 'Live screen appearance',
+    liveAppearanceDescription:
+      'These options apply only to the live link. The OBS panel and app window stay unchanged.',
+    liveFontFamilyHelp: 'Font used for messages on the live screen.',
+    liveFontSizeHelp: 'Text size of chat messages on the live screen.',
+    liveFontWeightHelp: 'Higher values make live-screen text bolder and easier to read.',
+    livePageBgTitle: 'Page background',
+    livePageBgColorLabel: 'Page background color',
+    livePageBgColorHelp:
+      'Color behind the entire live chat. Set opacity to 0 to keep a transparent background.',
+    livePageBgOpacityLabel: 'Page opacity',
+    livePageBgOpacityHelp: '0 keeps the live page transparent. 100 makes the color solid.',
+    liveMessageBgTitle: 'Message backgrounds',
+    liveMessageBgHelp:
+      'Each message uses the next color in the list, then starts over. Example: color 1, color 2, color 1, color 2...',
     sidebarFilters: 'Filters',
     sidebarFiltersIntro: 'Hide messages from bots and nicks you do not want in chat.',
     messageVisibilityTitle: 'Message visibility',
@@ -553,20 +608,22 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     cancel: 'Cancelar',
     save: 'Guardar',
     saving: 'Guardando...',
-    localServerTitle: 'Acceso desde el navegador',
+    localServerTitle: 'Aparecer en la pantalla de la live',
     localServerDescription:
-      'Con BooChat abierto, usa este enlace en Chrome, Edge o Firefox, igual que localhost en desarrollo.',
+      'Este enlace es solo para que el chat aparezca en la ESCENA de la live, para quien mira. No lo uses en el panel/dock de OBS.',
     localServerHelp:
-      'El servidor HTTP arranca con la aplicacion en 127.0.0.1. BooChat debe permanecer abierto.',
-    localServerCopyAria: 'Copiar enlace de la aplicacion para el navegador',
-    obsTitle: 'Enlace para OBS',
+      '1. Copia el enlace.\n2. En OBS, en la ESCENA de la live: Agregar > Fuente > Navegador.\n3. Pega la URL, define ancho y alto y marca fondo transparente.\n4. Desmarca "Apagar fuente cuando no sea visible".\n5. Arrastra el chat al lugar donde debe verse.\n6. BooChat debe permanecer abierto.',
+    localServerCopyAria: 'Copiar enlace para aparecer en la live',
+    liveHowToLabel: 'Como ponerlo en la live',
+    obsTitle: 'Usar en el panel de OBS',
     obsDescription:
-      'Usa este enlace como Fuente de navegador en OBS. BooChat debe permanecer abierto.',
+      'Este enlace es solo para el panel de OBS (dock). Solo tu ves el chat. Quien mira la live no lo ve.',
     obsCopyLink: 'Copiar enlace',
     obsCopied: 'Enlace copiado!',
     obsHelp:
-      'En OBS: Agregar > Navegador. Pega la URL, define ancho y alto, deja el fondo transparente y desmarca "Apagar fuente cuando no sea visible".',
-    obsCopyAria: 'Copiar enlace del overlay para OBS',
+      '1. Copia el enlace.\n2. En OBS, abre Paneles.\n3. Haz clic en Paneles personalizables con URL...\n4. Añade el nombre del panel (ej: BooChat) y pega la URL.\n5. El chat se abre en un panel al lado: solo tu lo ves.',
+    obsHowToLabel: 'Como ponerlo en el panel',
+    obsCopyAria: 'Copiar enlace del panel de OBS',
     obsAppearanceTitle: 'Apariencia del overlay',
     obsAppearanceDescription:
       'Estas opciones solo aplican al enlace de OBS. La ventana de la app sigue usando la seccion Apariencia.',
@@ -600,8 +657,25 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     sidebarChannelsIntro: 'Conecta los chats de Twitch, Kick, YouTube y TikTok.',
     sidebarAppearance: 'Apariencia',
     sidebarAppearanceIntro: 'Fuente y fondo de los mensajes en la ventana de la aplicacion.',
-    sidebarObs: 'OBS',
-    sidebarObsIntro: 'Enlaces del overlay y apariencia exclusiva para la fuente de OBS.',
+    sidebarObs: 'Panel OBS',
+    sidebarObsIntro: 'Enlace y aspecto del chat en el panel de OBS. Solo tu lo ves. No aparece en la live.',
+    sidebarLive: 'En la live',
+    sidebarLiveIntro: 'Enlace y aspecto del chat en la escena de la live. Quien mira lo ve. No lo uses en el panel.',
+    liveAppearanceTitle: 'Apariencia de la pantalla de la live',
+    liveAppearanceDescription:
+      'Estas opciones valen solo para el enlace de la live. El panel de OBS y la ventana de la app no cambian.',
+    liveFontFamilyHelp: 'Fuente usada en los mensajes de la pantalla de la live.',
+    liveFontSizeHelp: 'Tamano del texto de los mensajes en la pantalla de la live.',
+    liveFontWeightHelp: 'Un valor mas alto hace el texto de la live mas grueso y facil de leer.',
+    livePageBgTitle: 'Fondo de la pagina',
+    livePageBgColorLabel: 'Color de fondo de la pagina',
+    livePageBgColorHelp:
+      'Color detras de todo el chat en la live. Usa opacidad 0 para mantener el fondo transparente.',
+    livePageBgOpacityLabel: 'Opacidad de la pagina',
+    livePageBgOpacityHelp: '0 deja la pagina transparente en la live. 100 deja el color solido.',
+    liveMessageBgTitle: 'Fondos de los mensajes',
+    liveMessageBgHelp:
+      'Cada mensaje usa el siguiente color de la lista y luego vuelve a empezar. Ejemplo: color 1, color 2, color 1, color 2...',
     sidebarFilters: 'Filtros',
     sidebarFiltersIntro: 'Oculta mensajes de bots y nicks que no quieres ver en el chat.',
     messageVisibilityTitle: 'Visibilidad de mensajes',
@@ -715,20 +789,22 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     cancel: 'Annuler',
     save: 'Enregistrer',
     saving: 'Enregistrement...',
-    localServerTitle: 'Acces navigateur',
+    localServerTitle: 'Afficher sur l ecran du live',
     localServerDescription:
-      'Tant que BooChat est ouvert, ouvrez ce lien dans Chrome, Edge ou Firefox, comme le localhost en developpement.',
+      'Ce lien sert uniquement a afficher le chat sur la SCENE du live, pour les spectateurs. Ne l utilisez pas dans le panneau/dock OBS.',
     localServerHelp:
-      "Le serveur HTTP demarre avec l'application sur 127.0.0.1. BooChat doit rester ouvert.",
-    localServerCopyAria: "Copier le lien de l'application pour le navigateur",
-    obsTitle: 'Lien OBS',
+      '1. Copiez le lien.\n2. Dans OBS, sur la SCENE du live : Ajouter > Source > Navigateur.\n3. Collez l URL, definissez largeur et hauteur, et activez le fond transparent.\n4. Decochez "Desactiver la source quand elle n est pas visible".\n5. Placez le chat la ou les spectateurs doivent le voir.\n6. BooChat doit rester ouvert.',
+    localServerCopyAria: 'Copier le lien pour l ecran du live',
+    liveHowToLabel: 'Comment le mettre sur le live',
+    obsTitle: 'Utiliser dans le panneau OBS',
     obsDescription:
-      'Utilisez ce lien comme source Navigateur dans OBS. BooChat doit rester ouvert.',
+      'Ce lien sert uniquement au panneau OBS (dock). Vous seul voyez le chat. Les spectateurs ne le voient pas.',
     obsCopyLink: 'Copier le lien',
     obsCopied: 'Lien copie !',
     obsHelp:
-      'Dans OBS : Ajouter > Navigateur. Collez l\'URL, definissez largeur et hauteur, gardez le fond transparent et decochez "Desactiver la source quand elle n\'est pas visible".',
-    obsCopyAria: 'Copier le lien overlay pour OBS',
+      '1. Copiez le lien.\n2. Dans OBS, ouvrez Panneaux.\n3. Cliquez sur Panneaux personnalisables avec URL...\n4. Ajoutez le nom du panneau (ex: BooChat) et collez l URL.\n5. Le chat s ouvre dans un panneau a cote : vous seul le voyez.',
+    obsHowToLabel: 'Comment le mettre dans le panneau',
+    obsCopyAria: 'Copier le lien du panneau OBS',
     obsAppearanceTitle: "Apparence de l'overlay",
     obsAppearanceDescription:
       "Ces options s'appliquent uniquement au lien OBS. La fenetre de l'application utilise toujours la section Apparence.",
@@ -762,8 +838,25 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     sidebarChannelsIntro: 'Connectez les chats Twitch, Kick, YouTube et TikTok.',
     sidebarAppearance: 'Apparence',
     sidebarAppearanceIntro: "Police et fond des messages dans la fenetre de l'application.",
-    sidebarObs: 'OBS',
-    sidebarObsIntro: "Liens de l'overlay et apparence exclusive pour la source OBS.",
+    sidebarObs: 'Panneau OBS',
+    sidebarObsIntro: 'Lien et aspect du chat dans le panneau OBS. Vous seul le voyez. Il n apparait pas sur le live.',
+    sidebarLive: 'Sur le live',
+    sidebarLiveIntro: 'Lien et aspect du chat sur la scene du live. Les spectateurs le voient. Ne l utilisez pas dans le panneau.',
+    liveAppearanceTitle: "Apparence de l ecran du live",
+    liveAppearanceDescription:
+      "Ces options valent uniquement pour le lien du live. Le panneau OBS et la fenetre de l app ne changent pas.",
+    liveFontFamilyHelp: 'Police utilisee pour les messages sur l ecran du live.',
+    liveFontSizeHelp: 'Taille du texte des messages sur l ecran du live.',
+    liveFontWeightHelp: "Une valeur plus elevee rend le texte du live plus gras et lisible.",
+    livePageBgTitle: 'Fond de la page',
+    livePageBgColorLabel: 'Couleur de fond de la page',
+    livePageBgColorHelp:
+      "Couleur derriere tout le chat du live. Mettez l opacite a 0 pour garder un fond transparent.",
+    livePageBgOpacityLabel: 'Opacite de la page',
+    livePageBgOpacityHelp: '0 garde la page du live transparente. 100 rend la couleur solide.',
+    liveMessageBgTitle: 'Fonds des messages',
+    liveMessageBgHelp:
+      'Chaque message utilise la couleur suivante de la liste, puis recommence. Exemple : couleur 1, couleur 2, couleur 1, couleur 2...',
     sidebarFilters: 'Filtres',
     sidebarFiltersIntro: 'Masquez les messages des bots et des nicks que vous ne voulez pas voir.',
     messageVisibilityTitle: 'Visibilite des messages',
@@ -877,19 +970,22 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     cancel: 'Abbrechen',
     save: 'Speichern',
     saving: 'Wird gespeichert...',
-    localServerTitle: 'Browser-Zugriff',
+    localServerTitle: 'Auf dem Live-Bildschirm zeigen',
     localServerDescription:
-      'Solange BooChat geoeffnet ist, oeffne diesen Link in Chrome, Edge oder Firefox — wie localhost im Entwicklungsmodus.',
+      'Dieser Link ist nur fuer den Chat auf der Live-SZENE, damit Zuschauer ihn sehen. Nicht im OBS-Panel/Dock verwenden.',
     localServerHelp:
-      'Der HTTP-Server startet mit der App auf 127.0.0.1. BooChat muss geoeffnet bleiben.',
-    localServerCopyAria: 'App-Link fuer den Browser kopieren',
-    obsTitle: 'OBS-Link',
-    obsDescription: 'Nutze diesen Link als Browserquelle in OBS. BooChat muss geoffnet bleiben.',
+      '1. Kopiere den Link.\n2. In OBS, auf der Live-SZENE: Hinzufuegen > Quelle > Browser.\n3. URL einfuegen, Breite und Hoehe setzen und transparenten Hintergrund aktivieren.\n4. "Quelle schliessen, wenn nicht sichtbar" deaktivieren.\n5. Ziehe den Chat dorthin, wo Zuschauer ihn sehen sollen.\n6. BooChat muss geoeffnet bleiben.',
+    localServerCopyAria: 'Link fuer den Live-Bildschirm kopieren',
+    liveHowToLabel: 'So kommt es auf den Live-Stream',
+    obsTitle: 'Im OBS-Panel verwenden',
+    obsDescription:
+      'Dieser Link ist nur fuer das OBS-Panel (Dock). Nur du siehst den Chat. Zuschauer sehen ihn nicht.',
     obsCopyLink: 'Link kopieren',
     obsCopied: 'Link kopiert!',
     obsHelp:
-      'In OBS: Hinzufuegen > Browser. URL einfuegen, Breite und Hoehe setzen, transparenten Hintergrund behalten und "Quelle schliessen, wenn nicht sichtbar" deaktivieren.',
-    obsCopyAria: 'Overlay-Link fuer OBS kopieren',
+      '1. Kopiere den Link.\n2. In OBS oeffne Fenster.\n3. Klicke auf Benutzerdefinierte Browserdocks.\n4. Gib den Panel-Namen ein (z. B. BooChat) und fuege die URL ein.\n5. Der Chat oeffnet sich in einem Seitenpanel — nur du siehst ihn.',
+    obsHowToLabel: 'So kommt es ins Panel',
+    obsCopyAria: 'OBS-Panel-Link kopieren',
     obsAppearanceTitle: 'Overlay-Erscheinungsbild',
     obsAppearanceDescription:
       'Diese Optionen gelten nur fuer den OBS-Link. Das App-Fenster nutzt weiter den Bereich Erscheinungsbild.',
@@ -923,8 +1019,25 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     sidebarChannelsIntro: 'Verbinde Chats von Twitch, Kick, YouTube und TikTok.',
     sidebarAppearance: 'Erscheinungsbild',
     sidebarAppearanceIntro: 'Schrift und Hintergrund der Nachrichten im App-Fenster.',
-    sidebarObs: 'OBS',
-    sidebarObsIntro: 'Overlay-Links und eigenes Erscheinungsbild fuer die OBS-Quelle.',
+    sidebarObs: 'OBS-Panel',
+    sidebarObsIntro: 'Link und Aussehen des Chats im OBS-Panel. Nur du siehst ihn. Er erscheint nicht im Stream.',
+    sidebarLive: 'Im Stream',
+    sidebarLiveIntro: 'Link und Aussehen des Chats auf der Live-Szene. Zuschauer sehen ihn. Nicht im Panel verwenden.',
+    liveAppearanceTitle: 'Erscheinungsbild des Live-Bildschirms',
+    liveAppearanceDescription:
+      'Diese Optionen gelten nur fuer den Live-Link. OBS-Panel und App-Fenster bleiben unveraendert.',
+    liveFontFamilyHelp: 'Schrift fuer Nachrichten auf dem Live-Bildschirm.',
+    liveFontSizeHelp: 'Textgroesse der Nachrichten auf dem Live-Bildschirm.',
+    liveFontWeightHelp: 'Hoehere Werte machen den Live-Text fetter und lesbarer.',
+    livePageBgTitle: 'Seitenhintergrund',
+    livePageBgColorLabel: 'Farbe des Seitenhintergrunds',
+    livePageBgColorHelp:
+      'Farbe hinter dem gesamten Live-Chat. Opazitaet 0 haelt den Hintergrund transparent.',
+    livePageBgOpacityLabel: 'Seitenopazitaet',
+    livePageBgOpacityHelp: '0 haelt die Live-Seite transparent. 100 macht die Farbe deckend.',
+    liveMessageBgTitle: 'Nachrichtenhintergruende',
+    liveMessageBgHelp:
+      'Jede Nachricht nutzt die naechste Farbe der Liste und beginnt dann von vorn. Beispiel: Farbe 1, Farbe 2, Farbe 1, Farbe 2...',
     sidebarFilters: 'Filter',
     sidebarFiltersIntro: 'Blende Nachrichten von Bots und Nicks aus, die du nicht sehen willst.',
     messageVisibilityTitle: 'Sichtbarkeit der Nachrichten',
@@ -1038,19 +1151,22 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     cancel: 'Annulla',
     save: 'Salva',
     saving: 'Salvataggio...',
-    localServerTitle: 'Accesso dal browser',
+    localServerTitle: 'Mostra sullo schermo della live',
     localServerDescription:
-      'Con BooChat aperto, usa questo link in Chrome, Edge o Firefox, come il localhost in sviluppo.',
+      'Questo link serve solo per far comparire la chat sulla SCENA della live, per chi guarda. Non usarlo nel pannello/dock di OBS.',
     localServerHelp:
-      "Il server HTTP parte insieme all'app su 127.0.0.1. BooChat deve restare aperto.",
-    localServerCopyAria: "Copia il link dell'app per il browser",
-    obsTitle: 'Link per OBS',
-    obsDescription: 'Usa questo link come sorgente Browser in OBS. BooChat deve restare aperto.',
+      '1. Copia il link.\n2. In OBS, sulla SCENA della live: Aggiungi > Sorgente > Browser.\n3. Incolla l URL, imposta larghezza e altezza e attiva lo sfondo trasparente.\n4. Togli "Spegni sorgente quando non visibile".\n5. Sposta la chat dove deve comparire per chi guarda.\n6. BooChat deve restare aperto.',
+    localServerCopyAria: 'Copia il link per la live',
+    liveHowToLabel: 'Come metterlo in live',
+    obsTitle: 'Usa nel pannello di OBS',
+    obsDescription:
+      'Questo link serve solo per il pannello di OBS (dock). Solo tu vedi la chat. Chi guarda la live non la vede.',
     obsCopyLink: 'Copia link',
     obsCopied: 'Link copiato!',
     obsHelp:
-      'In OBS: Aggiungi > Browser. Incolla l\'URL, imposta larghezza e altezza, tieni lo sfondo trasparente e togli "Spegni sorgente quando non visibile".',
-    obsCopyAria: 'Copia link overlay per OBS',
+      '1. Copia il link.\n2. In OBS, apri Pannelli.\n3. Clicca su Pannelli personalizzabili con URL...\n4. Aggiungi il nome del pannello (es: BooChat) e incolla l URL.\n5. La chat si apre in un pannello a lato: solo tu la vedi.',
+    obsHowToLabel: 'Come metterlo nel pannello',
+    obsCopyAria: 'Copia il link del pannello OBS',
     obsAppearanceTitle: "Aspetto dell'overlay",
     obsAppearanceDescription:
       "Queste opzioni valgono solo per il link OBS. La finestra dell'app continua a usare la sezione Aspetto.",
@@ -1084,8 +1200,25 @@ const CONFIG_I18N: Record<AppLanguageCode, ConfigI18nText> = {
     sidebarChannelsIntro: 'Collega le chat di Twitch, Kick, YouTube e TikTok.',
     sidebarAppearance: 'Aspetto',
     sidebarAppearanceIntro: "Carattere e sfondo dei messaggi nella finestra dell'app.",
-    sidebarObs: 'OBS',
-    sidebarObsIntro: "Link dell'overlay e aspetto esclusivo per la sorgente OBS.",
+    sidebarObs: 'Pannello OBS',
+    sidebarObsIntro: 'Link e aspetto della chat nel pannello OBS. Solo tu la vedi. Non compare in live.',
+    sidebarLive: 'In live',
+    sidebarLiveIntro: 'Link e aspetto della chat sulla scena della live. Chi guarda la vede. Non usarlo nel pannello.',
+    liveAppearanceTitle: 'Aspetto dello schermo della live',
+    liveAppearanceDescription:
+      "Queste opzioni valgono solo per il link della live. Il pannello OBS e la finestra dell'app non cambiano.",
+    liveFontFamilyHelp: 'Carattere usato nei messaggi sullo schermo della live.',
+    liveFontSizeHelp: 'Dimensione del testo dei messaggi sullo schermo della live.',
+    liveFontWeightHelp: 'Un valore piu alto rende il testo della live piu marcato e leggibile.',
+    livePageBgTitle: 'Sfondo della pagina',
+    livePageBgColorLabel: 'Colore di sfondo della pagina',
+    livePageBgColorHelp:
+      'Colore dietro tutta la chat in live. Imposta l opacita a 0 per tenere lo sfondo trasparente.',
+    livePageBgOpacityLabel: 'Opacita della pagina',
+    livePageBgOpacityHelp: '0 lascia la pagina della live trasparente. 100 rende il colore solido.',
+    liveMessageBgTitle: 'Sfondi dei messaggi',
+    liveMessageBgHelp:
+      'Ogni messaggio usa il colore successivo della lista e poi ricomincia. Esempio: colore 1, colore 2, colore 1, colore 2...',
     sidebarFilters: 'Filtri',
     sidebarFiltersIntro: 'Nascondi i messaggi di bot e nick che non vuoi vedere in chat.',
     messageVisibilityTitle: 'Visibilita dei messaggi',
@@ -1198,4 +1331,101 @@ export function getChatSystemTextWithParams(
   params: Record<string, string>
 ) {
   return formatTemplate(getChatSystemText(language, key), params)
+}
+
+const UPDATE_I18N = {
+  'pt-BR': {
+    availableTitle: 'Atualização disponível',
+    availableDescription: 'A versão {version} já pode ser baixada.',
+    downloadingTitle: 'Baixando atualização',
+    downloadingDescription: 'Isso pode levar alguns instantes.',
+    readyTitle: 'Pronto para instalar',
+    readyDescription: 'Reinicie o BooChat para aplicar a versão {version}.',
+    errorTitle: 'Falha na atualização',
+    downloadError: 'Não foi possível baixar a atualização.',
+    installError: 'Não foi possível instalar a atualização.',
+    downloadNow: 'Baixar',
+    installNow: 'Reiniciar',
+    later: 'Depois',
+    retry: 'Tentar de novo'
+  },
+  'en-US': {
+    availableTitle: 'Update available',
+    availableDescription: 'Version {version} is ready to download.',
+    downloadingTitle: 'Downloading update',
+    downloadingDescription: 'This may take a moment.',
+    readyTitle: 'Ready to install',
+    readyDescription: 'Restart BooChat to apply version {version}.',
+    errorTitle: 'Update failed',
+    downloadError: 'Could not download the update.',
+    installError: 'Could not install the update.',
+    downloadNow: 'Download',
+    installNow: 'Restart',
+    later: 'Later',
+    retry: 'Try again'
+  },
+  'es-ES': {
+    availableTitle: 'Actualización disponible',
+    availableDescription: 'La versión {version} ya se puede descargar.',
+    downloadingTitle: 'Descargando actualización',
+    downloadingDescription: 'Esto puede tardar un momento.',
+    readyTitle: 'Lista para instalar',
+    readyDescription: 'Reinicia BooChat para aplicar la versión {version}.',
+    errorTitle: 'Error al actualizar',
+    downloadError: 'No se pudo descargar la actualización.',
+    installError: 'No se pudo instalar la actualización.',
+    downloadNow: 'Descargar',
+    installNow: 'Reiniciar',
+    later: 'Después',
+    retry: 'Reintentar'
+  },
+  'fr-FR': {
+    availableTitle: 'Mise à jour disponible',
+    availableDescription: 'La version {version} est prête à être téléchargée.',
+    downloadingTitle: 'Téléchargement',
+    downloadingDescription: 'Cela peut prendre quelques instants.',
+    readyTitle: 'Prêt à installer',
+    readyDescription: 'Redémarrez BooChat pour appliquer la version {version}.',
+    errorTitle: 'Échec de la mise à jour',
+    downloadError: 'Impossible de télécharger la mise à jour.',
+    installError: "Impossible d'installer la mise à jour.",
+    downloadNow: 'Télécharger',
+    installNow: 'Redémarrer',
+    later: 'Plus tard',
+    retry: 'Réessayer'
+  },
+  'de-DE': {
+    availableTitle: 'Update verfügbar',
+    availableDescription: 'Version {version} kann jetzt heruntergeladen werden.',
+    downloadingTitle: 'Update wird geladen',
+    downloadingDescription: 'Das kann einen Moment dauern.',
+    readyTitle: 'Bereit zur Installation',
+    readyDescription: 'Starte BooChat neu, um Version {version} anzuwenden.',
+    errorTitle: 'Update fehlgeschlagen',
+    downloadError: 'Das Update konnte nicht geladen werden.',
+    installError: 'Das Update konnte nicht installiert werden.',
+    downloadNow: 'Laden',
+    installNow: 'Neu starten',
+    later: 'Später',
+    retry: 'Erneut versuchen'
+  },
+  'it-IT': {
+    availableTitle: 'Aggiornamento disponibile',
+    availableDescription: 'La versione {version} è pronta per il download.',
+    downloadingTitle: 'Download in corso',
+    downloadingDescription: 'Potrebbe richiedere qualche istante.',
+    readyTitle: "Pronto per l'installazione",
+    readyDescription: 'Riavvia BooChat per applicare la versione {version}.',
+    errorTitle: 'Aggiornamento non riuscito',
+    downloadError: "Impossibile scaricare l'aggiornamento.",
+    installError: "Impossibile installare l'aggiornamento.",
+    downloadNow: 'Scarica',
+    installNow: 'Riavvia',
+    later: 'Dopo',
+    retry: 'Riprova'
+  }
+} as const
+
+export function getUpdateI18n(language: unknown) {
+  return UPDATE_I18N[normalizeLanguage(language)]
 }

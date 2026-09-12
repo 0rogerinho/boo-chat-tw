@@ -11,6 +11,7 @@ type ConfigKey = keyof Pick<
   | 'font'
   | 'background'
   | 'obsAppearance'
+  | 'liveAppearance'
   | 'bots'
   | 'notifications'
   | 'messageVisibility'

@@ -1,9 +1,9 @@
 import type { LucideIcon } from 'lucide-react'
-import { Filter, Globe, MonitorPlay, Palette, Radio } from 'lucide-react'
+import { Filter, Globe, Monitor, MonitorPlay, Palette, Radio } from 'lucide-react'
 import { cn } from '../../../shared/lib/cn'
 import type { getConfigI18n } from '../../../shared/i18n'
 
-export type ConfigSection = 'general' | 'channels' | 'appearance' | 'obs' | 'filters'
+export type ConfigSection = 'general' | 'channels' | 'appearance' | 'obs' | 'live' | 'filters'
 
 type SidebarI18n = ReturnType<typeof getConfigI18n>
 
@@ -12,6 +12,7 @@ type SidebarLabelKey =
   | 'sidebarChannels'
   | 'sidebarAppearance'
   | 'sidebarObs'
+  | 'sidebarLive'
   | 'sidebarFilters'
 
 const SECTIONS: { id: ConfigSection; icon: LucideIcon; labelKey: SidebarLabelKey }[] = [
@@ -19,6 +20,7 @@ const SECTIONS: { id: ConfigSection; icon: LucideIcon; labelKey: SidebarLabelKey
   { id: 'channels', icon: Radio, labelKey: 'sidebarChannels' },
   { id: 'appearance', icon: Palette, labelKey: 'sidebarAppearance' },
   { id: 'obs', icon: MonitorPlay, labelKey: 'sidebarObs' },
+  { id: 'live', icon: Monitor, labelKey: 'sidebarLive' },
   { id: 'filters', icon: Filter, labelKey: 'sidebarFilters' }
 ]
 

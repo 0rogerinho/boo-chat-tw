@@ -17,7 +17,7 @@ import {
 import { cancelMessageTts, speakIncomingChatMessage } from '../../shared/utils/messageTts'
 import { isChatMessageExpired } from '../../shared/utils/messageVisibility'
 import useTiktokChat from './hooks/useTiktokChat'
-import { isObsOverlayRoute } from '../../shared/overlay/runtime'
+import { isElectronRuntime, isLiveRoute, isObsOverlayRoute } from '../../shared/overlay/runtime'
 import { getObsFontStack } from '../../shared/constants/obsFonts'
 import { hexToRgba, safeCssColor } from '../../shared/utils/color'
 import { hydrateChatImages, isSafeDisplayImageUrl } from '../../shared/utils/chatHtml'
@@ -48,8 +48,9 @@ type AllChats = {
   channelId?: string
 }[]
 
-export const Chat = ({ overlay = false }: { overlay?: boolean }) => {
+export const Chat = ({ overlay = false, live = false }: { overlay?: boolean; live?: boolean }) => {
   const isOverlay = overlay || isObsOverlayRoute()
+  const isLiveView = live || isLiveRoute() || (!isElectronRuntime && !isOverlay)
   const [allChats, setAllChats] = useState<AllChats>([])
   const [now, setNow] = useState(() => Date.now())
   const messageSoundPrimedRef = useRef(false)
@@ -216,30 +217,35 @@ export const Chat = ({ overlay = false }: { overlay?: boolean }) => {
     }
   }, [allChats])
 
-  const electronOverlay = !showWindow && !isOverlay
+  const electronOverlay = !showWindow && !isOverlay && !isLiveView
 
   const obsAppearance = config?.obsAppearance ?? DEFAULT_CONFIG_DATA.obsAppearance
-  const overlayFontFamily = isOverlay ? getObsFontStack(obsAppearance.font.family) : undefined
-  const overlayFontSize = isOverlay ? obsAppearance.font.size : (config?.font?.size ?? 14)
-  const overlayFontWeight = isOverlay ? obsAppearance.font.weight : (config?.font?.weight ?? 400)
+  const liveAppearance = config?.liveAppearance ?? DEFAULT_CONFIG_DATA.liveAppearance
+  const displayAppearance = isOverlay ? obsAppearance : isLiveView ? liveAppearance : null
+  const overlayFontFamily = displayAppearance
+    ? getObsFontStack(displayAppearance.font.family)
+    : undefined
+  const overlayFontSize = displayAppearance?.font.size ?? config?.font?.size ?? 14
+  const overlayFontWeight = displayAppearance?.font.weight ?? config?.font?.weight ?? 400
   const platformIconSize = 16
   const usePlatformColorDot = config?.appearance?.platformColorDot === true
-  const overlayPageBackground = isOverlay
-    ? hexToRgba(obsAppearance.pageBackground.color, obsAppearance.pageBackground.opacity)
+  const overlayPageBackground = displayAppearance
+    ? hexToRgba(displayAppearance.pageBackground.color, displayAppearance.pageBackground.opacity)
     : undefined
+  const isTransparentPage = isOverlay || isLiveView
 
   useEffect(() => {
-    document.documentElement.classList.toggle('obs-overlay', isOverlay)
-    document.body.classList.toggle('obs-overlay', isOverlay)
+    document.documentElement.classList.toggle('obs-overlay', isTransparentPage)
+    document.body.classList.toggle('obs-overlay', isTransparentPage)
 
     return () => {
       document.documentElement.classList.remove('obs-overlay')
       document.body.classList.remove('obs-overlay')
     }
-  }, [isOverlay])
+  }, [isTransparentPage])
 
   useEffect(() => {
-    if (!isOverlay) return
+    if (!isTransparentPage) return
 
     const pageColor = overlayPageBackground ?? 'transparent'
     const targets = [document.documentElement, document.body, document.getElementById('root')]
@@ -252,7 +258,7 @@ export const Chat = ({ overlay = false }: { overlay?: boolean }) => {
         if (element) element.style.background = ''
       })
     }
-  }, [isOverlay, overlayPageBackground])
+  }, [isTransparentPage, overlayPageBackground])
 
   useEffect(() => {
     hydrateChatImages(chatListRef.current)
@@ -276,10 +282,11 @@ export const Chat = ({ overlay = false }: { overlay?: boolean }) => {
       className={cn(
         'relative w-screen h-screen flex flex-col overflow-hidden rounded-[8px] bg-gray-900/95 backdrop-blur-sm border border-gray-600',
         electronOverlay && 'bg-transparent backdrop-blur-none border-transparent',
-        isOverlay && 'rounded-none border-transparent backdrop-blur-none bg-transparent'
+        isOverlay && 'rounded-none border-transparent backdrop-blur-none bg-transparent',
+        isLiveView && 'rounded-none border-transparent backdrop-blur-none bg-transparent'
       )}
       style={
-        isOverlay
+        displayAppearance
           ? {
               backgroundColor: overlayPageBackground ?? 'transparent',
               fontFamily: overlayFontFamily
@@ -287,34 +294,35 @@ export const Chat = ({ overlay = false }: { overlay?: boolean }) => {
           : undefined
       }
     >
-      {!isOverlay && <Header />}
+      {!isOverlay && !isLiveView && <Header />}
 
       <div
         className={cn(
           'overflow-y-auto overflow-x-hidden flex-1 scroll',
-          isOverlay ? 'mt-0' : 'mt-8 px-3 pb-3',
+          displayAppearance ? 'mt-0' : 'mt-8 px-3 pb-3',
           electronOverlay && 'scroll-none'
         )}
       >
-        <div ref={chatListRef} className={cn(isOverlay ? 'space-y-0' : 'space-y-2')}>
+        <div ref={chatListRef} className={cn(displayAppearance ? 'space-y-0' : 'space-y-2')}>
           {visibleChats
             .sort((a, b) => a.timestamp - b.timestamp)
             .map((data, index) => {
-              const overlayLayer =
-                obsAppearance.messageBackground.colors[
-                  index % obsAppearance.messageBackground.colors.length
-                ]
+              const overlayLayer = displayAppearance
+                ? displayAppearance.messageBackground.colors[
+                    index % displayAppearance.messageBackground.colors.length
+                  ]
+                : undefined
 
               return (
                 <div
                   className={cn(
                     'flex gap-2 transition-all duration-200 fade-in',
-                    isOverlay ? 'w-full rounded-none px-3 py-1' : 'p-0 rounded-md',
-                    !isOverlay && index % 2 === 0 && 'bg-gray-800/10',
+                    displayAppearance ? 'w-full rounded-none px-3 py-1' : 'p-0 rounded-md',
+                    !displayAppearance && index % 2 === 0 && 'bg-gray-800/10',
                     electronOverlay && 'bg-transparent'
                   )}
                   style={{
-                    backgroundColor: isOverlay
+                    backgroundColor: displayAppearance
                       ? hexToRgba(overlayLayer?.color, overlayLayer?.opacity ?? 55)
                       : hexToRgba(
                           config?.background?.background,

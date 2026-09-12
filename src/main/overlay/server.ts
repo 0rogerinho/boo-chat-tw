@@ -312,6 +312,11 @@ export function getOverlayUrl(): string | null {
   return `http://${HOST}:${overlayPort}/#/overlay`
 }
 
+export function getLiveUrl(): string | null {
+  if (!overlayPort) return null
+  return `http://${HOST}:${overlayPort}/#/live`
+}
+
 export function getOverlayPort(): number | null {
   return overlayPort
 }

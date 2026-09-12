@@ -1,6 +1,6 @@
 import { Tray, Menu, app, BrowserWindow, nativeImage, clipboard } from 'electron'
 import { platform } from './platform'
-import { getLocalServerUrl, getOverlayUrl } from './overlay/server'
+import { getLiveUrl, getOverlayUrl } from './overlay/server'
 
 let tray: Tray | null = null
 
@@ -131,9 +131,9 @@ function updateTrayMenu(win: BrowserWindow) {
       }
     },
     {
-      label: 'Copiar link local',
+      label: 'Copiar link da tela da live',
       click: () => {
-        const url = getLocalServerUrl()
+        const url = getLiveUrl()
         if (url) {
           clipboard.writeText(url)
         }

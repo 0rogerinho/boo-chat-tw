@@ -17,11 +17,20 @@ import { ErrorNotification, SuccessNotification } from '../../shared/components/
 import { getMessageSoundLabels, parseMessageSound } from '../../shared/constants/messageSounds'
 import { APP_LANGUAGE_OPTIONS, getConfigI18n, normalizeLanguage } from '../../shared/i18n'
 import { useModel } from './hooks/useModel'
-import { ChevronDown, Copy, Filter, Image, Info, Languages, Link2, MessagesSquare, Smile } from 'lucide-react'
+import { ChevronDown, Copy, Filter, Image, Info, Languages, Link2, MessagesSquare, Monitor, Smile } from 'lucide-react'
 import twitchLogo from '../../shared/assets/twitch-logo.png'
 import kickLogo from '../../shared/assets/kick-logo.webp'
 import youtubeLogo from '../../shared/assets/youtube-logo.png'
 import tiktokLogo from '../../shared/assets/tiktok-logo.png'
+
+function LinkHowTo({ label, steps }: { label: string; steps: string }) {
+  return (
+    <div className="rounded-md border border-primary-500/25 bg-primary-600/10 px-2.5 py-2">
+      <p className="text-[11px] font-medium text-primary-200">{label}</p>
+      <p className="mt-1 text-[11px] leading-relaxed text-gray-300 whitespace-pre-wrap">{steps}</p>
+    </div>
+  )
+}
 
 function parseBotDraft(value: string): string[] {
   return value
@@ -46,7 +55,9 @@ export const Config = () => {
   const [section, setSection] = useState<ConfigSection>('channels')
   const [botDraft, setBotDraft] = useState('')
   const [overlayUrl, setOverlayUrl] = useState('')
+  const [liveUrl, setLiveUrl] = useState('')
   const [copiedOverlay, setCopiedOverlay] = useState(false)
+  const [copiedLive, setCopiedLive] = useState(false)
   const language = normalizeLanguage(config?.language)
   const i18n = getConfigI18n(language)
   const soundLabels = getMessageSoundLabels(language)
@@ -58,9 +69,10 @@ export const Config = () => {
       for (let attempt = 0; attempt < 10; attempt++) {
         try {
           const response = await window.electron.ipcRenderer.invoke('get-overlay-url')
-          if (response?.success && (response.appUrl || response.url)) {
+          if (response?.success && (response.appUrl || response.url || response.liveUrl)) {
             if (!cancelled) {
               setOverlayUrl(response.url || '')
+              setLiveUrl(response.liveUrl || response.appUrl || '')
             }
             return
           }
@@ -79,14 +91,19 @@ export const Config = () => {
     }
   }, [])
 
-  const copyOverlayUrl = async () => {
-    if (!overlayUrl) return
+  const copyUrl = async (url: string, kind: 'overlay' | 'live') => {
+    if (!url) return
     try {
-      await navigator.clipboard.writeText(overlayUrl)
-      setCopiedOverlay(true)
-      window.setTimeout(() => setCopiedOverlay(false), 2000)
+      await navigator.clipboard.writeText(url)
+      if (kind === 'overlay') {
+        setCopiedOverlay(true)
+        window.setTimeout(() => setCopiedOverlay(false), 2000)
+      } else {
+        setCopiedLive(true)
+        window.setTimeout(() => setCopiedLive(false), 2000)
+      }
     } catch (error) {
-      console.error('Erro ao copiar link local:', error)
+      console.error('Erro ao copiar link:', error)
     }
   }
 
@@ -459,13 +476,14 @@ export const Config = () => {
                     helpAriaLabel={i18n.helpAriaLabel}
                     hint={i18n.obsDescription}
                   >
+                    <LinkHowTo label={i18n.obsHowToLabel} steps={i18n.obsHelp} />
                     <input
                       className="w-full px-3 py-2 bg-gray-950/60 border border-gray-700 rounded-md text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       readOnly
                       value={overlayUrl}
                       aria-label={i18n.obsCopyAria}
                     />
-                    <PrimaryAction className="w-full" onClick={() => void copyOverlayUrl()}>
+                    <PrimaryAction className="w-full" onClick={() => void copyUrl(overlayUrl, 'overlay')}>
                       <Copy size={14} />
                       {copiedOverlay ? i18n.obsCopied : i18n.obsCopyLink}
                     </PrimaryAction>
@@ -473,9 +491,74 @@ export const Config = () => {
 
                   <ObsAppearanceSetting
                     i18n={i18n}
+                    idPrefix="obs"
                     inputClass={inputClass}
                     appearance={config?.obsAppearance ?? DEFAULT_CONFIG_DATA.obsAppearance}
+                    copy={{
+                      title: i18n.obsAppearanceTitle,
+                      description: i18n.obsAppearanceDescription,
+                      fontFamilyHelp: i18n.obsFontFamilyHelp,
+                      fontSizeHelp: i18n.obsFontSizeHelp,
+                      fontWeightHelp: i18n.obsFontWeightHelp,
+                      pageBgTitle: i18n.obsPageBgTitle,
+                      pageBgColorLabel: i18n.obsPageBgColorLabel,
+                      pageBgColorHelp: i18n.obsPageBgColorHelp,
+                      pageBgOpacityLabel: i18n.obsPageBgOpacityLabel,
+                      pageBgOpacityHelp: i18n.obsPageBgOpacityHelp,
+                      messageBgTitle: i18n.obsMessageBgTitle,
+                      messageBgHelp: i18n.obsMessageBgHelp
+                    }}
                     onChange={(value) => updateConfig('obsAppearance', value)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {section === 'live' && (
+              <div className="space-y-3">
+                <SectionHeader title={i18n.sidebarLive} description={i18n.sidebarLiveIntro} />
+
+                <div className={settingStackClass}>
+                  <SettingCard
+                    icon={Monitor}
+                    title={i18n.localServerTitle}
+                    help={`${i18n.localServerDescription}\n\n${i18n.localServerHelp}`}
+                    helpAriaLabel={i18n.helpAriaLabel}
+                    hint={i18n.localServerDescription}
+                  >
+                    <LinkHowTo label={i18n.liveHowToLabel} steps={i18n.localServerHelp} />
+                    <input
+                      className="w-full px-3 py-2 bg-gray-950/60 border border-gray-700 rounded-md text-white text-xs focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      readOnly
+                      value={liveUrl}
+                      aria-label={i18n.localServerCopyAria}
+                    />
+                    <PrimaryAction className="w-full" onClick={() => void copyUrl(liveUrl, 'live')}>
+                      <Copy size={14} />
+                      {copiedLive ? i18n.obsCopied : i18n.obsCopyLink}
+                    </PrimaryAction>
+                  </SettingCard>
+
+                  <ObsAppearanceSetting
+                    i18n={i18n}
+                    idPrefix="live"
+                    inputClass={inputClass}
+                    appearance={config?.liveAppearance ?? DEFAULT_CONFIG_DATA.liveAppearance}
+                    copy={{
+                      title: i18n.liveAppearanceTitle,
+                      description: i18n.liveAppearanceDescription,
+                      fontFamilyHelp: i18n.liveFontFamilyHelp,
+                      fontSizeHelp: i18n.liveFontSizeHelp,
+                      fontWeightHelp: i18n.liveFontWeightHelp,
+                      pageBgTitle: i18n.livePageBgTitle,
+                      pageBgColorLabel: i18n.livePageBgColorLabel,
+                      pageBgColorHelp: i18n.livePageBgColorHelp,
+                      pageBgOpacityLabel: i18n.livePageBgOpacityLabel,
+                      pageBgOpacityHelp: i18n.livePageBgOpacityHelp,
+                      messageBgTitle: i18n.liveMessageBgTitle,
+                      messageBgHelp: i18n.liveMessageBgHelp
+                    }}
+                    onChange={(value) => updateConfig('liveAppearance', value)}
                   />
                 </div>
               </div>

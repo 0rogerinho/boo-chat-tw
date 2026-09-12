@@ -8,6 +8,7 @@ export default function Routers() {
       <Routes>
         <Route path="/" element={<Chat />} />
         <Route path="/overlay" element={<Chat overlay />} />
+        <Route path="/live" element={<Chat live />} />
         <Route path={`/config`} element={<Config />} />
       </Routes>
     </HashRouter>

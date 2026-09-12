@@ -2,7 +2,7 @@ import { DEFAULT_CONFIG_DATA } from '../constants/defaultConfig'
 import { parseMessageSound } from '../constants/messageSounds'
 import { parseObsFontFamily } from '../constants/obsFonts'
 import { normalizeLanguage } from '../i18n'
-import type { TConfigDataProps } from '../store/useConfigStore'
+import type { DisplayAppearance, TConfigDataProps } from '../store/useConfigStore'
 import { normalizeHexColor } from './color'
 import { parseTtsVoice } from '../constants/ttsVoices'
 import { parseTtsEnabled, parseTtsRate, parseTtsReadAuthor, parseTtsVolume } from './messageTts'
@@ -40,9 +40,9 @@ function clampFontWeight(value: unknown, fallback: number): number {
 
 function normalizeMessageColors(
   value: unknown,
-  fallbackOpacity: number
+  fallbackOpacity: number,
+  defaults: Array<{ color: string; opacity: number }>
 ): Array<{ color: string; opacity: number }> {
-  const defaults = DEFAULT_CONFIG_DATA.obsAppearance.messageBackground.colors
   if (!Array.isArray(value) || value.length === 0) {
     return defaults.map((entry) => ({ ...entry }))
   }
@@ -69,6 +69,33 @@ function normalizeMessageColors(
     .slice(0, 6)
 
   return colors.length > 0 ? colors : defaults.map((entry) => ({ ...entry }))
+}
+
+function normalizeDisplayAppearance(
+  value: DisplayAppearance | undefined,
+  fallback: DisplayAppearance
+): DisplayAppearance {
+  return {
+    font: {
+      family: parseObsFontFamily(value?.font?.family ?? fallback.font.family),
+      size: clampFontSize(value?.font?.size, fallback.font.size, 36),
+      weight: clampFontWeight(value?.font?.weight, fallback.font.weight)
+    },
+    pageBackground: {
+      color: normalizeHexColor(value?.pageBackground?.color, fallback.pageBackground.color),
+      opacity: clampBackgroundOpacity(value?.pageBackground?.opacity, fallback.pageBackground.opacity)
+    },
+    messageBackground: {
+      colors: normalizeMessageColors(
+        value?.messageBackground?.colors,
+        clampBackgroundOpacity(
+          (value?.messageBackground as { opacity?: unknown } | undefined)?.opacity,
+          55
+        ),
+        fallback.messageBackground.colors
+      )
+    }
+  }
 }
 
 /** Garante defaults (incl. notificações) ao carregar JSON antigo ou incompleto */
@@ -107,39 +134,14 @@ export function normalizeStoredConfig(
         DEFAULT_CONFIG_DATA.background.opacity
       )
     },
-    obsAppearance: {
-      font: {
-        family: parseObsFontFamily(merged.obsAppearance?.font?.family),
-        size: clampFontSize(
-          merged.obsAppearance?.font?.size,
-          DEFAULT_CONFIG_DATA.obsAppearance.font.size,
-          36
-        ),
-        weight: clampFontWeight(
-          merged.obsAppearance?.font?.weight,
-          DEFAULT_CONFIG_DATA.obsAppearance.font.weight
-        )
-      },
-      pageBackground: {
-        color: normalizeHexColor(
-          merged.obsAppearance?.pageBackground?.color,
-          DEFAULT_CONFIG_DATA.obsAppearance.pageBackground.color
-        ),
-        opacity: clampBackgroundOpacity(
-          merged.obsAppearance?.pageBackground?.opacity,
-          DEFAULT_CONFIG_DATA.obsAppearance.pageBackground.opacity
-        )
-      },
-      messageBackground: {
-        colors: normalizeMessageColors(
-          merged.obsAppearance?.messageBackground?.colors,
-          clampBackgroundOpacity(
-            (merged.obsAppearance?.messageBackground as { opacity?: unknown } | undefined)?.opacity,
-            55
-          )
-        )
-      }
-    },
+    obsAppearance: normalizeDisplayAppearance(
+      merged.obsAppearance,
+      DEFAULT_CONFIG_DATA.obsAppearance
+    ),
+    liveAppearance: normalizeDisplayAppearance(
+      merged.liveAppearance,
+      DEFAULT_CONFIG_DATA.liveAppearance
+    ),
     messageVisibility: {
       ...DEFAULT_CONFIG_DATA.messageVisibility,
       ...merged.messageVisibility,

@@ -12,6 +12,7 @@ export const bots = [
   'moobot',
   'mtgbot',
   'nightbot',
+  'onsprintbot',
   'playwithviewersbot',
   'pokemoncommunitygame',
   'pretzelrocks',

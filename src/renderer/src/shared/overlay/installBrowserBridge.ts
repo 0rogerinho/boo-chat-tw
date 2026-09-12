@@ -104,7 +104,8 @@ async function invokeChannel(channel: string, ...args: any[]): Promise<any> {
     return {
       success: true,
       url: `${window.location.origin}/#/overlay`,
-      appUrl: `${window.location.origin}/`
+      appUrl: `${window.location.origin}/`,
+      liveUrl: `${window.location.origin}/#/live`
     }
   }
 

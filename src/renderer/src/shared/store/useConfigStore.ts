@@ -3,6 +3,21 @@ import type { MessageSoundId } from '../constants/messageSounds'
 import type { TtsVoiceId } from '../constants/ttsVoices'
 import type { AppLanguageCode } from '../i18n'
 
+export type DisplayAppearance = {
+  font: {
+    family: string
+    size: number
+    weight: number
+  }
+  pageBackground: {
+    color: string
+    opacity: number
+  }
+  messageBackground: {
+    colors: Array<{ color: string; opacity: number }>
+  }
+}
+
 export type TConfigDataProps = {
   kick: { slug: string; id?: number; user_id?: number }
   twitch: { channel: string }
@@ -22,20 +37,8 @@ export type TConfigDataProps = {
     background: string
     opacity: number
   }
-  obsAppearance: {
-    font: {
-      family: string
-      size: number
-      weight: number
-    }
-    pageBackground: {
-      color: string
-      opacity: number
-    }
-    messageBackground: {
-      colors: Array<{ color: string; opacity: number }>
-    }
-  }
+  obsAppearance: DisplayAppearance
+  liveAppearance: DisplayAppearance
   bots: {
     userBots: string[]
     defaultTrue: boolean

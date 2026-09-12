@@ -3,16 +3,25 @@ name: Build and Release
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
   workflow_dispatch:
 
-jobs:
-  build:
-    runs-on: ${{ matrix.os }}
+permissions:
+  contents: write
 
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        include:
+          - os: windows-latest
+            publish_script: publish:win
+          - os: macos-latest
+            publish_script: publish:mac
+          - os: ubuntu-latest
+            publish_script: publish:linux
 
     steps:
       - name: Checkout code
@@ -21,12 +30,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '20'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 10
 
       - name: Get pnpm store directory
         shell: bash
@@ -41,56 +50,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      - name: Check tag matches package version
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "A tag ($TAG) precisa ser igual à version do package.json ($PKG)"
+            exit 1
+          fi
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build application
-        run: pnpm run build
-
-      - name: Build for current platform
-        run: |
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            pnpm run build:win
-          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-            pnpm run build:mac
-          else
-            pnpm run build:linux
-          fi
+      - name: Build and publish
+        run: pnpm run ${{ matrix.publish_script }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ matrix.os }}
-          path: dist/
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: dist/
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            dist/*/dist-windows-latest/*.exe
-            dist/*/dist-windows-latest/*.exe.blockmap
-            dist/*/dist-macos-latest/*.dmg
-            dist/*/dist-macos-latest/*.zip
-            dist/*/dist-ubuntu-latest/*.AppImage
-            dist/*/dist-ubuntu-latest/*.deb
-            dist/*/dist-ubuntu-latest/*.rpm
-            dist/*/dist-ubuntu-latest/*.snap
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,72 +1,19 @@
-import { app, BrowserWindow, dialog } from 'electron'
+import { app, BrowserWindow } from 'electron'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { createHome } from './home'
-import { registerIPC } from './home/ipc'
+import { getMainWindow, registerIPC } from './home/ipc'
 import { registerShortcuts } from './shortcuts'
 import { createTray } from './tray'
-import { autoUpdater } from 'electron-updater'
 import { platform } from './platform'
 import { startOverlayServer, stopOverlayServer } from './overlay/server'
-
-// Configurações do autoUpdater
-autoUpdater.autoDownload = false
-autoUpdater.autoInstallOnAppQuit = false
-
-// Configurar logging para debug
-const log = require('electron-log')
-autoUpdater.logger = log
-log.transports.file.level = 'info'
-
-// Configurar URL base para atualizações (GitHub)
-autoUpdater.setFeedURL({
-  provider: 'github',
-  owner: '0rogerinho',
-  repo: 'boo-chat-tw'
-})
-
-// Eventos do autoUpdater
-autoUpdater.on('update-available', () => {
-  dialog
-    .showMessageBox({
-      type: 'info',
-      title: 'Atualização Disponível',
-      message: 'Uma nova versão está disponível. Deseja baixar agora?',
-      buttons: ['Baixar Agora', 'Depois']
-    })
-    .then((result) => {
-      if (result.response === 0) {
-        autoUpdater.downloadUpdate()
-      }
-    })
-})
-
-autoUpdater.on('error', (err) => {
-  console.error('Erro ao verificar atualizações:', err)
-  dialog.showErrorBox('Erro de Atualização', 'Erro ao verificar atualizações: ' + err.message)
-})
-
-autoUpdater.on('update-downloaded', () => {
-  dialog
-    .showMessageBox({
-      type: 'info',
-      title: 'Atualização Baixada',
-      message:
-        'A atualização foi baixada. O aplicativo será reiniciado para aplicar a atualização.',
-      buttons: ['Reiniciar Agora', 'Depois']
-    })
-    .then((result) => {
-      if (result.response === 0) {
-        autoUpdater.quitAndInstall()
-      }
-    })
-})
+import { setupAutoUpdater } from './updater'
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('com.devrogerinho.boochat')
 
   // Configurar ícone do Dock no Mac (deve ser feito antes de criar a janela)
   if (platform.isMacOS) {
@@ -93,6 +40,7 @@ app.whenReady().then(() => {
     console.error('[Index] ❌ Erro ao criar tray:', error)
   }
   registerIPC(win)
+  setupAutoUpdater(getMainWindow)
 
   registerShortcuts(win)
 
@@ -103,13 +51,6 @@ app.whenReady().then(() => {
       console.error('[Index] ❌ Erro ao atualizar tray após overlay:', error)
     }
   })
-
-  // Verificar atualizações após 5 segundos (apenas em produção)
-  if (process.env.NODE_ENV === 'production') {
-    setTimeout(() => {
-      autoUpdater.checkForUpdatesAndNotify()
-    }, 5000)
-  }
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the

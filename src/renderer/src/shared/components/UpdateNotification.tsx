@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { CheckCircle, Download, AlertCircle, X } from 'lucide-react'
+import React, { useEffect, useRef, useState } from 'react'
+import { AlertCircle, CheckCircle, Download, X } from 'lucide-react'
 
 interface UpdateInfo {
   version: string
@@ -13,73 +13,52 @@ interface UpdateNotificationProps {
 
 export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onClose }) => {
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null)
-  const [isChecking, setIsChecking] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
   const [downloadProgress, setDownloadProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [isUpdateDownloaded, setIsUpdateDownloaded] = useState(false)
+  const canShowErrorRef = useRef(false)
 
   useEffect(() => {
-    // Configurar listeners para eventos do updater
-    const handleCheckingForUpdate = () => {
-      setIsChecking(true)
+    const handleUpdateAvailable = (info: UpdateInfo) => {
+      canShowErrorRef.current = true
+      setUpdateInfo(info)
       setError(null)
     }
 
-    const handleUpdateAvailable = (info: UpdateInfo) => {
-      setUpdateInfo(info)
-      setIsChecking(false)
-    }
-
-    const handleUpdateNotAvailable = () => {
-      setIsChecking(false)
-      setError('Nenhuma atualização disponível')
-    }
-
     const handleError = (errorMessage: string) => {
+      if (!canShowErrorRef.current) {
+        return
+      }
+
       setError(errorMessage)
-      setIsChecking(false)
       setIsDownloading(false)
     }
 
-    const handleDownloadProgress = (progress: any) => {
-      setDownloadProgress(progress.percent)
+    const handleDownloadProgress = (progress: { percent?: number }) => {
+      setIsDownloading(true)
+      setDownloadProgress(progress.percent ?? 0)
     }
 
     const handleUpdateDownloaded = () => {
       setIsDownloading(false)
       setIsUpdateDownloaded(true)
+      setError(null)
     }
 
-    // Registrar listeners
-    window.api.onUpdaterCheckingForUpdate(handleCheckingForUpdate)
     window.api.onUpdaterUpdateAvailable(handleUpdateAvailable)
-    window.api.onUpdaterUpdateNotAvailable(handleUpdateNotAvailable)
     window.api.onUpdaterError(handleError)
     window.api.onUpdaterDownloadProgress(handleDownloadProgress)
     window.api.onUpdaterUpdateDownloaded(handleUpdateDownloaded)
 
-    // Cleanup
     return () => {
       window.api.removeAllUpdaterListeners()
     }
   }, [])
 
-  const handleCheckForUpdates = async () => {
-    try {
-      setIsChecking(true)
-      setError(null)
-      const result = await window.api.checkForUpdates()
-      if (!result.success) {
-        setError(result.error || 'Erro ao verificar atualizações')
-      }
-    } catch (err) {
-      setError('Erro ao verificar atualizações')
-    }
-  }
-
   const handleDownloadUpdate = async () => {
     try {
+      canShowErrorRef.current = true
       setIsDownloading(true)
       setError(null)
       const result = await window.api.downloadUpdate()
@@ -87,7 +66,7 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onClose 
         setError(result.error || 'Erro ao baixar atualização')
         setIsDownloading(false)
       }
-    } catch (err) {
+    } catch {
       setError('Erro ao baixar atualização')
       setIsDownloading(false)
     }
@@ -96,12 +75,12 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onClose 
   const handleInstallUpdate = async () => {
     try {
       await window.api.installUpdate()
-    } catch (err) {
+    } catch {
       setError('Erro ao instalar atualização')
     }
   }
 
-  if (error && !updateInfo) {
+  if (error && updateInfo) {
     return (
       <div className="fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg max-w-sm z-50">
         <div className="flex items-center justify-between">
@@ -115,7 +94,7 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onClose 
         </div>
         <p className="mt-2 text-sm">{error}</p>
         <button
-          onClick={handleCheckForUpdates}
+          onClick={handleDownloadUpdate}
           className="mt-3 bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm"
         >
           Tentar Novamente
@@ -167,8 +146,7 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onClose 
             <X className="w-4 h-4" />
           </button>
         </div>
-        <p className="mt-2 text-sm">Nova versão {updateInfo.version} está disponível!</p>
-        <p className="mt-1 text-xs opacity-75">✨ Teste de atualização automática - v1.0.1</p>
+        <p className="mt-2 text-sm">Nova versão {updateInfo.version} está disponível.</p>
         {isDownloading && (
           <div className="mt-3">
             <div className="flex justify-between text-sm mb-1">
@@ -199,17 +177,6 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onClose 
             </button>
           </div>
         )}
-      </div>
-    )
-  }
-
-  if (isChecking) {
-    return (
-      <div className="fixed top-4 right-4 bg-gray-500 text-white p-4 rounded-lg shadow-lg max-w-sm z-50">
-        <div className="flex items-center space-x-2">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-          <span className="text-sm">Verificando atualizações...</span>
-        </div>
       </div>
     )
   }

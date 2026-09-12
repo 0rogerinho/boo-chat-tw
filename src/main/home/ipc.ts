@@ -2,7 +2,6 @@
 import { ipcMain, BrowserWindow, app } from 'electron'
 import { createConfigWindow } from '../config'
 import { registerConfigIPC } from '../config/ipc'
-import { autoUpdater } from 'electron-updater'
 import { platform } from '../platform'
 import { TikTokLiveConnection, WebcastEvent } from 'tiktok-live-connector'
 import { loadAppConfig } from '../config/store'
@@ -455,90 +454,9 @@ export const registerIPC = (win: BrowserWindow) => {
     return resolveTwshotImage(String(service ?? ''), String(id ?? ''))
   })
 
-  // Handlers para o autoUpdater
-  // Remover handlers anteriores se existirem
-  ipcMain.removeHandler('check-for-updates')
-  ipcMain.removeHandler('download-update')
-  ipcMain.removeHandler('install-update')
   ipcMain.removeHandler('get-app-version')
-
-  ipcMain.handle('check-for-updates', async () => {
-    try {
-      const result = await autoUpdater.checkForUpdates()
-      return { success: true, result }
-    } catch (error) {
-      console.error('Erro ao verificar atualizações:', error)
-      return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
-    }
-  })
-
-  ipcMain.handle('download-update', async () => {
-    try {
-      await autoUpdater.downloadUpdate()
-      return { success: true }
-    } catch (error) {
-      console.error('Erro ao baixar atualização:', error)
-      return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
-    }
-  })
-
-  ipcMain.handle('install-update', async () => {
-    try {
-      autoUpdater.quitAndInstall()
-      return { success: true }
-    } catch (error) {
-      console.error('Erro ao instalar atualização:', error)
-      return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
-    }
-  })
-
   ipcMain.handle('get-app-version', () => {
     return app.getVersion()
-  })
-
-  // Remover listeners antigos do autoUpdater antes de criar novos
-  autoUpdater.removeAllListeners('checking-for-update')
-  autoUpdater.removeAllListeners('update-available')
-  autoUpdater.removeAllListeners('update-not-available')
-  autoUpdater.removeAllListeners('error')
-  autoUpdater.removeAllListeners('download-progress')
-  autoUpdater.removeAllListeners('update-downloaded')
-
-  // Enviar eventos do updater para o renderer
-  autoUpdater.on('checking-for-update', () => {
-    if (mainWin && !mainWin.isDestroyed()) {
-      mainWin.webContents.send('updater-checking-for-update')
-    }
-  })
-
-  autoUpdater.on('update-available', (info) => {
-    if (mainWin && !mainWin.isDestroyed()) {
-      mainWin.webContents.send('updater-update-available', info)
-    }
-  })
-
-  autoUpdater.on('update-not-available', (info) => {
-    if (mainWin && !mainWin.isDestroyed()) {
-      mainWin.webContents.send('updater-update-not-available', info)
-    }
-  })
-
-  autoUpdater.on('error', (err) => {
-    if (mainWin && !mainWin.isDestroyed()) {
-      mainWin.webContents.send('updater-error', err.message)
-    }
-  })
-
-  autoUpdater.on('download-progress', (progressObj) => {
-    if (mainWin && !mainWin.isDestroyed()) {
-      mainWin.webContents.send('updater-download-progress', progressObj)
-    }
-  })
-
-  autoUpdater.on('update-downloaded', (info) => {
-    if (mainWin && !mainWin.isDestroyed()) {
-      mainWin.webContents.send('updater-update-downloaded', info)
-    }
   })
 
   // Remover listener antigo antes de criar novo

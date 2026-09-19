@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BooChat — chat unificado para streamers</title>
+    <meta
+      name="description"
+      content="BooChat junta o chat da Twitch, Kick, YouTube e TikTok numa janela transparente. Overlay no OBS, TTS offline, emotes e alertas. Windows, macOS e Linux."
+    />
+    <meta name="theme-color" content="#020617" />
+    <link rel="icon" href="assets/logo.png" type="image/png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="BooChat — chat unificado para streamers" />
+    <meta
+      property="og:description"
+      content="Twitch, Kick, YouTube e TikTok no mesmo overlay. Transparente, no OBS e na live."
+    />
+    <meta
+      property="og:image"
+      content="https://0rogerinho.github.io/boo-chat-tw/screenshots/og-cover.png"
+    />
+    <meta property="og:url" content="https://0rogerinho.github.io/boo-chat-tw/" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-glow" aria-hidden="true"></div>
+    <header class="nav">
+      <a class="brand" href="#topo">
+        <img src="assets/logo.png" alt="" width="36" height="36" />
+        <span>BooChat</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#funciona">Como funciona</a>
+        <a href="#recursos">Recursos</a>
+        <a href="#telas">Telas</a>
+        <a href="#download" class="btn btn-sm">Baixar</a>
+      </nav>
+    </header>
+
+    <main id="topo">
+      <section class="hero">
+        <p class="eyebrow">Para streamers · Windows, macOS e Linux</p>
+        <h1>O chat da live, unificado e transparente.</h1>
+        <p class="lead">
+          O BooChat captura Twitch, Kick, YouTube e TikTok e mostra tudo numa só janela. Use por cima
+          do jogo, no painel do OBS ou na cena que o público vê.
+        </p>
+        <div class="hero-actions">
+          <a id="primary-download" class="btn btn-primary" href="https://github.com/0rogerinho/boo-chat-tw/releases/latest">
+            Baixar agora
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/0rogerinho/boo-chat-tw">Ver no GitHub</a>
+        </div>
+        <p id="release-meta" class="release-meta">Versão 1.2.1 · atualização automática depois de instalar</p>
+        <ul class="platform-pills" aria-label="Plataformas de chat">
+          <li class="pill twitch">Twitch</li>
+          <li class="pill kick">Kick</li>
+          <li class="pill youtube">YouTube</li>
+          <li class="pill tiktok">TikTok</li>
+        </ul>
+      </section>
+
+      <section class="preview" aria-label="Prévia do chat unificado">
+        <div class="window">
+          <div class="window-bar">
+            <div class="window-tools">
+              <span class="icon-dot">⚙</span>
+              <span class="icon-dot">🔗</span>
+              <span class="icon-dot">👁</span>
+            </div>
+            <span class="window-title">BooChat 1.2.1</span>
+            <div class="window-controls">
+              <span></span><span></span><span class="close"></span>
+            </div>
+          </div>
+          <div class="chat-list">
+            <p class="msg"><i class="dot twitch"></i><b style="color:#bf94ff">LunaPlays:</b> valeu pelo follow, bem-vindo!</p>
+            <p class="msg alt"><i class="dot kick"></i><b style="color:#53fc18">Kael:</b> alguém já testou o overlay no OBS?</p>
+            <p class="msg"><i class="dot youtube"></i><b style="color:#ff6b6b">CarlaDev:</b> chat unificado ficou incrível</p>
+            <p class="msg alt"><i class="dot tiktok"></i><b style="color:#fe2c55">bia.lives:</b> esse TTS offline é muito bom</p>
+            <p class="msg"><i class="dot twitch"></i><b style="color:#9146ff">NightOwl:</b> 7TV e BetterTTV funcionando aqui</p>
+            <p class="msg alt"><i class="dot kick"></i><b style="color:#7cfc00">ModAna:</b> bora pro clutch</p>
+            <p class="msg"><i class="dot youtube"></i><b style="color:#ff4444">Rafa:</b> coloca o chat na cena da live</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="funciona" class="section">
+        <h2>Para que o app serve</h2>
+        <p class="section-lead">
+          Streamers que passam em mais de uma plataforma não precisam mais abrir quatro chats. O
+          BooChat junta as mensagens, deixa a janela transparente e envia o mesmo chat para o OBS.
+        </p>
+        <ol class="steps">
+          <li>
+            <strong>1. Conecte os canais</strong>
+            <span>Twitch, Kick, YouTube (@handle ou URL da live) e TikTok. Sem API key obrigatória.</span>
+          </li>
+          <li>
+            <strong>2. Veja tudo junto</strong>
+            <span>Cada mensagem mostra de qual plataforma veio, com badges, emotes e imagens.</span>
+          </li>
+          <li>
+            <strong>3. Leve para a live</strong>
+            <span>Copie o link do painel (só você vê) ou o da cena (o público vê) e cole no OBS.</span>
+          </li>
+        </ol>
+      </section>
+
+      <section id="recursos" class="section">
+        <h2>O que tem dentro</h2>
+        <div class="feature-grid">
+          <article>
+            <h3>Chat unificado</h3>
+            <p>Twitch, Kick, YouTube e TikTok na mesma lista, com logo ou bolinha colorida da plataforma.</p>
+          </article>
+          <article>
+            <h3>Janela transparente</h3>
+            <p>Sobreponha o chat no jogo sem fundo sólido. Atalho <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>A</kbd> para mostrar ou esconder.</p>
+          </article>
+          <article>
+            <h3>Painel do OBS</h3>
+            <p>Link local só para o dock. Você acompanha o chat no OBS; quem assiste a live não vê.</p>
+          </article>
+          <article>
+            <h3>Chat na cena</h3>
+            <p>Outro link, só para a fonte de navegador da live. Fundo transparente e aparência própria.</p>
+          </article>
+          <article>
+            <h3>TTS offline</h3>
+            <p>O app lê as mensagens no seu computador (vozes Faber, Cadu e Jeff). Não envia o chat para a nuvem.</p>
+          </article>
+          <article>
+            <h3>Sons de alerta</h3>
+            <p>Sino, toque suave ou bolhas quando chega mensagem nova. Volume e mute na hora.</p>
+          </article>
+          <article>
+            <h3>Emotes extras</h3>
+            <p>7TV e BetterTTV na Twitch, além dos emotes nativos de cada plataforma.</p>
+          </article>
+          <article>
+            <h3>Imagens e GIFs</h3>
+            <p>Links diretos de imagem, TWShot, Lightshot, Imgur e Tenor aparecem no chat.</p>
+          </article>
+          <article>
+            <h3>Filtro de bots</h3>
+            <p>Nightbot, StreamElements, Moobot e a lista que você quiser ficam de fora.</p>
+          </article>
+          <article>
+            <h3>Aparência por contexto</h3>
+            <p>Fonte e fundo separados para a janela, o painel do OBS e o chat que vai para a live.</p>
+          </article>
+          <article>
+            <h3>6 idiomas</h3>
+            <p>Português, inglês, espanhol, francês, alemão e italiano na interface.</p>
+          </article>
+          <article>
+            <h3>Atualização automática</h3>
+            <p>O app avisa quando sai versão nova nas releases do GitHub e você atualiza com um clique.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="telas" class="section">
+        <h2>Como é por dentro</h2>
+        <p class="section-lead">Telas do BooChat 1.2.1: chat unificado, canais, alertas e overlay na live.</p>
+        <div class="shots">
+          <figure>
+            <img src="screenshots/chat-unificado.png" alt="Janela do BooChat com mensagens da Twitch, Kick, YouTube e TikTok" />
+            <figcaption>Chat unificado — as quatro plataformas na mesma janela</figcaption>
+          </figure>
+          <figure>
+            <img src="screenshots/config-canais.png" alt="Configurações com campos dos canais Twitch, Kick, YouTube e TikTok" />
+            <figcaption>Canais — conecte cada plataforma pelo nome do canal</figcaption>
+          </figure>
+          <figure>
+            <img src="screenshots/config-geral.png" alt="Configurações gerais com idioma, som, TTS e emotes" />
+            <figcaption>Geral — idioma, som, TTS offline, emotes e imagens</figcaption>
+          </figure>
+          <figure>
+            <img src="screenshots/overlay-obs.png" alt="Overlay transparente do BooChat sobre um jogo" />
+            <figcaption>Na live — overlay transparente por cima do jogo no OBS</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="section two-col">
+        <div>
+          <h2>Dois jeitos de usar no OBS</h2>
+          <p>
+            O BooChat sobe um servidor local em <code>127.0.0.1</code> enquanto o app está aberto.
+            São dois links diferentes, de propósito.
+          </p>
+          <dl class="obs-list">
+            <div>
+              <dt>Painel (dock)</dt>
+              <dd>Só você vê. Ideal para acompanhar o chat do lado da transmissão.</dd>
+            </div>
+            <div>
+              <dt>Cena da live</dt>
+              <dd>Fonte de navegador com fundo transparente. Quem assiste vê o chat no vídeo.</dd>
+            </div>
+          </dl>
+        </div>
+        <div class="config-card">
+          <div class="config-side">
+            <span>Geral</span>
+            <span class="active">Canais</span>
+            <span>Aparência</span>
+            <span>Painel OBS</span>
+            <span>Na live</span>
+            <span>Filtros</span>
+          </div>
+          <div class="config-body">
+            <p class="config-title">Canais</p>
+            <p class="config-sub">Conecte os chats da Twitch, Kick, YouTube e TikTok.</p>
+            <label>Twitch <input value="devrogerinho" readonly /></label>
+            <label>Kick <input value="devrogerinho" readonly /></label>
+            <label>YouTube <input value="@seucanal" readonly /></label>
+            <label>TikTok <input value="@seucanal" readonly /></label>
+          </div>
+        </div>
+      </section>
+
+      <section id="download" class="download">
+        <img src="assets/logo.png" alt="" width="72" height="72" />
+        <h2>Baixe o BooChat</h2>
+        <p>Instalador para Windows, DMG para macOS (Intel e Apple Silicon) e AppImage, DEB ou RPM no Linux.</p>
+        <div class="download-row">
+          <a id="dl-win" class="btn btn-primary" href="https://github.com/0rogerinho/boo-chat-tw/releases/latest">Windows</a>
+          <a id="dl-mac" class="btn btn-primary" href="https://github.com/0rogerinho/boo-chat-tw/releases/latest">macOS</a>
+          <a id="dl-linux" class="btn btn-primary" href="https://github.com/0rogerinho/boo-chat-tw/releases/latest">Linux</a>
+        </div>
+        <a class="all-releases" href="https://github.com/0rogerinho/boo-chat-tw/releases">Todas as versões e arquivos</a>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>BooChat · feito por <a href="https://devrogerinho.com">devrogerinho.com</a></p>
+      <p>
+        <a href="https://github.com/0rogerinho/boo-chat-tw">Código no GitHub</a>
+        ·
+        <a href="https://github.com/0rogerinho/boo-chat-tw/releases">Releases</a>
+      </p>
+    </footer>
+
+    <script src="site.js"></script>
+  </body>
+</html>

@@ -19,7 +19,8 @@ import {
 } from '../../../shared/api/thirdPartyEmotes'
 import { getChatSystemText, getChatSystemTextWithParams } from '../../../shared/i18n'
 import type { ChatBadge } from '../../../shared/utils/chatBadges'
-import { sanitizeChatMessageHtml, safeChatImageHtml, TWITCH_EMOTE_ID } from '../../../shared/utils/chatHtml'
+import { sanitizeChatMessageHtml } from '../../../shared/utils/chatHtml'
+import { formatTwitchEmoteMessage, getEmojisFromTags } from '../../../shared/utils/twitchEmotes'
 
 interface IEmojis {
   id: string
@@ -37,13 +38,6 @@ interface IChat {
   channelId?: string
   badges?: ChatBadge[]
 }
-
-interface IFormatMessage {
-  message: string
-  emojis: IEmojis[]
-}
-
-const img = 'https://static-cdn.jtvnw.net/emoticons/v2/'
 
 function appendUniqueChat(current: IChat[], incoming: IChat | IChat[]): IChat[] {
   const items = Array.isArray(incoming) ? incoming : [incoming]
@@ -120,47 +114,6 @@ export function useModel() {
 
     fetchConfig()
   }, [])
-
-  function getEmojis(string: string) {
-    const emojis = string?.split('/')
-
-    const arrEmojis = emojis?.map((emoji) => {
-      const objEmoji = emoji.split(':')
-
-      return {
-        id: objEmoji[0],
-        posInit: Number(objEmoji[1].split(',')[0].split('-')[0]),
-        posEnd: Number(objEmoji[1].split(',')[0].split('-')[1])
-      }
-    })
-
-    return arrEmojis
-  }
-
-  function formatMessage({ message, emojis }: IFormatMessage) {
-    let replacedMessage = message
-
-    for (const emoji of emojis) {
-      if (!TWITCH_EMOTE_ID.test(emoji.id)) continue
-
-      const url1 = `${img}/${emoji.id}/animated/light/3.0`
-      const url2 = `${img}/${emoji.id}/static/light/3.0`
-      const emojiImg = ` ${safeChatImageHtml(url1, 'emote', {
-        alt: emoji.id,
-        fallbackSrc: url2,
-        style: 'display:inline;width:30px;height:30px;vertical-align:middle'
-      })} `
-      const emojiName = message.substring(emoji.posInit, emoji.posEnd + 1).split(' ')[0]
-      // Escapa caracteres especiais da palavra para evitar erros na regex
-      const escapedWord = emojiName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      // Cria uma regex sem \b para permitir encontrar caracteres especiais
-      const regex = new RegExp(`${escapedWord}`, 'g')
-
-      replacedMessage = replacedMessage.replace(regex, emojiImg)
-    }
-
-    return replacedMessage
-  }
 
   function ensureChannelAvatar(channelId: string) {
     const cached = getCachedChannelAvatar(channelId)
@@ -265,8 +218,8 @@ export function useModel() {
     client.on('message', (_, tags, message) => {
       if (!active) return
 
-      const emojis = tags['emotes-raw'] && getEmojis(tags['emotes-raw'])
-      const nativeMessage = emojis ? formatMessage({ message, emojis }) : message
+      const emojis = getEmojisFromTags(tags)
+      const nativeMessage = emojis.length > 0 ? formatTwitchEmoteMessage(message, emojis) : message
       const channelId = tags['source-room-id']
       const badgeChannelId = tags['source-room-id'] || tags['room-id']
       const emoteChannelId = badgeChannelId || twitchRoomIdRef.current

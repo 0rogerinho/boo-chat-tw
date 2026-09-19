@@ -128,7 +128,18 @@ export function sanitizeChatMessageHtml(html: string, allowLinkImages: boolean):
     if (!src) return ''
 
     if (isEmoteImageUrl(src)) {
-      return safeChatImageHtml(src, 'emote')
+      const fallbacks = unescapeHtmlAttr(extractAttr(attributes, 'data-fallbacks') ?? '')
+        .split(/\s+/)
+        .filter(Boolean)
+
+      return safeChatImageHtml(src, 'emote', {
+        alt: unescapeHtmlAttr(extractAttr(attributes, 'alt') ?? ''),
+        title: unescapeHtmlAttr(extractAttr(attributes, 'title') ?? ''),
+        style: unescapeHtmlAttr(extractAttr(attributes, 'style') ?? ''),
+        className: unescapeHtmlAttr(extractAttr(attributes, 'class') ?? '') || 'chat-emote',
+        fallbackSrc: unescapeHtmlAttr(extractAttr(attributes, 'data-fallback-src') ?? ''),
+        fallbackSrcs: fallbacks
+      })
     }
 
     if (allowLinkImages && isAllowedChatImageUrl(src)) {
@@ -166,13 +177,19 @@ export function hydrateChatImages(root: ParentNode | null): void {
     if (img.dataset.chatHydrated === '1') return
     img.dataset.chatHydrated = '1'
 
-    img.addEventListener('error', () => {
+    const applyFallback = () => {
       const next = nextFallbackUrl(img)
       if (next) {
         img.src = next
         return
       }
       img.remove()
-    })
+    }
+
+    img.addEventListener('error', applyFallback)
+
+    if (img.complete && img.naturalWidth === 0 && img.getAttribute('src')) {
+      applyFallback()
+    }
   })
 }

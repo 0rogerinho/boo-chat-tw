@@ -8,6 +8,7 @@ import { loadAppConfig } from '../config/store'
 import {
   fetchEmotesApiProxy,
   fetchKickChannelProxy,
+  fetchKickRealtimeProxy,
   fetchTwitchApiProxy,
   fetchYouTubeProxy
 } from '../http/proxies'
@@ -441,6 +442,12 @@ export const registerIPC = (win: BrowserWindow) => {
 
   ipcMain.handle('fetch-kick-channel', async (_event, slug: string) => {
     return fetchKickChannelProxy(slug)
+  })
+
+  ipcMain.removeHandler('fetch-kick-realtime')
+
+  ipcMain.handle('fetch-kick-realtime', async (_event, channelId: string) => {
+    return fetchKickRealtimeProxy(channelId)
   })
 
   ipcMain.removeHandler('fetch-emotes-api')

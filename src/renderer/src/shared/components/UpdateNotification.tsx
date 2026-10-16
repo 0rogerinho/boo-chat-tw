@@ -1,12 +1,29 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { AlertCircle, ArrowUpCircle, CheckCircle2, Download, X } from 'lucide-react'
+import {
+  AlertCircle,
+  ArrowUpCircle,
+  CheckCircle2,
+  Download,
+  FileText,
+  Sparkles,
+  Wand2,
+  Wrench,
+  X
+} from 'lucide-react'
 import { getUpdateI18n } from '../i18n'
 import { cn } from '../lib'
 import { useConfigStore } from '../store/useConfigStore'
+import {
+  hasReleaseNotes,
+  parseReleaseNotes,
+  type ParsedReleaseNotes,
+  type ReleaseNotesInput,
+  type ReleaseNotesSectionKey
+} from '../utils/releaseNotes'
 
 interface UpdateInfo {
   version: string
-  releaseNotes?: string
+  releaseNotes?: ReleaseNotesInput
   releaseDate?: string
 }
 
@@ -20,14 +37,51 @@ function formatText(template: string, params: Record<string, string>) {
   return template.replace(/\{(\w+)\}/g, (_match, key) => params[key] ?? '')
 }
 
-function previewReleaseNotes(notes?: string) {
-  if (!notes) return ''
+const NOTE_SECTIONS: Array<{
+  key: ReleaseNotesSectionKey
+  icon: typeof Sparkles
+  label: (i18n: ReturnType<typeof getUpdateI18n>) => string
+}> = [
+  { key: 'new', icon: Sparkles, label: (i18n) => i18n.notesNew },
+  { key: 'improvements', icon: Wand2, label: (i18n) => i18n.notesImprovements },
+  { key: 'fixes', icon: Wrench, label: (i18n) => i18n.notesFixes },
+  { key: 'other', icon: FileText, label: (i18n) => i18n.notesOther }
+]
 
-  return notes
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 140)
+function ReleaseNotesList({
+  notes,
+  i18n
+}: {
+  notes: ParsedReleaseNotes
+  i18n: ReturnType<typeof getUpdateI18n>
+}) {
+  if (!hasReleaseNotes(notes)) return null
+
+  return (
+    <div className="mt-2 max-h-36 space-y-2 overflow-y-auto pr-0.5">
+      {NOTE_SECTIONS.map(({ key, icon: Icon, label }) => {
+        const items = notes[key]
+        if (items.length === 0) return null
+
+        return (
+          <div key={key}>
+            <p className="flex items-center gap-1 text-[11px] font-medium text-gray-300">
+              <Icon size={11} className="shrink-0 text-primary-300" />
+              {label(i18n)}
+            </p>
+            <ul className="mt-1 space-y-0.5">
+              {items.map((item, index) => (
+                <li key={`${key}-${index}`} className="flex gap-1.5 text-[11px] leading-relaxed text-gray-400">
+                  <span className="mt-1.5 size-1 shrink-0 rounded-full bg-gray-500" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onClose }) => {
@@ -124,7 +178,8 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onClose 
         : 'available'
 
   const version = updateInfo.version
-  const notes = status === 'available' ? previewReleaseNotes(updateInfo.releaseNotes) : ''
+  const parsedNotes = parseReleaseNotes(updateInfo.releaseNotes)
+  const showNotes = status === 'available' || status === 'ready'
   const title = {
     available: i18n.availableTitle,
     downloading: i18n.downloadingTitle,
@@ -208,9 +263,7 @@ export const UpdateNotification: React.FC<UpdateNotificationProps> = ({ onClose 
               </div>
             )}
 
-            {notes ? (
-              <p className="mt-1.5 line-clamp-2 text-[11px] leading-relaxed text-gray-500">{notes}</p>
-            ) : null}
+            {showNotes ? <ReleaseNotesList notes={parsedNotes} i18n={i18n} /> : null}
 
             {status === 'downloading' ? (
               <div className="mt-2.5">

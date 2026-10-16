@@ -1264,6 +1264,7 @@ const CHAT_SYSTEM_I18N = {
     connecting: 'Conectando com o canal "{channel}"...',
     connected: 'Conectado ao chat de "{channel}"',
     channelNotFound: 'O canal {channel} nao foi encontrado',
+    connectionFailed: 'Nao foi possivel conectar ao chat da Kick de "{channel}"',
     overlayHelp:
       'Para esconder/mostrar a janela use no Windows "Ctrl + Alt + A", Mac "CTRL + OPTION + A".'
   },
@@ -1273,6 +1274,7 @@ const CHAT_SYSTEM_I18N = {
     connecting: 'Connecting to channel "{channel}"...',
     connected: 'Connected to "{channel}" chat',
     channelNotFound: 'Channel {channel} was not found',
+    connectionFailed: 'Could not connect to Kick chat for "{channel}"',
     overlayHelp: 'To hide/show the window use Windows "Ctrl + Alt + A", Mac "CTRL + OPTION + A".'
   },
   'es-ES': {
@@ -1281,6 +1283,7 @@ const CHAT_SYSTEM_I18N = {
     connecting: 'Conectando al canal "{channel}"...',
     connected: 'Conectado al chat de "{channel}"',
     channelNotFound: 'No se encontro el canal {channel}',
+    connectionFailed: 'No se pudo conectar al chat de Kick de "{channel}"',
     overlayHelp:
       'Para ocultar/mostrar la ventana usa en Windows "Ctrl + Alt + A", Mac "CTRL + OPTION + A".'
   },
@@ -1290,6 +1293,7 @@ const CHAT_SYSTEM_I18N = {
     connecting: 'Connexion a la chaine "{channel}"...',
     connected: 'Connecte au chat de "{channel}"',
     channelNotFound: 'La chaine {channel} est introuvable',
+    connectionFailed: 'Impossible de se connecter au chat Kick de "{channel}"',
     overlayHelp:
       'Pour masquer/afficher la fenetre utilisez Windows "Ctrl + Alt + A", Mac "CTRL + OPTION + A".'
   },
@@ -1299,6 +1303,7 @@ const CHAT_SYSTEM_I18N = {
     connecting: 'Verbinde mit Kanal "{channel}"...',
     connected: 'Mit Chat von "{channel}" verbunden',
     channelNotFound: 'Kanal {channel} wurde nicht gefunden',
+    connectionFailed: 'Kick-Chat von "{channel}" konnte nicht verbunden werden',
     overlayHelp:
       'Zum Verstecken/Anzeigen des Fensters unter Windows "Ctrl + Alt + A", Mac "CTRL + OPTION + A".'
   },
@@ -1308,6 +1313,7 @@ const CHAT_SYSTEM_I18N = {
     connecting: 'Connessione al canale "{channel}"...',
     connected: 'Connesso alla chat di "{channel}"',
     channelNotFound: 'Canale {channel} non trovato',
+    connectionFailed: 'Impossibile connettersi alla chat Kick di "{channel}"',
     overlayHelp:
       'Per nascondere/mostrare la finestra usa su Windows "Ctrl + Alt + A", Mac "CTRL + OPTION + A".'
   }
@@ -1347,7 +1353,11 @@ const UPDATE_I18N = {
     downloadNow: 'Baixar',
     installNow: 'Reiniciar',
     later: 'Depois',
-    retry: 'Tentar de novo'
+    retry: 'Tentar de novo',
+    notesNew: 'Novidades',
+    notesImprovements: 'Melhorias',
+    notesFixes: 'Correções',
+    notesOther: 'Notas'
   },
   'en-US': {
     availableTitle: 'Update available',
@@ -1362,7 +1372,11 @@ const UPDATE_I18N = {
     downloadNow: 'Download',
     installNow: 'Restart',
     later: 'Later',
-    retry: 'Try again'
+    retry: 'Try again',
+    notesNew: "What's new",
+    notesImprovements: 'Improvements',
+    notesFixes: 'Fixes',
+    notesOther: 'Notes'
   },
   'es-ES': {
     availableTitle: 'Actualización disponible',
@@ -1377,7 +1391,11 @@ const UPDATE_I18N = {
     downloadNow: 'Descargar',
     installNow: 'Reiniciar',
     later: 'Después',
-    retry: 'Reintentar'
+    retry: 'Reintentar',
+    notesNew: 'Novedades',
+    notesImprovements: 'Mejoras',
+    notesFixes: 'Correcciones',
+    notesOther: 'Notas'
   },
   'fr-FR': {
     availableTitle: 'Mise à jour disponible',
@@ -1392,7 +1410,11 @@ const UPDATE_I18N = {
     downloadNow: 'Télécharger',
     installNow: 'Redémarrer',
     later: 'Plus tard',
-    retry: 'Réessayer'
+    retry: 'Réessayer',
+    notesNew: 'Nouveautés',
+    notesImprovements: 'Améliorations',
+    notesFixes: 'Corrections',
+    notesOther: 'Notes'
   },
   'de-DE': {
     availableTitle: 'Update verfügbar',
@@ -1407,7 +1429,11 @@ const UPDATE_I18N = {
     downloadNow: 'Laden',
     installNow: 'Neu starten',
     later: 'Später',
-    retry: 'Erneut versuchen'
+    retry: 'Erneut versuchen',
+    notesNew: 'Neu',
+    notesImprovements: 'Verbesserungen',
+    notesFixes: 'Korrekturen',
+    notesOther: 'Hinweise'
   },
   'it-IT': {
     availableTitle: 'Aggiornamento disponibile',
@@ -1422,7 +1448,11 @@ const UPDATE_I18N = {
     downloadNow: 'Scarica',
     installNow: 'Riavvia',
     later: 'Dopo',
-    retry: 'Riprova'
+    retry: 'Riprova',
+    notesNew: 'Novità',
+    notesImprovements: 'Miglioramenti',
+    notesFixes: 'Correzioni',
+    notesOther: 'Note'
   }
 } as const
 

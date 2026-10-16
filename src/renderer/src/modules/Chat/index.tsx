@@ -132,7 +132,7 @@ export const Chat = ({ overlay = false, live = false }: { overlay?: boolean; liv
         platform: 'kick' as const,
         author: {
           name: data.sender?.username || 'Kick User',
-          color: data.sender.identity.color ?? '#00ff00',
+          color: data.sender?.identity?.color ?? '#00ff00',
           badges: data.sender?.identity?.badges
         },
         message: {

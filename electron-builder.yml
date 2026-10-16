@@ -1,6 +1,6 @@
 appId: com.devrogerinho.boochat
 productName: BooChat
-buildVersion: 1.2.1,
+buildVersion: 1.2.2,
 directories:
   buildResources: build
   output: dist
@@ -8,7 +8,7 @@ files:
   - '!**/.vscode/*'
   - '!src/*'
   - '!electron.vite.config.{js,ts,mjs,cjs}'
-  - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md,release-notes.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
   - '!build/**'
@@ -132,6 +132,8 @@ compression: maximum
 removePackageScripts: true
 
 # Configurações para auto-update
+releaseInfo:
+  releaseNotesFile: release-notes.md
 publish:
   provider: github
   releaseType: release

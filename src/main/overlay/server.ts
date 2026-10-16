@@ -7,6 +7,7 @@ import { loadAppConfig } from '../config/store'
 import {
   fetchEmotesApiProxy,
   fetchKickChannelProxy,
+  fetchKickRealtimeProxy,
   fetchTwitchApiProxy,
   fetchYouTubeProxy
 } from '../http/proxies'
@@ -17,7 +18,7 @@ const PREFERRED_PORT = 3847
 const HOST = '127.0.0.1'
 
 const OVERLAY_CSP =
-  "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' http://127.0.0.1:* http://localhost:* ws://127.0.0.1:* ws://localhost:* wss://irc-ws.chat.twitch.tv wss://ws-mt1.pusher.com wss://ws-us2.pusher.com wss://ws-eu.pusher.com wss://ws-ap-southeast-1.pusher.com wss://ws-us-east-1.pusher.com https://kick.com https://api.kick.com https://www.youtube.com https://youtube.com https://m.youtube.com https://events.7tv.io https://twshot.0r1.org; frame-src 'none'"
+  "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' http://127.0.0.1:* http://localhost:* ws://127.0.0.1:* ws://localhost:* wss://irc-ws.chat.twitch.tv wss://ws-mt1.pusher.com wss://ws-us2.pusher.com wss://ws-us3.pusher.com wss://ws-eu.pusher.com wss://ws-ap-southeast-1.pusher.com wss://ws-us-east-1.pusher.com https://kick.com https://web.kick.com https://api.kick.com https://www.youtube.com https://youtube.com https://m.youtube.com https://events.7tv.io https://twshot.0r1.org; frame-src 'none'"
 
 const MIME_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -200,6 +201,10 @@ function createExpressApp(): express.Express {
 
   api.get('/kick/channels/:slug', async (req, res) => {
     res.json(await fetchKickChannelProxy(req.params.slug))
+  })
+
+  api.get('/kick/realtime/:channelId', async (req, res) => {
+    res.json(await fetchKickRealtimeProxy(req.params.channelId))
   })
 
   api.get('/twshot/resolve', async (req, res) => {

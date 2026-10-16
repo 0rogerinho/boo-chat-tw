@@ -93,6 +93,12 @@ async function invokeChannel(channel: string, ...args: any[]): Promise<any> {
     return response.json()
   }
 
+  if (channel === 'fetch-kick-realtime') {
+    const channelId = encodeURIComponent(String(args[0] ?? ''))
+    const response = await fetch(`/api/kick/realtime/${channelId}`)
+    return response.json()
+  }
+
   if (channel === 'twshot-resolve') {
     const service = encodeURIComponent(String(args[0] ?? ''))
     const id = encodeURIComponent(String(args[1] ?? ''))

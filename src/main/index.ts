@@ -7,11 +7,13 @@ import { createTray } from './tray'
 import { platform } from './platform'
 import { startOverlayServer, stopOverlayServer } from './overlay/server'
 import { setupAutoUpdater } from './updater'
+import { installKickCorsBypass } from './http/kickCors'
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  installKickCorsBypass()
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.devrogerinho.boochat')
 

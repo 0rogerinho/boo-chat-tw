@@ -1,3 +1,5 @@
+import { net } from 'electron'
+
 const YOUTUBE_HOSTS = new Set(['www.youtube.com', 'youtube.com', 'm.youtube.com'])
 
 function isAllowedYouTubeUrl(url: string): boolean {
@@ -156,34 +158,152 @@ export async function fetchEmotesApiProxy(url: string) {
   }
 }
 
-export async function fetchKickChannelProxy(slug: string) {
-  const cleanSlug = slug.trim().replace(/^@/, '')
-  if (!/^[a-zA-Z0-9_-]{1,50}$/.test(cleanSlug)) {
-    return { success: false, error: 'Slug do Kick inválido' }
+const KICK_BROWSER_UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+
+export const KICK_PUSHER_FALLBACK = {
+  app_key: '34bf7a0ff419a2a775b9',
+  cluster: 'us2'
+}
+
+function isValidKickPusherCredentials(appKey: string, cluster: string): boolean {
+  return /^[a-zA-Z0-9]{8,64}$/.test(appKey) && /^[a-zA-Z0-9-]{2,32}$/.test(cluster)
+}
+
+function kickRequest(url: string, init?: RequestInit): Promise<Response> {
+  if (typeof net?.fetch === 'function') {
+    return net.fetch(url, init)
+  }
+  return fetch(url, init)
+}
+
+async function readKickJson(response: Response) {
+  const text = await response.text()
+  const trimmed = text.trim()
+  if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+    return null
   }
 
   try {
-    const response = await fetch(`https://kick.com/api/v1/channels/${cleanSlug}`, {
+    return JSON.parse(trimmed) as unknown
+  } catch {
+    return null
+  }
+}
+
+async function fetchKickJson(url: string) {
+  try {
+    const response = await kickRequest(url, {
       method: 'GET',
       headers: {
         Accept: 'application/json',
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        Origin: 'https://kick.com',
+        Referer: 'https://kick.com/',
+        'User-Agent': KICK_BROWSER_UA
       }
     })
 
+    const data = await readKickJson(response)
     if (!response.ok) {
       return {
-        success: false,
+        success: false as const,
         status: response.status,
         error: `HTTP ${response.status} ao acessar Kick`
       }
     }
 
-    const data = await response.json()
-    return { success: true, data }
+    if (data == null) {
+      return {
+        success: false as const,
+        status: response.status,
+        error: 'Resposta inválida da Kick'
+      }
+    }
+
+    return { success: true as const, status: response.status, data }
   } catch (error) {
-    console.error('Erro ao buscar canal da Kick:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }
+    console.error('Erro ao buscar JSON da Kick:', error)
+    return {
+      success: false as const,
+      error: error instanceof Error ? error.message : 'Erro desconhecido'
+    }
   }
+}
+
+export async function fetchKickChannelProxy(slug: string) {
+  const cleanSlug = slug.trim().replace(/^@/, '').toLowerCase()
+  if (!/^[a-zA-Z0-9_-]{1,50}$/.test(cleanSlug)) {
+    return { success: false, error: 'Slug do Kick inválido' }
+  }
+
+  const v2 = await fetchKickJson(`https://kick.com/api/v2/channels/${cleanSlug}`)
+  if (v2.success) return v2
+
+  const v1 = await fetchKickJson(`https://kick.com/api/v1/channels/${cleanSlug}`)
+  if (v1.success) return v1
+
+  return v2.error ? v2 : v1
+}
+
+function pickKickPusherCredentials(payload: unknown): { app_key: string; cluster: string } | null {
+  if (!payload || typeof payload !== 'object') return null
+
+  const root = payload as Record<string, any>
+  const connections = Array.isArray(root?.data?.connections)
+    ? root.data.connections
+    : Array.isArray(root?.connections)
+      ? root.connections
+      : []
+
+  const pusher = connections.find(
+    (item: unknown) =>
+      Boolean(item && typeof item === 'object' && (item as { provider?: string }).provider === 'pusher')
+  ) as { credentials?: { app_key?: unknown; cluster?: unknown } } | undefined
+
+  const appKey = String(pusher?.credentials?.app_key ?? '')
+  const cluster = String(pusher?.credentials?.cluster ?? '')
+  if (!isValidKickPusherCredentials(appKey, cluster)) return null
+  return { app_key: appKey, cluster }
+}
+
+export async function fetchKickRealtimeProxy(channelId: string) {
+  const cleanId = String(channelId).trim()
+  if (!/^[0-9]{1,20}$/.test(cleanId)) {
+    return { success: true, data: KICK_PUSHER_FALLBACK }
+  }
+
+  const body = JSON.stringify({
+    client: { id: crypto.randomUUID(), type: 'web' },
+    capabilities: { accepted_providers: [{ provider: 'pusher' }] }
+  })
+
+  const urls = [
+    `https://web.kick.com/api/v1/realtime/channels/${cleanId}/chat/connection`,
+    'https://web.kick.com/api/v1/realtime/connection'
+  ]
+
+  for (const url of urls) {
+    try {
+      const response = await kickRequest(url, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Origin: 'https://kick.com',
+          Referer: 'https://kick.com/',
+          'User-Agent': KICK_BROWSER_UA,
+          'x-app-platform': 'web'
+        },
+        body
+      })
+
+      if (!response.ok) continue
+      const credentials = pickKickPusherCredentials(await readKickJson(response))
+      if (credentials) return { success: true, data: credentials }
+    } catch (error) {
+      console.error('Erro ao negociar realtime da Kick:', error)
+    }
+  }
+
+  return { success: true, data: KICK_PUSHER_FALLBACK }
 }

@@ -2,8 +2,14 @@ import { useConfigStore } from '../../../shared/store/useConfigStore'
 import { useEffect, useRef, useState } from 'react'
 import Pusher from 'pusher-js'
 import { getChatSystemTextWithParams } from '../../../shared/i18n'
-import { isElectronRuntime } from '../../../shared/overlay/runtime'
 import { kickLevelBadgeImage } from '../../../shared/constants/kickBadgeImages'
+import {
+  extractKickIds,
+  fetchKickChannel,
+  fetchKickPusherConfig,
+  normalizeKickSlug,
+  parseKickEventData
+} from '../../../shared/api/kickChat'
 import {
   extractKickSubscriberBadges,
   extractKickUserLevel,
@@ -33,31 +39,65 @@ type TKickChat = {
   timestamp: number
 }
 
+function processKickEmojis(message: string): string {
+  const emojiRegex = /\[emote:(\d+):([^\]]+)\]/g
+
+  return message.replace(emojiRegex, (_, emoteId, emoteName) => {
+    return safeChatImageHtml(`https://files.kick.com/emotes/${emoteId}/fullsize`, 'emote', {
+      alt: String(emoteName ?? ''),
+      title: String(emoteName ?? ''),
+      style: 'display:inline;width:24px;height:24px;vertical-align:middle;margin:0 2px'
+    })
+  })
+}
+
+function kickSystemMessage(
+  id: string,
+  content: string,
+  messageRef: string
+): TKickChat {
+  return {
+    id,
+    content,
+    type: 'message',
+    created_at: '',
+    sender: {
+      id: 123123,
+      username: 'Kick-connect',
+      slug: '',
+      identity: {
+        color: '#52fb17',
+        badges: []
+      }
+    },
+    metadata: {
+      message_ref: messageRef
+    },
+    timestamp: Date.now()
+  }
+}
+
+function pusherErrorCode(error: unknown): number {
+  const root = error && typeof error === 'object' ? (error as Record<string, any>) : null
+  const code = Number(root?.error?.data?.code ?? root?.data?.code ?? root?.code)
+  return Number.isFinite(code) ? code : 0
+}
+
 export default function useKickChat() {
   const [kickChat, setKickChat] = useState<TKickChat[]>([])
   const [isConnected, setIsConnected] = useState(false)
 
   const { config } = useConfigStore()
   const subscriberBadgesRef = useRef<KickSubscriberBadge[]>([])
-
-  // Função para processar emojis da Kick
-  const processKickEmojis = (message: string): string => {
-    const emojiRegex = /\[emote:(\d+):([^\]]+)\]/g
-
-    return message.replace(emojiRegex, (_, emoteId, emoteName) => {
-      return safeChatImageHtml(`https://files.kick.com/emotes/${emoteId}/fullsize`, 'emote', {
-        alt: String(emoteName ?? ''),
-        title: String(emoteName ?? ''),
-        style: 'display:inline;width:24px;height:24px;vertical-align:middle;margin:0 2px'
-      })
-    })
-  }
+  const slug = normalizeKickSlug(config?.kick.slug ?? '')
 
   useEffect(() => {
-    if (!config?.kick.slug) return
+    if (!slug) return
 
     let active = true
     let pusher: Pusher | null = null
+    let retryDelay = 1500
+    let retryTimer: ReturnType<typeof setTimeout> | null = null
 
     const appendKick = (incoming: TKickChat) => {
       setKickChat((prev) => {
@@ -76,80 +116,87 @@ export default function useKickChat() {
       })
     }
 
+    const disconnectPusher = () => {
+      if (!pusher) return
+      try {
+        pusher.allChannels().forEach((subscribed) => {
+          pusher?.unsubscribe(subscribed.name)
+        })
+        pusher.unbind_all()
+        pusher.disconnect()
+      } catch {
+        // ignore cleanup errors
+      }
+      pusher = null
+    }
+
+    const scheduleRetry = () => {
+      if (!active || retryTimer) return
+      retryTimer = setTimeout(() => {
+        retryTimer = null
+        void connectToKick()
+      }, retryDelay)
+      retryDelay = Math.min(15000, Math.floor(retryDelay * 1.7))
+    }
+
     const connectToKick = async () => {
+      disconnectPusher()
+      if (!active) return
+
       try {
         subscriberBadgesRef.current = []
-        appendKick({
-          id: `kick-connecting-${config.kick.slug}`,
-            content: getChatSystemTextWithParams(config.language, 'connecting', {
-              channel: config.kick.slug
-            }),
-            type: 'message',
-            created_at: '',
-            sender: {
-              id: 123123,
-              username: 'Kick-connect',
-              slug: '',
-              identity: {
-                color: '#52fb17',
-                badges: []
-              }
-            },
-            metadata: {
-              message_ref: 'Conexão-Kick'
-            },
-          timestamp: Date.now()
-        })
-        const channelResponse = isElectronRuntime
-          ? await fetch(`https://kick.com/api/v1/channels/${encodeURIComponent(config.kick.slug)}`)
-          : await fetch(`/api/kick/channels/${encodeURIComponent(config.kick.slug)}`)
-        const channelPayload = await channelResponse.json()
+        appendKick(
+          kickSystemMessage(
+            `kick-connecting-${slug}`,
+            getChatSystemTextWithParams(config?.language, 'connecting', { channel: slug }),
+            'Conexão-Kick'
+          )
+        )
+
+        const channelResult = await fetchKickChannel(slug)
         if (!active) return
-        const channelData = isElectronRuntime ? channelPayload : channelPayload.data
+
+        const channelData = channelResult.data
+        const ids = extractKickIds(channelData) ?? extractKickIds(channelResult)
         subscriberBadgesRef.current = extractKickSubscriberBadges(channelData)
 
-        if (!channelData?.chatroom?.id) {
-          console.error('Canal não encontrado:', config.kick.slug)
+        if (!ids) {
+          console.error('Canal Kick não encontrado:', slug, channelResult)
+          appendKick(
+            kickSystemMessage(
+              `kick-not-found-${slug}`,
+              getChatSystemTextWithParams(
+                config?.language,
+                channelResult.success === false ? 'connectionFailed' : 'channelNotFound',
+                { channel: slug }
+              ),
+              `kick-not-found-${slug}`
+            )
+          )
+          setIsConnected(false)
+          scheduleRetry()
           return
         }
 
-        // Conectar ao Pusher com a chave que funciona
-        pusher = new Pusher('32cbd69e4b950bf97679', {
-          cluster: 'us2',
+        const pusherConfig = await fetchKickPusherConfig(ids.channelId)
+        if (!active) return
+
+        pusher = new Pusher(pusherConfig.app_key, {
+          cluster: pusherConfig.cluster,
           forceTLS: true,
           enabledTransports: ['wss', 'ws']
         })
 
-        if (!active) {
-          pusher.disconnect()
-          pusher = null
-          return
-        }
-
         pusher.connection.bind('connected', () => {
           if (!active) return
-          appendKick({
-            id: `kick-connected-${config.kick.slug}`,
-            content: getChatSystemTextWithParams(config.language, 'connected', {
-              channel: config.kick.slug
-            }),
-            type: 'message',
-            created_at: '',
-            sender: {
-              id: 123123,
-              username: 'Kick-connect',
-              slug: '',
-              identity: {
-                color: '#52fb17',
-                badges: []
-              }
-            },
-            metadata: {
-              message_ref: `kick-connected-${config.kick.slug}`
-            },
-            timestamp: Date.now()
-          })
-
+          retryDelay = 1500
+          appendKick(
+            kickSystemMessage(
+              `kick-connected-${slug}`,
+              getChatSystemTextWithParams(config?.language, 'connected', { channel: slug }),
+              `kick-connected-${slug}`
+            )
+          )
           setIsConnected(true)
         })
 
@@ -157,22 +204,28 @@ export default function useKickChat() {
           setIsConnected(false)
         })
 
-        pusher.connection.bind('error', () => {
+        pusher.connection.bind('error', (error) => {
           setIsConnected(false)
+          const code = pusherErrorCode(error)
+          if (code >= 4000 && code < 4100) {
+            disconnectPusher()
+            scheduleRetry()
+          }
         })
 
-        const channelName = `chatrooms.${channelData.chatroom.id}.v2`
+        const channelName = `chatrooms.${ids.chatroomId}.v2`
         const channel = pusher.subscribe(channelName)
 
         if (!active) {
-          pusher.unsubscribe(channelName)
-          pusher.disconnect()
-          pusher = null
+          disconnectPusher()
           return
         }
 
-        channel.bind('App\\Events\\ChatMessageEvent', (data) => {
+        channel.bind('App\\Events\\ChatMessageEvent', (raw) => {
           if (!active) return
+          const data = parseKickEventData(raw)
+          if (!data) return
+
           const originalContent = data.content || data.message || ''
           const processedContent = processKickEmojis(originalContent)
           const badges = mapKickIdentity(data.sender?.identity, subscriberBadgesRef.current)
@@ -188,15 +241,21 @@ export default function useKickChat() {
           }
 
           appendKick({
-            ...data,
-            id: data.id || `kick-${Date.now()}-${data.sender?.username ?? 'user'}`,
+            id: String(data.id || `kick-${Date.now()}-${data.sender?.username ?? 'user'}`),
             content: processedContent,
+            type: String(data.type || 'message'),
+            created_at: String(data.created_at || ''),
             sender: {
-              ...data.sender,
+              id: Number(data.sender?.id) || 0,
+              username: String(data.sender?.username || 'Kick User'),
+              slug: String(data.sender?.slug || ''),
               identity: {
-                ...data.sender?.identity,
+                color: String(data.sender?.identity?.color || '#00ff00'),
                 badges
               }
+            },
+            metadata: {
+              message_ref: String(data.metadata?.message_ref || data.id || '')
             },
             timestamp: Date.now()
           })
@@ -204,23 +263,28 @@ export default function useKickChat() {
       } catch (error) {
         console.error('Erro ao conectar ao Kick:', error)
         setIsConnected(false)
+        appendKick(
+          kickSystemMessage(
+            `kick-error-${slug}`,
+            getChatSystemTextWithParams(config?.language, 'connectionFailed', { channel: slug }),
+            `kick-error-${slug}`
+          )
+        )
+        scheduleRetry()
       }
     }
 
-    connectToKick()
+    void connectToKick()
 
     return () => {
       active = false
-      if (pusher) {
-        pusher.allChannels().forEach((subscribed) => {
-          pusher?.unsubscribe(subscribed.name)
-        })
-        pusher.unbind_all()
-        pusher.disconnect()
-        pusher = null
+      if (retryTimer) {
+        clearTimeout(retryTimer)
+        retryTimer = null
       }
+      disconnectPusher()
     }
-  }, [config?.kick.slug])
+  }, [slug, config?.language])
 
   return { kickChat, isConnected }
 }

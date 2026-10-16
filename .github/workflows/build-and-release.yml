@@ -36,7 +36,8 @@ jobs:
         include:
           - os: windows-latest
             publish_script: publish:win
-          - os: macos-latest
+          # macos-latest migrou para macOS 26 e quebra o electron-builder 24 (hdiutil/DMG).
+          - os: macos-15
             publish_script: publish:mac
           - os: ubuntu-latest
             publish_script: publish:linux
@@ -72,3 +73,4 @@ jobs:
         run: pnpm run ${{ matrix.publish_script }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ startsWith(matrix.os, 'macos') && 'false' || 'true' }}

@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/versão-1.2.2-7c3aed" alt="Versão 1.2.2" />
+  <img src="https://img.shields.io/badge/versão-1.2.3-7c3aed" alt="Versão 1.2.3" />
   <img src="https://img.shields.io/badge/Windows-0078D6?logo=windows&logoColor=white" alt="Windows" />
   <img src="https://img.shields.io/badge/macOS-000000?logo=apple&logoColor=white" alt="macOS" />
   <img src="https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black" alt="Linux" />
@@ -105,7 +105,7 @@ O BooChat precisa ficar aberto para o overlay funcionar.
 
 | Sistema | Arquivo |
 | --- | --- |
-| **Windows** | Instalador (`BooChat-1.2.2-windows-setup.exe`) ou versão portable |
+| **Windows** | Instalador (`BooChat-1.2.3-windows-setup.exe`) ou versão portable |
 | **macOS** | DMG para Intel e Apple Silicon |
 | **Linux** | AppImage, DEB ou RPM |
 
